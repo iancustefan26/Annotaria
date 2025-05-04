@@ -1,0 +1,21 @@
+Stocare foto/video:
+	- BLOB in BD
+	- Cloud variante: Cloudinary
+
+Hash parole:
+	-
+
+Tech stack:
+	- Backend:
+		- Java
+
+	- Frontend:
+		-Javascript, NodeJS
+
+	- Database:
+		- Oracle SGBD
+		- PLSQL
+
+	- External API for photos/videos:
+		- Unsplash API
+
