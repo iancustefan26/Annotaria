@@ -13,6 +13,7 @@ public class DatabaseConnectionPool{
     public static HikariDataSource getPool() throws SQLException {
         if(pool == null){
             HikariConfig config = new HikariConfig();
+            config.setDriverClassName("oracle.jdbc.OracleDriver");
             config.setJdbcUrl("jdbc:oracle:thin:@//localhost:1523/FREEPDB1");
             config.setUsername("api_test");
             config.setPassword("api_test");
