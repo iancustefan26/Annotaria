@@ -1,4 +1,4 @@
-package org.example;
+package org.example.webapp;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
