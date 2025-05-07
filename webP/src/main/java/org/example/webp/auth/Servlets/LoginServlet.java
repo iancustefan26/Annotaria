@@ -37,7 +37,8 @@ public class LoginServlet extends HttpServlet {
             User user = userRepository.findByUsername(username);
             if (user != null && user.getPassword().equals(password)) {
                 HttpSession session = request.getSession(true);
-                session.setAttribute("user", user);
+                session.setAttribute("username", username);
+                System.out.println(user.getUsername());
                 response.sendRedirect("welcome.jsp");
             } else {
                 response.sendRedirect("login.jsp?error=invalid");
