@@ -1,29 +1,30 @@
 #!/bin/bash
 
-docker stop webDB 2>/dev/null
-docker rm webDB 2>/dev/null
+docker stop oracle-web 2>/dev/null
+docker rm oracle-web 2>/dev/null
 
-# Run Oracle container
-docker run --name webDB -d -p 1523:1521 -e ORACLE_PASSWORD=api_test gvenzl/oracle-free
+docker run --name oracle-web -d -p 1521:1521 -e ORACLE_PASSWORD=api_test gvenzl/oracle-free
 
-# Copy SQL scripts into container
-docker cp create_user.sql webDB:/tmp/create_user.sql
-docker cp create_tables.sql webDB:/tmp/create_tables.sql
-docker cp create_seq.sql webDB:/tmp/create_seq.sql
+docker cp create_user.sql oracle-web:/tmp/
+docker cp create_tables.sql oracle-web:/tmp/
+docker cp create_seq.sql oracle-web:/tmp/
+docker cp tables_populate.sql oracle-web:/tmp/
 
 echo "Waiting for Oracle to be ready..."
-until docker logs webDB 2>&1 | grep -q "DATABASE IS READY TO USE"; do
+until docker logs oracle-web 2>&1 | grep -q "DATABASE IS READY TO USE"; do
   sleep 2
 done
 echo "Oracle is ready!"
 
-docker exec -it webDB sqlplus sys/api_test@localhost:1521/FREEPDB1 as sysdba @/tmp/create_user.sql
 
-sleep 2
-
-docker exec -it webDB sqlplus api_test/api_test@localhost:1521/FREEPDB1 @/tmp/create_tables.sql
+docker exec -it oracle-web sqlplus sys/api_test as sysdba @/tmp/create_user.sql
 sleep 1
-docker exec -it webDB sqlplus api_test/api_test@localhost:1521/FREEPDB1 @/tmp/create_seq.sql
+docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_tables.sql
 sleep 1
+docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_seq.sql
+sleep 1
+docker exec -it oracle-web sqlplus api_test/api_test @/tmp/tables_populate.sql
 
-echo "Setup complete. You can now connect with: api_test/api_test@localhost:1521/FREEPDB1"
+
+echo "For more info about the docker image: https://hub.docker.com/r/gvenzl/oracle-free"
+echo "Connect with api_test/api_test"

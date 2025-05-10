@@ -1,72 +1,81 @@
--- Create table for categories
-CREATE TABLE categories (
-    id NUMBER GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
-    name VARCHAR2(255) NOT NULL
+-- 1. USER
+CREATE TABLE USERS (
+  id              NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  username        VARCHAR2(50)   NOT NULL UNIQUE,
+  password_hash   VARCHAR2(512)  NOT NULL,
+  email           VARCHAR2(255)  NOT NULL UNIQUE
 );
 
--- Create table for users
-CREATE TABLE users (
-    id NUMBER GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
-    username VARCHAR2(50) NOT NULL UNIQUE,
-    password_hash VARCHAR2(255) NOT NULL,
-    email VARCHAR2(255) NOT NULL UNIQUE
+-- 2. CATEGORY
+CREATE TABLE CATEGORY (
+  id              NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  name            VARCHAR2(100)  NOT NULL UNIQUE
 );
 
--- Create table for posts
-CREATE TABLE posts (
-    id NUMBER GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
-    authorid NUMBER NOT NULL,
-    categoryid NUMBER NOT NULL,
-    media_blob VARCHAR2(4000),
-    external_media_url VARCHAR2(4000),
-    creation_year NUMBER,
-    date_posted DATE NOT NULL,
-    description VARCHAR2(4000),
-    likes_count NUMBER DEFAULT 0,
-    comments_count NUMBER DEFAULT 0,
-    CONSTRAINT fk_posts_author FOREIGN KEY (authorid) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_posts_category FOREIGN KEY (categoryid) REFERENCES categories(id)
+-- 3. NAMED_TAGS
+CREATE TABLE NAMED_TAGS (
+  id              NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  name            VARCHAR2(100)  NOT NULL UNIQUE
 );
 
--- Create table for name_tags
-CREATE TABLE name_tags (
-    id NUMBER GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
-    postid NUMBER NOT NULL,
-    name VARCHAR2(255) NOT NULL,
-    CONSTRAINT fk_name_tags_post FOREIGN KEY (postid) REFERENCES posts(id) ON DELETE CASCADE
+-- 4. POST
+CREATE TABLE POST (
+  id               NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  author_id        NUMBER  NOT NULL                       REFERENCES USERS(id)       ON DELETE CASCADE,
+  category_id      NUMBER                        REFERENCES CATEGORY(id)   ON DELETE CASCADE,
+  media_blob       BLOB,
+  external_media_url VARCHAR2(512),
+  creation_year    NUMBER(4),
+  date_posted      TIMESTAMP DEFAULT SYSTIMESTAMP,
+  description      VARCHAR2(2000),
+  likes_count      NUMBER        DEFAULT 0        NOT NULL,
+  comments_count   NUMBER        DEFAULT 0        NOT NULL
 );
 
--- Create table for user_tags
-CREATE TABLE user_tags (
-    id NUMBER GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
-    postid NUMBER NOT NULL,
-    user_taggedid NUMBER NOT NULL,
-    user_authorid NUMBER NOT NULL,
-    CONSTRAINT fk_user_tags_post FOREIGN KEY (postid) REFERENCES posts(id) ON DELETE CASCADE,
-    CONSTRAINT fk_user_tags_tagged FOREIGN KEY (user_taggedid) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_user_tags_author FOREIGN KEY (user_authorid) REFERENCES users(id) ON DELETE CASCADE
+-- 5. LIKES
+CREATE TABLE LIKES (
+  id        NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id   NUMBER NOT NULL REFERENCES USERS(id)     ON DELETE CASCADE,
+  post_id   NUMBER NOT NULL REFERENCES POST(id)       ON DELETE CASCADE,
+  CONSTRAINT uq_likes_user_post UNIQUE(user_id, post_id)
 );
 
--- Create table for comments
-CREATE TABLE comments (
-    id NUMBER GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
-    postid NUMBER NOT NULL,
-    userid NUMBER NOT NULL,
-    content VARCHAR2(4000) NOT NULL,
-    CONSTRAINT fk_comments_post FOREIGN KEY (postid) REFERENCES posts(id) ON DELETE CASCADE,
-    CONSTRAINT fk_comments_user FOREIGN KEY (userid) REFERENCES users(id) ON DELETE CASCADE
+-- 6. COMMENTS
+CREATE TABLE COMMENTS (
+  id         NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  post_id    NUMBER NOT NULL REFERENCES POST(id)     ON DELETE CASCADE,
+  user_id    NUMBER     REFERENCES USERS(id)         ON DELETE CASCADE,
+  content    VARCHAR2(1000)       NOT NULL,
+  created_at TIMESTAMP  DEFAULT SYSTIMESTAMP
 );
 
--- Create table for likes
-CREATE TABLE likes (
-    id NUMBER GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
-    userid NUMBER NOT NULL,
-    postid NUMBER NOT NULL,
-    CONSTRAINT fk_likes_user FOREIGN KEY (userid) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_likes_post FOREIGN KEY (postid) REFERENCES posts(id) ON DELETE CASCADE,
-    CONSTRAINT uk_likes UNIQUE (userid, postid)
+-- 7. CATEGORY_FRAMES (M–N între CATEGORY și POST)
+CREATE TABLE CATEGORY_FRAMES (
+  category_id NUMBER NOT NULL REFERENCES CATEGORY(id) ON DELETE CASCADE,
+  post_id     NUMBER NOT NULL REFERENCES POST(id)     ON DELETE CASCADE,
+  CONSTRAINT pk_cat_frames PRIMARY KEY(category_id, post_id)
 );
 
+-- 8. NAMED_TAG_FRAMES (M–N între NAMED_TAGS și POST)
+CREATE TABLE NAMED_TAG_FRAMES (
+  named_tag_id NUMBER NOT NULL REFERENCES NAMED_TAGS(id) ON DELETE CASCADE,
+  post_id      NUMBER NOT NULL REFERENCES POST(id)       ON DELETE CASCADE,
+  CONSTRAINT pk_named_tag_frames PRIMARY KEY(named_tag_id, post_id)
+);
+
+-- 9. USER_TAG_FRAMES
+--    un user A etichetează un user B în cadrul unui post
+CREATE TABLE USER_TAG_FRAMES (
+  post_id         NUMBER NOT NULL REFERENCES POST(id)       ON DELETE CASCADE,
+  user_author_id  NUMBER NOT NULL REFERENCES USERS(id)     ON DELETE CASCADE,
+  user_tagged_id  NUMBER NOT NULL REFERENCES USERS(id)     ON DELETE CASCADE,
+  CONSTRAINT pk_user_tag_frames PRIMARY KEY(post_id, user_author_id, user_tagged_id)
+);
+
+-- INDEXURI
+CREATE INDEX idx_post_date     ON POST(date_posted);
+CREATE INDEX idx_comments_post ON COMMENTS(post_id);
+
+-- COMMIT
 COMMIT;
-EXIT;
-
+exit;
