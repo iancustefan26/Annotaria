@@ -1,66 +1,127 @@
-SET DEFINE OFF;
--- 1. UTILIZATORI
-INSERT INTO USERS(username, password_hash, email) VALUES
-  ('alice',   'hash_alice',   'alice@example.com'),
-  ('bob',     'hash_bob',     'bob@example.com'),
-  ('charlie', 'hash_charlie', 'charlie@example.com');
+-- Populate USERS
+BEGIN
+  FOR i IN 1..15 LOOP
+    INSERT INTO USERS (username, password_hash, email)
+    VALUES (
+      'user' || i,
+      'hash' || i,
+      'user' || i || '@example.com'
+    );
+  END LOOP;
+END;
+/
 
--- 2. CATEGORII
-INSERT INTO CATEGORY(name) VALUES
-  ('Photography'),
-  ('Videography'),
-  ('Art');
+-- Populate CATEGORY
+BEGIN
+  FOR i IN 1..5 LOOP
+    INSERT INTO CATEGORY (name) VALUES ('Category ' || i);
+  END LOOP;
+END;
+/
 
--- 3. ETICHETE DENUMITE
-INSERT INTO NAMED_TAGS(name) VALUES
-  ('#sunset'),
-  ('#portrait'),
-  ('#landscape');
+-- Populate NAMED_TAGS
+BEGIN
+  FOR i IN 1..5 LOOP
+    INSERT INTO NAMED_TAGS (name) VALUES ('Tag' || i);
+  END LOOP;
+END;
+/
 
--- 4. POSTĂRI
-INSERT INTO POST(author_id, category_id, media_blob, external_media_url, creation_year, description)
-VALUES
-  (1, 1, NULL, 'https://example.com/img1.jpg', 2024, 'My first sunset photo'),
-  (2, 2, NULL, 'https://example.com/video1.mp4', 2023, 'Quick timelapse'),
-  (1, 3, NULL, NULL,                 2024, 'Sketch I did yesterday'),
-  (3, 1, NULL, 'https://example.com/img2.png', 2022, 'Mountain landscape'),
-  (2, 3, NULL, NULL,                 2024, 'Abstract art piece');
+-- Populate POSTS
+BEGIN
+  FOR i IN 1..30 LOOP
+    INSERT INTO POST (
+      author_id,
+      category_id,
+      creation_year,
+      external_media_url,
+      description
+    )
+    VALUES (
+      MOD(i, 15) + 1,
+      MOD(i, 5) + 1,
+      2020 + MOD(i, 5),
+      'http://media.example.com/' || i,
+      'Sample description for post ' || i
+    );
+  END LOOP;
+END;
+/
 
--- 5. LIKE-uri
-INSERT INTO LIKES(user_id, post_id) VALUES
-  (2, 1),  -- bob dă like pozei lui alice
-  (3, 1),  -- charlie dă like pozei lui alice
-  (1, 2),  -- alice dă like videoului lui bob
-  (1, 4);  -- alice dă like peisajului lui charlie
+-- Populate LIKES
+-- Safe unique likes insert: Max 40 unique likes
+DECLARE
+  v_user_id NUMBER;
+  v_post_id NUMBER;
+  v_count   NUMBER := 0;
+BEGIN
+  FOR i IN 1..1000 LOOP  -- Big enough range to get 40 uniques
+    EXIT WHEN v_count >= 40;
+    v_user_id := MOD(i, 15) + 1;
+    v_post_id := MOD(i * 7, 30) + 1;
 
--- 6. COMENTARII
-INSERT INTO COMMENTS(post_id, user_id, content) VALUES
-  (1, 2, 'Great shot!'),
-  (1, 3, 'Amazing colors.'),
-  (2, 1, 'Cool timelapse!'),
-  (4, 1, 'Love this view.');
+    BEGIN
+      INSERT INTO LIKES (user_id, post_id)
+      VALUES (v_user_id, v_post_id);
+      v_count := v_count + 1;
+    EXCEPTION
+      WHEN DUP_VAL_ON_INDEX THEN
+        NULL; -- Skip duplicates
+    END;
+  END LOOP;
+END;
+/
 
--- 7. CATEGORY_FRAMES
-INSERT INTO CATEGORY_FRAMES(category_id, post_id) VALUES
-  (1, 1),
-  (2, 2),
-  (3, 3),
-  (1, 4),
-  (3, 5);
 
--- 8. NAMED_TAG_FRAMES
-INSERT INTO NAMED_TAG_FRAMES(named_tag_id, post_id) VALUES
-  (1, 1),  -- #sunset pe post 1
-  (2, 1),  -- #portrait pe post 1
-  (3, 4),  -- #landscape pe post 4
-  (1, 4),  -- #sunset pe post 4
-  (3, 5);  -- #landscape pe post 5
+-- Populate COMMENTS
+BEGIN
+  FOR i IN 1..20 LOOP
+    INSERT INTO COMMENTS (post_id, user_id, content)
+    VALUES (
+      MOD(i, 30) + 1,
+      MOD(i * 3, 15) + 1,
+      'This is a comment ' || i
+    );
+  END LOOP;
+END;
+/
 
--- 9. USER_TAG_FRAMES
---   alice îl etichetează pe bob pe post 2, bob îl etichetează pe charlie pe post 4
-INSERT INTO USER_TAG_FRAMES(post_id, user_author_id, user_tagged_id) VALUES
-  (2, 1, 2),
-  (4, 2, 3);
+-- Populate CATEGORY_FRAMES
+BEGIN
+  FOR i IN 1..30 LOOP
+    INSERT INTO CATEGORY_FRAMES (category_id, post_id)
+    VALUES (
+      MOD(i, 5) + 1,
+      i
+    );
+  END LOOP;
+END;
+/
+
+-- Populate NAMED_TAG_FRAMES
+BEGIN
+  FOR i IN 1..30 LOOP
+    INSERT INTO NAMED_TAG_FRAMES (named_tag_id, post_id)
+    VALUES (
+      MOD(i, 5) + 1,
+      i
+    );
+  END LOOP;
+END;
+/
+
+-- Populate USER_TAG_FRAMES
+BEGIN
+  FOR i IN 1..10 LOOP
+    INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id)
+    VALUES (
+      MOD(i, 30) + 1,
+      MOD(i, 15) + 1,
+      MOD(i * 2, 15) + 1
+    );
+  END LOOP;
+END;
+/
 
 COMMIT;
-EXIT;
+exit;
