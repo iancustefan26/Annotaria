@@ -11,8 +11,6 @@ public class UserRepository extends AbstractRepository<User,Long>{
         super(em, User.class);
     }
 
-
-
     public boolean existsByUsername(String username) {
         try{
             em.getTransaction().begin();
