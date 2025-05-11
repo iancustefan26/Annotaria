@@ -1,10 +1,13 @@
 package org.example.wepproject.auth.Servlets;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.wepproject.auth.DAOs.UserDAO;
+import org.example.wepproject.auth.DTOs.ApiDTO;
+import org.example.wepproject.auth.DTOs.SignupDTO;
 import org.example.wepproject.auth.Models.User;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -14,10 +17,11 @@ import java.sql.SQLException;
 @WebServlet("/signup")
 public class SignupServlet extends HttpServlet {
     private UserDAO userDAO;
-
+    private ObjectMapper objectMapper;
     @Override
     public void init() {
         userDAO = new UserDAO();
+        objectMapper = new ObjectMapper();
     }
 
     @Override
@@ -27,25 +31,28 @@ public class SignupServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String username = req.getParameter("username");
-        String password = req.getParameter("password");
-        String email = req.getParameter("email");
-
-        if (username == null || password == null || email == null ||
+        resp.setContentType("application/json");
+        try{
+            SignupDTO signupDTO = objectMapper.readValue(req.getReader(), SignupDTO.class);
+            String username = signupDTO.getUsername();
+            String password = signupDTO.getPassword();
+            String email = signupDTO.getEmail();
+            if (username == null || password == null || email == null ||
                 username.isEmpty() || password.isEmpty() || email.isEmpty()) {
-            resp.sendRedirect(req.getContextPath() + "/signup.jsp?error=exists");
-            return;
-        }
-
-        try {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Username and password are required"));
+                return;
+            }
             // check username
             if (userDAO.findByUsername(username) != null) {
-                resp.sendRedirect(req.getContextPath() + "/signup.jsp?error=exists");
+                resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Username already exists"));
                 return;
             }
             // check email
             if (userDAO.findByEmail(email) != null) {
-                resp.sendRedirect(req.getContextPath() + "/signup.jsp?error=exists");
+                resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Email already exists"));
                 return;
             }
 
@@ -57,17 +64,10 @@ public class SignupServlet extends HttpServlet {
                     .email(email)
                     .build();
             userDAO.save(user);
-
-            resp.sendRedirect(req.getContextPath() + "/login.jsp?signup=success");
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "User created"));
         } catch (Exception e) {
-            String errorMessage = "Registration failed";
-            if (e.getCause() instanceof SQLException) {
-                SQLException sqlEx = (SQLException) e.getCause();
-                if (sqlEx.getErrorCode() == 1) {
-                    errorMessage = "Username or email already exists";
-                }
-            }
-            resp.sendRedirect(req.getContextPath() + "/signup.jsp?error=exists");
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", e.getMessage()));
         }
     }
 }

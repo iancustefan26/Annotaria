@@ -10,20 +10,51 @@
 <html>
 <head>
     <title>Login</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; }
+        .error { color: red; }
+        .success { color: green; }
+        form { display: flex; flex-direction: column; gap: 10px; }
+        input { padding: 8px; }
+        button { padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+    </style>
 </head>
 <body>
 <h2>Login</h2>
-<% if (request.getParameter("error") != null && request.getParameter("error").equals("invalid")) { %>
-<p style="color:red">Invalid username or password!</p>
-<% } %>
-<% if (request.getParameter("error") != null && request.getParameter("error").equals("db")) { %>
-<p style="color:red">Database error, please try again later!</p>
-<% } %>
-<form action="login" method="post">
-    <label>Username: <input type="text" name="username" required></label><br>
-    <label>Password: <input type="password" name="password" required></label><br>
-    <input type="submit" value="Login">
+<div id="message"></div>
+<form id="loginForm">
+    <label>Username: <input type="text" id="username" required></label>
+    <label>Password: <input type="password" id="password" required></label>
+    <button type="submit">Login</button>
 </form>
 <p>Don't have an account? <a href="signup.jsp">Sign up</a></p>
+
+<script>
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const messageDiv = document.getElementById("message");
+
+        try {
+            const response = await fetch("login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+            const result = await response.json();
+
+            if (result.status === "success") {
+                messageDiv.innerHTML = `<p class="success">${result.message}</p>`;
+                window.location.href = "welcome.jsp";
+            } else {
+                messageDiv.innerHTML = `<p class="error">${result.message}</p>`;
+            }
+        } catch (error) {
+            messageDiv.innerHTML = `<p class="error">Network error, please try again</p>`;
+        }
+    });
+</script>
 </body>
 </html>

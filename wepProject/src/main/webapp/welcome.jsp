@@ -8,9 +8,20 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <html>
-<head><title>Welcome</title></head>
+<head>
+    <title>Welcome</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
 <body>
+<% if (session.getAttribute("userId") == null) {
+    response.sendRedirect("login.jsp");
+    return;
+} %>
 <h2>Welcome, <%= session.getAttribute("username") %>!</h2>
-<a href="login.jsp">Logout</a>
+<a href="logout">Logout</a>
 </body>
 </html>

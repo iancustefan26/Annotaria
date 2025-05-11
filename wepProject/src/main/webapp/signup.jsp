@@ -12,27 +12,51 @@
     <title>Sign Up</title>
     <style>
         body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; }
-        p { margin: 10px 0; }
+        .error { color: red; }
+        .success { color: green; }
         form { display: flex; flex-direction: column; gap: 10px; }
         input { padding: 8px; }
-        input[type="submit"] { background-color: #28a745; color: white; border: none; cursor: pointer; }
-        input[type="submit"]:hover { background-color: #218838; }
+        button { padding: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #218838; }
     </style>
 </head>
 <body>
 <h2>Sign Up</h2>
-<% if (request.getParameter("error") != null && request.getParameter("error").equals("exists")) { %>
-<p style="color:red">Username or email already exists!</p>
-<% } %>
-<% if (request.getParameter("signup") != null && request.getParameter("signup").equals("success")) { %>
-<p style="color:green">Sign up successful! Please log in.</p>
-<% } %>
-<form action="signup" method="post">
-    <label>Username: <input type="text" name="username" required></label>
-    <label>Email: <input type="email" name="email" required></label>
-    <label>Password: <input type="password" name="password" required></label>
-    <input type="submit" value="Sign Up">
+<div id="message"></div>
+<form id="signupForm">
+    <label>Username: <input type="text" id="username" required></label>
+    <label>Email: <input type="email" id="email" required></label>
+    <label>Password: <input type="password" id="password" required></label>
+    <button type="submit">Sign Up</button>
 </form>
 <p>Already have an account? <a href="login.jsp">Log in</a></p>
+
+<script>
+    document.getElementById("signupForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = document.getElementById("username").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const messageDiv = document.getElementById("message");
+
+        try {
+            const response = await fetch("signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, email, password })
+            });
+            const result = await response.json();
+
+            if (result.status === "success") {
+                messageDiv.innerHTML = `<p class="success">${result.message}</p>`;
+                window.location.href = "login.jsp";
+            } else {
+                messageDiv.innerHTML = `<p class="error">${result.message}</p>`;
+            }
+        } catch (error) {
+            messageDiv.innerHTML = `<p class="error">Network error, please try again</p>`;
+        }
+    });
+</script>
 </body>
 </html>
