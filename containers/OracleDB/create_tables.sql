@@ -73,7 +73,26 @@ CREATE TABLE USER_TAG_FRAMES (
   CONSTRAINT pk_user_tag_frames PRIMARY KEY(post_id, user_author_id, user_tagged_id)
 );
 
--- INDEXURI
+-- 10. FRIENDSHIP
+-- relatia de interes/prietenie intre useri
+
+CREATE TABLE FRIENDSHIP(
+  user1_id NUMBER NOT NULL REFERENCES USERS(id)       ON DELETE CASCADE,
+  user2_id NUMBER NOT NULL REFERENCES USERS(id)       ON DELETE CASCADE,
+  interest NUMBER NOT NULL,
+  CONSTRAINT pk_friendship PRIMARY KEY (user1, user2)
+);
+
+-- 10. FRIENDSHIP
+-- relatia de interes/prietenie intre user si categorie
+
+CREATE TABLE CATEGORY_INTEREST(
+  user_id NUMBER NOT NULL REFERENCES USERS(id)       ON DELETE CASCADE,
+  interest NUMBER NOT NULL,
+  CONSTRAINT pk_friendship PRIMARY KEY (user1, user2)
+);
+
+-- INDECSI
 CREATE INDEX idx_post_date     ON POST(date_posted);
 CREATE INDEX idx_comments_post ON COMMENTS(post_id);
 

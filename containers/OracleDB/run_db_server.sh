@@ -9,6 +9,9 @@ docker cp create_user.sql oracle-web:/tmp/
 docker cp create_tables.sql oracle-web:/tmp/
 docker cp create_seq.sql oracle-web:/tmp/
 docker cp tables_populate.sql oracle-web:/tmp/
+docker cp create_logs.sql oracle-web:/tmp/
+docker cp create_post_triggers.sql oracle-web:/tmp/
+docker cp create_exceptions.sql oracle-web:/tmp/
 
 echo "Waiting for Oracle to be ready..."
 until docker logs oracle-web 2>&1 | grep -q "DATABASE IS READY TO USE"; do
@@ -24,7 +27,14 @@ sleep 1
 docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_seq.sql
 sleep 1
 docker exec -it oracle-web sqlplus api_test/api_test @/tmp/tables_populate.sql
+sleep 1
+docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_exceptions.sql
+sleep 1
+docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_post_triggers.sql
+sleep 1
 
+#after that DDL operations wouldn't be available anymore
+# docker exec -it oracle-web sqlplus API_TEST/api_test @/tmp/create_logs.sql
 
 echo "For more info about the docker image: https://hub.docker.com/r/gvenzl/oracle-free"
 echo "Connect with api_test/api_test"
