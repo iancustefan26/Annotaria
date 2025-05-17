@@ -1,5 +1,6 @@
 package org.example.wepproject.auth.DAOs;
 import org.example.wepproject.Helpers.AbstractDAO;
+import org.example.wepproject.auth.Exceptions.UserNotFoundException;
 import org.example.wepproject.auth.Models.User;
 
 import java.sql.ResultSet;
@@ -10,38 +11,49 @@ public class UserDAO extends AbstractDAO<User, Long> {
     private static final String TABLE_NAME = "USERS";
     private static final String INSERT_QUERY = "INSERT INTO USERS (username, password_hash, email) VALUES (?, ?, ?)";
     private static final String UPDATE_QUERY = "UPDATE USERS SET username = ?, password_hash = ?, email = ? WHERE id = ?";
-    private static final String FIND_BY_ID_QUERY = "SELECT id, username, password_hash, email FROM USERS WHERE id = ?";
     private static final String FIND_ALL_QUERY = "SELECT id, username, password_hash, email FROM USERS";
     private static final String DELETE_BY_ID_QUERY = "DELETE FROM USERS WHERE id = ?";
-    private static final String FIND_BY_USERNAME_QUERY = "SELECT * FROM USERS WHERE username = ?";
-    private static final String FIND_BY_EMAIL_QUERY = "SELECT * FROM USERS WHERE email = ?";
-
-
-    public User findByEmail(String email) {
-        try {
-            List<User> users = executeQuery(FIND_BY_EMAIL_QUERY, email);
-            return users.isEmpty() ? null : users.getFirst();
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to find user by username: " + email, e);
-        }
-    }
+    private static final String CALL_GET_USER_BY_USERNAME = "{? = call get_user_by_username(?)}";
+    private static final String CALL_GET_USER_BY_ID = "{? = call get_user_by_id(?)}";
+    private static final String CALL_GET_USER_BY_EMAIL = "{? = call get_user_by_email(?)}";
 
     public User findByUsername(String username) {
         try {
-            List<User> users = executeQuery(FIND_BY_USERNAME_QUERY, username);
+            List<User> users = executePlsqlFunction(CALL_GET_USER_BY_USERNAME, username);
             return users.isEmpty() ? null : users.getFirst();
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to find user by username: " + username, e);
+            if (e.getErrorCode() == 20002) {
+                throw new UserNotFoundException("User with username " + username + " not found", e);
+            } else {
+                throw new RuntimeException("Failed to find user by username: " + username, e);
+            }
         }
     }
 
     @Override
     public User findById(Long id) {
         try {
-            List<User> users = executeQuery(FIND_BY_ID_QUERY, id);
+            List<User> users = executePlsqlFunction(CALL_GET_USER_BY_ID, id);
             return users.isEmpty() ? null : users.getFirst();
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to find user by ID: " + id, e);
+            if (e.getErrorCode() == 20002) {
+                throw new UserNotFoundException("User with ID " + id + " not found", e);
+            } else {
+                throw new RuntimeException("Failed to find user by ID: " + id, e);
+            }
+        }
+    }
+
+    public User findByEmail(String email) {
+        try {
+            List<User> users = executePlsqlFunction(CALL_GET_USER_BY_EMAIL, email);
+            return users.isEmpty() ? null : users.getFirst();
+        } catch (SQLException e) {
+            if (e.getErrorCode() == 20002) {
+                throw new UserNotFoundException("User with email " + email + " not found", e);
+            } else {
+                throw new RuntimeException("Failed to find user by email: " + email, e);
+            }
         }
     }
 
@@ -125,3 +137,4 @@ public class UserDAO extends AbstractDAO<User, Long> {
         user.setId(id);
     }
 }
+

@@ -1,5 +1,6 @@
 package org.example.wepproject.Helpers;
 
+import oracle.jdbc.OracleTypes;
 import org.example.wepproject.Interfaces.CrudDAO;
 
 import java.math.BigDecimal;
@@ -48,6 +49,25 @@ public abstract class AbstractDAO<T, ID> implements CrudDAO<T, ID> {
             setParameters(stmt, params);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
+                results.add(mapResultSetToEntity(rs));
+            }
+        }
+        return results;
+    }
+
+    protected List<T> executePlsqlFunction(String call, Object... params) throws SQLException {
+        List<T> results = new ArrayList<>();
+        try (Connection conn = getConnection();
+             CallableStatement stmt = conn.prepareCall(call)) {
+            // Register the first parameter as the output cursor
+            stmt.registerOutParameter(1, OracleTypes.CURSOR);
+            // Set input parameters starting from index 2
+            for (int i = 0; i < params.length; i++) {
+                stmt.setObject(i + 2, params[i]);
+            }
+            stmt.execute();
+            ResultSet rs = (ResultSet) stmt.getObject(1);
+            while (rs != null && rs.next()) {
                 results.add(mapResultSetToEntity(rs));
             }
         }

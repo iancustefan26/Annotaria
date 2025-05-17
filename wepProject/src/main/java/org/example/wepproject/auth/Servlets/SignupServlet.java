@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.example.wepproject.auth.DAOs.UserDAO;
 import org.example.wepproject.auth.DTOs.ApiDTO;
 import org.example.wepproject.auth.DTOs.SignupDTO;
+import org.example.wepproject.auth.Exceptions.UserNotFoundException;
 import org.example.wepproject.auth.Models.User;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -44,15 +45,28 @@ public class SignupServlet extends HttpServlet {
                 return;
             }
             // check username
-            if (userDAO.findByUsername(username) != null) {
+            try{
+                userDAO.findByUsername(username);
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
                 objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Username already exists"));
                 return;
+            }catch (UserNotFoundException e){
+            }catch (RuntimeException e){
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Database error: " + e.getMessage()));
+                return;
             }
+
             // check email
-            if (userDAO.findByEmail(email) != null) {
+            try{
+                userDAO.findByEmail(email);
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
                 objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Email already exists"));
+                return;
+            }catch(UserNotFoundException e){
+            }catch (RuntimeException e){
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Database error: " + e.getMessage()));
                 return;
             }
 

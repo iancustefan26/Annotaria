@@ -44,6 +44,8 @@ public class LoginServlet extends HttpServlet {
             }
 
             User user = userDAO.findByUsername(username);
+
+
             if (user != null && BCrypt.checkpw(password, user.getPassword())) {
                 // create session
                 HttpSession session = req.getSession(true);

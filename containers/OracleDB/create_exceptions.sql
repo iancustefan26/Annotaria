@@ -5,6 +5,15 @@ AS
 END tag_exceptions;
 /
 
+
+-- exceptions for auth module 
+CREATE OR REPLACE PACKAGE auth_exceptions
+AS
+  user_not_found EXCEPTION;
+  PRAGMA EXCEPTION_INIT(user_not_found, -20002);
+END auth_exceptions;
+/
+
 commit;
 
 exit;

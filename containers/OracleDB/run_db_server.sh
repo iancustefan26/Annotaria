@@ -12,6 +12,7 @@ docker cp tables_populate.sql oracle-web:/tmp/
 docker cp create_logs.sql oracle-web:/tmp/
 docker cp create_post_triggers.sql oracle-web:/tmp/
 docker cp create_exceptions.sql oracle-web:/tmp/
+docker cp create_auth_helper_func.sql oracle-web:/tmp/
 
 echo "Waiting for Oracle to be ready..."
 until docker logs oracle-web 2>&1 | grep -q "DATABASE IS READY TO USE"; do
@@ -32,6 +33,7 @@ docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_exceptions.sql
 sleep 1
 docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_post_triggers.sql
 sleep 1
+docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_auth_helper_func.sql
 
 #after that DDL operations wouldn't be available anymore
 # docker exec -it oracle-web sqlplus API_TEST/api_test @/tmp/create_logs.sql
