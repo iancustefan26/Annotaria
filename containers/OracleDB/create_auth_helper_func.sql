@@ -35,9 +35,7 @@ AS
     l_cursor SYS_REFCURSOR;
     l_count NUMBER;
 BEGIN
-    SELECT COUNT(*) INTO l_count
-    FROM USERS
-    WHERE id = p_id;
+    SELECT COUNT(*) INTO l_count FROM USERS WHERE id = p_id;
 
     IF l_count = 0 THEN
         RAISE auth_exceptions.user_not_found;
@@ -65,9 +63,7 @@ AS
     l_cursor SYS_REFCURSOR;
     l_count NUMBER;
 BEGIN
-    SELECT COUNT(*) INTO l_count
-    FROM USERS
-    WHERE email = p_email;
+    SELECT COUNT(*) INTO l_count FROM USERS WHERE email = p_email;
 
     IF l_count = 0 THEN
         RAISE auth_exceptions.user_not_found;
@@ -86,4 +82,28 @@ EXCEPTION
     WHEN OTHERS THEN
         RAISE_APPLICATION_ERROR(-20003, 'Error retrieving user by email: ' || SQLERRM);
 END get_user_by_email;
+/
+
+
+CREATE OR REPLACE PROCEDURE delete_user_by_id(p_id IN NUMBER)
+AS
+    l_count NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO l_count
+    FROM USERS
+    WHERE id = p_id;
+
+    IF l_count = 0 THEN
+        RAISE auth_exceptions.user_not_found;
+    END IF;
+
+    DELETE FROM USERS
+    WHERE id = p_id;
+
+EXCEPTION
+    WHEN auth_exceptions.user_not_found THEN
+        RAISE_APPLICATION_ERROR(-20002, 'User with ID ' || p_id || ' not found');
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Error deleting user by ID: ' || SQLERRM);
+END delete_user_by_id;
 /
