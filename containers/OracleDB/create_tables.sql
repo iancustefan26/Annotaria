@@ -83,11 +83,12 @@ CREATE TABLE FRIENDSHIP(
   CONSTRAINT pk_friendship PRIMARY KEY (user1, user2)
 );
 
--- 10. FRIENDSHIP
+-- 10. CATEGORY_INTEREST
 -- relatia de interes/prietenie intre user si categorie
 
 CREATE TABLE CATEGORY_INTEREST(
   user_id NUMBER NOT NULL REFERENCES USERS(id)       ON DELETE CASCADE,
+  category_id NUMBER NOT NULL REFERENCES CATEGORY(id) ON DELETE CASCADE,
   interest NUMBER NOT NULL,
   CONSTRAINT pk_friendship PRIMARY KEY (user1, user2)
 );
