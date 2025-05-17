@@ -7,7 +7,7 @@ import jakarta.servlet.http.*;
 
 import jakarta.servlet.ServletException;
 import org.example.wepproject.auth.DAOs.UserDAO;
-import org.example.wepproject.auth.DTOs.ApiDTO;
+import org.example.wepproject.Helpers.ApiDTO;
 import org.example.wepproject.auth.DTOs.LoginDTO;
 import org.example.wepproject.auth.Models.User;
 import org.mindrot.jbcrypt.BCrypt;
@@ -32,6 +32,9 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json");
+        resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        resp.setHeader("Pragma", "no-cache");
+        resp.setDateHeader("Expires", 0);
         try{
             LoginDTO loginDTO = objectMapper.readValue(req.getReader(), LoginDTO.class);
             String username = loginDTO.getUsername();
@@ -59,6 +62,8 @@ public class LoginServlet extends HttpServlet {
                 resp.addCookie(sessionCookie);
 
                 objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Login successful"));
+                System.out.println("Redirecting to feed.jsp");
+
             } else {
                 resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid username or password"));

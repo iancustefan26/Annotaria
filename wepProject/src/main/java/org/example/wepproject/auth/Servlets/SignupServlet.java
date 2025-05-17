@@ -6,14 +6,13 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.wepproject.auth.DAOs.UserDAO;
-import org.example.wepproject.auth.DTOs.ApiDTO;
+import org.example.wepproject.Helpers.ApiDTO;
 import org.example.wepproject.auth.DTOs.SignupDTO;
 import org.example.wepproject.auth.Exceptions.UserNotFoundException;
 import org.example.wepproject.auth.Models.User;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
 @WebServlet("/signup")
 public class SignupServlet extends HttpServlet {

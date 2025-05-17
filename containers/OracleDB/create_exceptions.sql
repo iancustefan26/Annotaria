@@ -14,6 +14,15 @@ AS
 END auth_exceptions;
 /
 
+
+CREATE OR REPLACE PACKAGE posts_exceptions
+AS
+  post_not_found EXCEPTION;
+  PRAGMA EXCEPTION_INIT(post_not_found, -20003);
+end posts_exceptions;
+/
+
+
 commit;
 
 exit;
