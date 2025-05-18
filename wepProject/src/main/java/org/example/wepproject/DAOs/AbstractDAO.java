@@ -3,6 +3,7 @@ package org.example.wepproject.DAOs;
 import oracle.jdbc.OracleTypes;
 import org.example.wepproject.Helpers.DatabaseConnection;
 import org.example.wepproject.Interfaces.CrudDAO;
+import org.example.wepproject.Models.Like;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -98,5 +99,8 @@ public abstract class AbstractDAO<T, ID> implements CrudDAO<T, ID> {
     protected abstract String getUpdateQuery();
     protected abstract Object[] getInsertParams(T entity);
     protected abstract Object[] getUpdateParams(T entity);
+
+
     protected abstract void setId(T entity, ID id);
+
 }

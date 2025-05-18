@@ -1,9 +1,11 @@
 package org.example.wepproject.DTOs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class PostDTO {
     @JsonProperty("id")
     private Long id;
@@ -13,7 +15,7 @@ public class PostDTO {
 
     @JsonProperty("categoryId")
     private Long categoryId;
-    // converting blob in base 64 enconding
+
     @JsonProperty("mediaBlobBase64")
     private String mediaBlobBase64;
 
@@ -29,15 +31,15 @@ public class PostDTO {
     @JsonProperty("description")
     private String description;
 
-    @JsonProperty("likesCount")
-    private Integer likesCount;
+    @JsonProperty("likeCount")
+    private long likeCount;
 
-    @JsonProperty("commentsCount")
-    private Integer commentsCount;
+    @JsonProperty("commentCount")
+    private long commentCount;
 
     public PostDTO(Long id, Long authorId, Long categoryId, String mediaBlobBase64, String externalMediaUrl,
                    Integer creationYear, java.sql.Timestamp datePosted, String description,
-                   Integer likesCount, Integer commentsCount) {
+                   long likeCount, long commentCount) {
         this.id = id;
         this.authorId = authorId;
         this.categoryId = categoryId;
@@ -46,7 +48,7 @@ public class PostDTO {
         this.creationYear = creationYear;
         this.datePosted = datePosted;
         this.description = description;
-        this.likesCount = likesCount;
-        this.commentsCount = commentsCount;
+        this.likeCount = likeCount;
+        this.commentCount = commentCount;
     }
 }

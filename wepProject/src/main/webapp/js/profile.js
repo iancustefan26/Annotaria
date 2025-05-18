@@ -11,6 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const postsContainer = document.getElementById("postsContainer");
     const enlargedImage = document.getElementById("enlargedImage");
     const imageDescription = document.getElementById("imageDescription");
+    const likeButton = document.getElementById("likeButton");
+    const commentButton = document.getElementById("commentButton");
+    const likeCount = document.getElementById("likeCount");
+    const commentCount = document.getElementById("commentCount");
 
     newPostBtn.onclick = () => {
         console.log("Opening new post modal");
@@ -102,6 +106,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    likeButton.onclick = () => {
+        console.log("Like button clicked for post ID:", likeButton.dataset.postId);
+        // Placeholder for like/unlike action (requires LikeServlet)
+        alert("Like functionality not implemented. Requires LikeServlet.");
+    };
+
+    commentButton.onclick = () => {
+        console.log("Comment button clicked for post ID:", commentButton.dataset.postId);
+        // Placeholder for comment action (requires CommentServlet)
+        alert("Comment functionality not implemented. Requires CommentServlet.");
+    };
+
     loadPosts();
 
     async function loadPosts() {
@@ -122,11 +138,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         const postDiv = document.createElement('div');
                         postDiv.className = 'post';
                         postDiv.innerHTML = `
-                            <img src="${post.mediaBlobBase64}" alt="Post Image" class="post-image" data-description="${post.description || 'No description'}">
+                            <img src="${post.mediaBlobBase64}" alt="Post Image" class="post-image" data-post-id="${post.id}" data-description="${post.description || 'No description'}">
                         `;
                         postDiv.querySelector('.post-image').addEventListener('click', () => {
                             enlargedImage.src = post.mediaBlobBase64;
                             imageDescription.textContent = post.description || 'No description';
+                            likeButton.dataset.postId = post.id;
+                            commentButton.dataset.postId = post.id;
+                            likeCount.textContent = `${post.likeCount || 0} likes`;
+                            commentCount.textContent = `${post.commentCount || 0} comments`;
                             imageModal.style.display = "flex";
                             console.log("Opened image modal for post ID:", post.id);
                         });

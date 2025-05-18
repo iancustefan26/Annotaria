@@ -48,6 +48,16 @@
       <span class="close">×</span>
       <img id="enlargedImage" class="enlarged-image" src="" alt="Enlarged Post Image">
       <p id="imageDescription" class="image-description"></p>
+      <div class="interaction-buttons mt-4">
+        <button id="likeButton" class="flex items-center text-blue-600 hover:text-blue-800">
+          <span id="likeIcon" class="mr-2">❤️</span>
+          <span id="likeCount">0 likes</span>
+        </button>
+        <button id="commentButton" class="flex items-center text-blue-600 hover:text-blue-800 mt-2">
+          <span class="mr-2">💬</span>
+          <span id="commentCount">0 comments</span>
+        </button>
+      </div>
     </div>
   </div>
 
