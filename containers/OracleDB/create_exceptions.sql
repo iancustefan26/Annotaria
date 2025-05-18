@@ -6,6 +6,15 @@ END tag_exceptions;
 /
 
 
+CREATE OR REPLACE PACKAGE post_exceptions
+AS
+    no_such_post EXCEPTION;
+    unexpected_post_error EXCEPTION;
+    PRAGMA EXCEPTION_INIT(no_such_post, -20010);
+    PRAGMA EXCEPTION_INIT(unexpected_post_error, -20011);
+END post_exceptions;
+/
+
 -- exceptions for auth module 
 CREATE OR REPLACE PACKAGE auth_exceptions
 AS
@@ -13,15 +22,6 @@ AS
   PRAGMA EXCEPTION_INIT(user_not_found, -20002);
 END auth_exceptions;
 /
-
-
-CREATE OR REPLACE PACKAGE posts_exceptions
-AS
-  post_not_found EXCEPTION;
-  PRAGMA EXCEPTION_INIT(post_not_found, -20003);
-end posts_exceptions;
-/
-
 
 commit;
 
