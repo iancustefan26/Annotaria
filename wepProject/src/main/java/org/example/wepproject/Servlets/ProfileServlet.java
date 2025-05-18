@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.wepproject.DAOs.PostDAO;
+import org.example.wepproject.DAOs.UserDAO;
 import org.example.wepproject.Exceptions.PostNotFoundException;
 import org.example.wepproject.Models.Post;
 
@@ -16,10 +17,11 @@ import java.util.List;
 @WebServlet("/profile")
 public class ProfileServlet extends HttpServlet {
     private PostDAO postDAO;
-
+    private UserDAO userDAO;
     @Override
     public void init() {
         postDAO = new PostDAO();
+        userDAO = new UserDAO();
     }
 
     @Override
@@ -44,5 +46,5 @@ public class ProfileServlet extends HttpServlet {
             req.getRequestDispatcher("/error.jsp").forward(req, resp);
         }
     }
-
+    // add delete account
 }

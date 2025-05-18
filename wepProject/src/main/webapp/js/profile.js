@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const commentButton = document.getElementById("commentButton");
     const likeCount = document.getElementById("likeCount");
     const commentCount = document.getElementById("commentCount");
+    const commentInput = document.getElementById("commentInput");
+    const submitComment = document.getElementById("submitComment");
+    const commentsContainer = document.getElementById("commentsContainer");
 
     newPostBtn.onclick = () => {
         console.log("Opening new post modal");
@@ -32,6 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
     imageCloseBtn.onclick = () => {
         console.log("Closing image modal");
         imageModal.style.display = "none";
+        commentInput.value = "";
+        commentsContainer.innerHTML = "";
     };
 
     window.onclick = (event) => {
@@ -44,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (event.target === imageModal) {
             console.log("Closing image modal via background click");
             imageModal.style.display = "none";
+            commentInput.value = "";
+            commentsContainer.innerHTML = "";
         }
     };
 
@@ -106,16 +113,107 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    likeButton.onclick = () => {
-        console.log("Like button clicked for post ID:", likeButton.dataset.postId);
-        // Placeholder for like/unlike action (requires LikeServlet)
-        alert("Like functionality not implemented. Requires LikeServlet.");
+    likeButton.onclick = async () => {
+        const postId = likeButton.dataset.postId;
+        console.log("Like button clicked for post ID:", postId);
+
+        try {
+            const response = await fetch("/wepProject_war_exploded/like", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ postId })
+            });
+            const result = await response.json();
+            console.log("Like response:", result);
+
+            if (result.status === "success") {
+                likeCount.textContent = `${result.data.likeCount} likes`;
+                likeIcon.textContent = result.data.userHasLiked ? "❤️" : "🤍";
+            } else {
+                alert(`Error: ${result.message}`);
+            }
+        } catch (error) {
+            console.error("Error liking post:", error);
+            alert("Failed to process like. Please try again.");
+        }
     };
 
-    commentButton.onclick = () => {
-        console.log("Comment button clicked for post ID:", commentButton.dataset.postId);
-        // Placeholder for comment action (requires CommentServlet)
-        alert("Comment functionality not implemented. Requires CommentServlet.");
+    commentButton.onclick = async () => {
+        const postId = commentButton.dataset.postId;
+        console.log("Comment button clicked for post ID:", postId);
+
+        try {
+            const response = await fetch(`/wepProject_war_exploded/comment?postId=${postId}`, {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            const result = await response.json();
+            console.log("Comments response:", result);
+
+            if (result.status === "success") {
+                commentsContainer.innerHTML = "";
+                if (result.data.length === 0) {
+                    commentsContainer.innerHTML = '<p class="text-gray-500 text-sm">No comments yet.</p>';
+                } else {
+                    result.data.forEach(comment => {
+                        const commentDiv = document.createElement("div");
+                        commentDiv.className = "comment";
+                        commentDiv.innerHTML = `
+                            <span class="comment-username">${comment.username}</span>
+                            <span class="comment-content">${comment.content}</span>
+                            <span class="comment-timestamp">${new Date(comment.datePosted).toLocaleString()}</span>
+                        `;
+                        commentsContainer.appendChild(commentDiv);
+                    });
+                }
+            } else {
+                alert(`Error: ${result.message}`);
+            }
+        } catch (error) {
+            console.error("Error fetching comments:", error);
+            alert("Failed to load comments. Please try again.");
+        }
+    };
+
+    submitComment.onclick = async () => {
+        const postId = commentButton.dataset.postId;
+        const content = commentInput.value.trim();
+        console.log("Submit comment for post ID:", postId, "Content:", content);
+
+        if (!content) {
+            alert("Comment cannot be empty.");
+            return;
+        }
+
+        try {
+            const response = await fetch("/wepProject_war_exploded/comment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ postId, content })
+            });
+            const result = await response.json();
+            console.log("Comment response:", result);
+
+            if (result.status === "success") {
+                commentCount.textContent = `${result.data.commentCount} comments`;
+                commentInput.value = "";
+                // Refresh comments
+                commentButton.click();
+            } else {
+                alert(`Error: ${result.message}`);
+            }
+        } catch (error) {
+            console.error("Error adding comment:", error);
+            alert("Failed to add comment. Please try again.");
+        }
+    };
+
+    // Optional: Trigger comment submission on Enter key
+    commentInput.onkeypress = (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            submitComment.click();
+        }
     };
 
     loadPosts();
@@ -147,6 +245,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             commentButton.dataset.postId = post.id;
                             likeCount.textContent = `${post.likeCount || 0} likes`;
                             commentCount.textContent = `${post.commentCount || 0} comments`;
+                            likeIcon.textContent = "🤍"; // Default until like status is fetched
+                            commentsContainer.innerHTML = "";
                             imageModal.style.display = "flex";
                             console.log("Opened image modal for post ID:", post.id);
                         });

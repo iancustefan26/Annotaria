@@ -32,7 +32,7 @@
       </div>
       <div class="mt-2">
         <a href="/wepProject_war_exploded/feed.jsp" class="text-blue-600 hover:underline">Feed</a> |
-        <a href="/wepProject_war_exploded/logout.jsp" class="text-blue-600 hover:underline">Logout</a>
+        <a href="/wepProject_war_exploded/logout" class="text-blue-600 hover:underline">Logout</a>
       </div>
     </div>
   </div>
@@ -57,6 +57,11 @@
           <span class="mr-2">💬</span>
           <span id="commentCount">0 comments</span>
         </button>
+        <div id="commentsContainer" class="mt-2 max-h-40 overflow-y-auto"></div>
+        <div class="mt-2">
+          <textarea id="commentInput" class="w-full border rounded p-2" rows="2" placeholder="Add a comment..."></textarea>
+          <button id="submitComment" class="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 mt-1">Post</button>
+        </div>
       </div>
     </div>
   </div>
