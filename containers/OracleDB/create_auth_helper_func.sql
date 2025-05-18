@@ -107,3 +107,5 @@ EXCEPTION
         RAISE_APPLICATION_ERROR(-20003, 'Error deleting user by ID: ' || SQLERRM);
 END delete_user_by_id;
 /
+
+exit;
