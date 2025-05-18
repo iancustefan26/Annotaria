@@ -1,4 +1,4 @@
-package org.example.wepproject.auth.Servlets;
+package org.example.wepproject.Servlets;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;

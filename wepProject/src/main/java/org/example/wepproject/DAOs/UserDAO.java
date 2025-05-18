@@ -1,7 +1,6 @@
-package org.example.wepproject.auth.DAOs;
-import org.example.wepproject.Helpers.AbstractDAO;
-import org.example.wepproject.auth.Exceptions.UserNotFoundException;
-import org.example.wepproject.auth.Models.User;
+package org.example.wepproject.DAOs;
+import org.example.wepproject.Exceptions.UserNotFoundException;
+import org.example.wepproject.Models.User;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

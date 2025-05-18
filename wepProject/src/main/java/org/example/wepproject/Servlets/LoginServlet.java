@@ -1,4 +1,4 @@
-package org.example.wepproject.auth.Servlets;
+package org.example.wepproject.Servlets;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.annotation.WebServlet;
@@ -6,10 +6,10 @@ import jakarta.servlet.http.*;
 
 
 import jakarta.servlet.ServletException;
-import org.example.wepproject.auth.DAOs.UserDAO;
-import org.example.wepproject.Helpers.ApiDTO;
-import org.example.wepproject.auth.DTOs.LoginDTO;
-import org.example.wepproject.auth.Models.User;
+import org.example.wepproject.DAOs.UserDAO;
+import org.example.wepproject.DTOs.ApiDTO;
+import org.example.wepproject.DTOs.LoginDTO;
+import org.example.wepproject.Models.User;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;

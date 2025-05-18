@@ -1,4 +1,4 @@
-package org.example.wepproject.Helpers;
+package org.example.wepproject.DTOs;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 

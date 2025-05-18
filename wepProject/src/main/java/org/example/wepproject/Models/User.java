@@ -1,4 +1,4 @@
-package org.example.wepproject.auth.Models;
+package org.example.wepproject.Models;
 
 import lombok.*;
 

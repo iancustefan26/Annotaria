@@ -1,4 +1,4 @@
-package org.example.wepproject.Post;
+package org.example.wepproject.Models;
 
 
 import lombok.NoArgsConstructor;

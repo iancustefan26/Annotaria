@@ -1,7 +1,8 @@
-package org.example.wepproject.Post;
+package org.example.wepproject.DAOs;
 
 
-import org.example.wepproject.Helpers.AbstractDAO;
+import org.example.wepproject.Models.Post;
+import org.example.wepproject.Exceptions.PostNotFoundException;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,7 +22,8 @@ public class PostDAO extends AbstractDAO<Post,Long> {
             "likes_count, comments_count FROM POST";
     private static final String CALL_DELETE_BY_ID = "{ ? = call delete_post_by_id(?) }";
     private static final String CALL_GET_BY_ID = "{ ? = call get_post_by_id(?) }";
-
+    private static final String CALL_GET_BY_CATEGORY_ID = "{ ? = call get_post_by_category_id(?) }";
+    private static final String CALL_GET_BY_USER_ID = "{ ? = call get_post_by_user_id(?) }";
 
     @Override
     protected Post mapResultSetToEntity(ResultSet rs) throws SQLException {
@@ -104,24 +106,76 @@ public class PostDAO extends AbstractDAO<Post,Long> {
         }
     }
 
+    public List<Post> findByCategoryId(Long categoryId) {
+        try{
+            List<Post> posts = executePlsqlFunction(CALL_GET_BY_CATEGORY_ID, categoryId);
+            return posts.isEmpty() ? null : posts;
+        }catch (SQLException e){
+            if(e.getErrorCode() == 20003) {
+                throw new PostNotFoundException("Post with ID " + categoryId + " not found", e);
+            }else{
+                throw new RuntimeException("Failed to find post by ID: " + categoryId, e);
+            }
+        }
+    }
+
+    public List<Post> findByUserId(Long userId) {
+        try{
+            List<Post> posts = executePlsqlFunction(CALL_GET_BY_USER_ID, userId);
+            return posts.isEmpty() ? null : posts;
+        }catch (SQLException e){
+            if(e.getErrorCode() == 20003) {
+                throw new PostNotFoundException("Post with ID " + userId + " not found", e);
+            }else{
+                throw new RuntimeException("Failed to find post by ID: " + userId, e);
+            }
+        }
+    }
+
+    @Override
+    public void deleteById(Long id) {
+       try{
+           executeSqlFunctionNoReturn(CALL_DELETE_BY_ID, id);
+       }catch (SQLException e){
+           if(e.getErrorCode() == 20003) {
+               throw new PostNotFoundException("Post with ID " + id + " not found", e);
+           }else{
+               throw new RuntimeException("Failed to delete post by ID: " + id, e);
+           }
+       }
+    }
+
     @Override
     public List<Post> findAll() {
-        return List.of();
+        try{
+           return executeQuery(FIND_ALL_QUERY);
+        }catch (SQLException e){
+            throw new RuntimeException("Failed to find posts", e);
+        }
     }
 
     @Override
     public Post save(Post entity) {
-        return null;
+         try {
+            Long generatedId = executeInsert(getInsertQuery(), getInsertParams(entity));
+            if (generatedId != null) {
+                setId(entity, generatedId);
+            }
+            return entity;
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to save post: " + entity, e);
+        }
     }
 
     @Override
     public void update(Post entity) {
-
+        try{
+            executeUpdate(getUpdateQuery(),getUpdateParams(entity));
+        }catch (SQLException e){
+            throw new RuntimeException("Failed to update post: " + entity, e);
+        }
     }
 
-    @Override
-    public void deleteById(Long aLong) {
 
-    }
 }
 
