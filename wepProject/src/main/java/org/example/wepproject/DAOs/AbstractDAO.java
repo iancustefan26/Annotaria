@@ -30,6 +30,7 @@ public abstract class AbstractDAO<T, ID> implements CrudDAO<T, ID> {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(query, new String[]{"ID"})) {
             setParameters(stmt, params);
+
             stmt.executeUpdate();
             ResultSet rs = stmt.getGeneratedKeys();
             if (rs.next()) {

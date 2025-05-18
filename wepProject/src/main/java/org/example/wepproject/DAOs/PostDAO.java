@@ -4,8 +4,10 @@ package org.example.wepproject.DAOs;
 import org.example.wepproject.Models.Post;
 import org.example.wepproject.Exceptions.PostNotFoundException;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import javax.sql.rowset.serial.SerialBlob;
+import java.math.BigDecimal;
+import java.sql.*;
+import java.util.Arrays;
 import java.util.List;
 
 public class PostDAO extends AbstractDAO<Post,Long> {
@@ -156,13 +158,15 @@ public class PostDAO extends AbstractDAO<Post,Long> {
 
     @Override
     public Post save(Post entity) {
-         try {
+        try {
             Long generatedId = executeInsert(getInsertQuery(), getInsertParams(entity));
             if (generatedId != null) {
                 setId(entity, generatedId);
             }
             return entity;
         } catch (SQLException e) {
+            System.out.println("SQLException in save: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Failed to save post: " + entity, e);
         }
     }
@@ -175,7 +179,53 @@ public class PostDAO extends AbstractDAO<Post,Long> {
             throw new RuntimeException("Failed to update post: " + entity, e);
         }
     }
+    @Override
+    protected Long executeInsert(String query, Object... params) throws SQLException {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query, new String[]{"ID"})) {
+            stmt.setLong(1, (Long) params[0]); // author_id
+            if (params[1] != null) {
+                stmt.setLong(2, (Long) params[1]); // category_id
+            } else {
+                stmt.setNull(2, Types.NUMERIC);
+            }
+            if (params[2] != null) {
+                SerialBlob blob = (SerialBlob) params[2];
+                stmt.setBinaryStream(3, blob.getBinaryStream(), blob.length());
+            } else {
+                stmt.setNull(3, Types.BLOB);
+            }
+            if (params[3] != null) {
+                stmt.setString(4, (String) params[3]); // external_media_url
+            } else {
+                stmt.setNull(4, Types.VARCHAR);
+            }
+            if (params[4] != null) {
+                stmt.setInt(5, (Integer) params[4]); // creation_year
+            } else {
+                stmt.setNull(5, Types.NUMERIC);
+            }
+            stmt.setTimestamp(6, (Timestamp) params[5]); // date_posted
+            if (params[6] != null) {
+                stmt.setString(7, (String) params[6]); // description
+            } else {
+                stmt.setNull(7, Types.VARCHAR);
+            }
+            stmt.setInt(8, (Integer) params[7]); // likes_count
+            stmt.setInt(9, (Integer) params[8]); // comments_count
 
+            stmt.executeUpdate();
+            ResultSet rs = stmt.getGeneratedKeys();
+            if (rs.next()) {
+                Object idObj = rs.getObject(1);
+                if (idObj instanceof BigDecimal) {
+                    return ((BigDecimal) idObj).longValue();
+                }
+                return (Long) idObj;
+            }
+            return null;
+        }
+    }
 
 }
 

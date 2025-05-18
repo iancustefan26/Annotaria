@@ -32,9 +32,7 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json");
-        resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        resp.setHeader("Pragma", "no-cache");
-        resp.setDateHeader("Expires", 0);
+
         try{
             LoginDTO loginDTO = objectMapper.readValue(req.getReader(), LoginDTO.class);
             String username = loginDTO.getUsername();
