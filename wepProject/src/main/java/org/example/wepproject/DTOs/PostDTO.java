@@ -3,6 +3,11 @@ package org.example.wepproject.DTOs;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
+import org.example.wepproject.Models.Post;
+
+import java.sql.Blob;
+import java.sql.SQLException;
+import java.util.Base64;
 
 @Data
 @Builder
@@ -50,5 +55,34 @@ public class PostDTO {
         this.description = description;
         this.likeCount = likeCount;
         this.commentCount = commentCount;
+    }
+
+    public static PostDTO PostToPostDTO(Post post) {
+
+
+        String base64Image = null;
+        if (post.getMediaBlob() != null) {
+            try {
+                Blob blob = post.getMediaBlob();
+                byte[] bytes = blob.getBytes(1, (int) blob.length());
+                base64Image = "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(bytes);
+            } catch (SQLException e) {
+                System.out.println("SQLException in media blob conversion: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        System.out.println(post.getLikesCount());
+        return PostDTO.builder()
+                .id(post.getId())
+                .authorId(post.getAuthorId())
+                .categoryId(post.getCategoryId())
+                .mediaBlobBase64(base64Image)
+                .externalMediaUrl(post.getExternalMediaUrl())
+                .creationYear(post.getCreationYear())
+                .datePosted(post.getDatePosted())
+                .description(post.getDescription())
+                .likeCount(post.getLikesCount())
+                .commentCount(post.getCommentsCount())
+                .build();
     }
 }

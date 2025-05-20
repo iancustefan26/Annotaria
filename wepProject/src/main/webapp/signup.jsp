@@ -12,7 +12,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
-    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/auth.css">
 </head>
 <body>
 <div class="container">
@@ -33,8 +33,8 @@
         </div>
         <button type="submit">Sign Up</button>
     </form>
-    <p>Already have an account? <a href="login.jsp">Log in</a></p>
+    <p>Already have an account? <a href="${pageContext.request.contextPath}/login">Log in</a></p>
 </div>
-<script src="js/auth.js"></script>
+<script src="${pageContext.request.contextPath}/js/auth.js"></script>
 </body>
 </html>

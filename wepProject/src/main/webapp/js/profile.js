@@ -216,49 +216,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    loadPosts();
 
-    async function loadPosts() {
-        try {
-            const response = await fetch('/wepProject_war_exploded/posts', {
-                method: 'GET',
-                headers: { 'Accept': 'application/json' }
-            });
-            console.log(`Fetch posts response status: ${response.status}`);
-            const text = await response.text();
-            console.log(`Raw posts response text: ${text}`);
-            const data = JSON.parse(text);
-
-            postsContainer.innerHTML = '';
-            if (data.status === 'success' && data.data && data.data.length > 0) {
-                data.data.forEach(post => {
-                    if (post.mediaBlobBase64) {
-                        const postDiv = document.createElement('div');
-                        postDiv.className = 'post';
-                        postDiv.innerHTML = `
-                            <img src="${post.mediaBlobBase64}" alt="Post Image" class="post-image" data-post-id="${post.id}" data-description="${post.description || 'No description'}">
-                        `;
-                        postDiv.querySelector('.post-image').addEventListener('click', () => {
-                            enlargedImage.src = post.mediaBlobBase64;
-                            imageDescription.textContent = post.description || 'No description';
-                            likeButton.dataset.postId = post.id;
-                            commentButton.dataset.postId = post.id;
-                            likeCount.textContent = `${post.likeCount || 0} likes`;
-                            commentCount.textContent = `${post.commentCount || 0} comments`;
-                            likeIcon.textContent = "🤍"; // Default until like status is fetched
-                            commentsContainer.innerHTML = "";
-                            imageModal.style.display = "flex";
-                            console.log("Opened image modal for post ID:", post.id);
-                        });
-                        postsContainer.appendChild(postDiv);
-                    }
-                });
-            } else {
-                postsContainer.innerHTML = '<p class="text-center text-gray-500">No posts found.</p>';
-            }
-        } catch (error) {
-            console.error('Error loading posts:', error);
-            postsContainer.innerHTML = '<p class="text-center text-gray-500">Error loading posts: ' + error.message + '</p>';
-        }
-    }
 });

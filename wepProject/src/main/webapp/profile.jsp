@@ -42,30 +42,6 @@
     <button id="newPostBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">New Post</button>
   </div>
 
-  <!-- Modal for enlarged image -->
-  <div id="imageModal" class="modal">
-    <div class="modal-content">
-      <span class="close">×</span>
-      <img id="enlargedImage" class="enlarged-image" src="" alt="Enlarged Post Image">
-      <p id="imageDescription" class="image-description"></p>
-      <div class="interaction-buttons mt-4">
-        <button id="likeButton" class="flex items-center text-blue-600 hover:text-blue-800">
-          <span id="likeIcon" class="mr-2">❤️</span>
-          <span id="likeCount">0 likes</span>
-        </button>
-        <button id="commentButton" class="flex items-center text-blue-600 hover:text-blue-800 mt-2">
-          <span class="mr-2">💬</span>
-          <span id="commentCount">0 comments</span>
-        </button>
-        <div id="commentsContainer" class="mt-2 max-h-40 overflow-y-auto"></div>
-        <div class="mt-2">
-          <textarea id="commentInput" class="w-full border rounded p-2" rows="2" placeholder="Add a comment..."></textarea>
-          <button id="submitComment" class="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 mt-1">Post</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Section for displaying posts -->
   <h2 class="text-xl font-bold mb-4">Your Posts</h2>
   <div id="postsContainer" class="posts-container"></div>
@@ -76,11 +52,8 @@
       <div>
         <a href="/wepProject_war_exploded/post?id=${post.id}">
           <c:choose>
-            <c:when test="${not empty post.mediaBase64}">
-              <img src="data:image/jpeg;base64,${post.mediaBase64}" alt="Post" />
-            </c:when>
-            <c:when test="${not empty post.externalMediaUrl}">
-              <img src="${post.externalMediaUrl}" alt="Post" />
+            <c:when test="${not empty post.mediaBlobBase64}">
+              <img src="${post.mediaBlobBase64}"  />
             </c:when>
             <c:otherwise>
               <div class="bg-gray-200 h-[150px] flex items-center justify-center">No Media</div>

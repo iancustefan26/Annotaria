@@ -1,3 +1,4 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%--
   Created by IntelliJ IDEA.
   User: tud
@@ -12,11 +13,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/auth.css">
 </head>
 <body>
 <div class="container">
     <h2>Login</h2>
+    <c:if test="${not empty param.message}">
+        <p class="text-green-600">${param.message}</p>
+    </c:if>
     <div id="message" class="message"></div>
     <form id="loginForm">
         <div>
@@ -29,8 +33,8 @@
         </div>
         <button type="submit">Login</button>
     </form>
-    <p>Don't have an account? <a href="signup.jsp">Sign up</a></p>
+    <p>Don't have an account? <a href="${pageContext.request.contextPath}/signup">Sign up</a></p>
 </div>
-<script src="js/auth.js"></script>
+<script src="${pageContext.request.contextPath}/js/auth.js"></script>
 </body>
 </html>

@@ -5,11 +5,14 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.wepproject.DAOs.PostDAO;
+import org.example.wepproject.DTOs.PostDTO;
 import org.example.wepproject.Exceptions.PostNotFoundException;
 import org.example.wepproject.Models.Post;
 
 import java.io.IOException;
 import java.sql.SQLException;
+
+import static org.example.wepproject.DTOs.PostDTO.PostToPostDTO;
 
 @WebServlet("/post")
 public class PostServlet extends HttpServlet {
@@ -28,8 +31,11 @@ public class PostServlet extends HttpServlet {
         }
         try {
             Long postId = Long.parseLong(req.getParameter("id"));
+
             Post post = postDAO.findById(postId);
-            req.setAttribute("post", post);
+            System.out.println("from post servlet" + post.getLikesCount());
+            PostDTO postDTO = PostToPostDTO(post);
+            req.setAttribute("post", postDTO);
             req.getRequestDispatcher("/post.jsp").forward(req, resp);
         } catch (PostNotFoundException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

@@ -50,33 +50,8 @@ public class ProfilePostsServlet extends HttpServlet {
 
             List<Post> posts = postDAO.findByUserId(userId);
 
-            List<PostDTO> postDTOs = posts != null ? posts.stream().map(post -> {
-                String base64Image = null;
-                if (post.getMediaBlob() != null) {
-                    try {
-                        Blob blob = post.getMediaBlob();
-                        byte[] bytes = blob.getBytes(1, (int) blob.length());
-                        base64Image = "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(bytes);
-                    } catch (SQLException e) {
-                        System.out.println("SQLException in media blob conversion: " + e.getMessage());
-                        e.printStackTrace();
-                    }
-                }
-                long likeCount = likeDAO.findByPostId(post.getId()).size();
-                long commentCount = commentDAO.findByPostId(post.getId()).size();
-                return PostDTO.builder()
-                        .id(post.getId())
-                        .authorId(post.getAuthorId())
-                        .categoryId(post.getCategoryId())
-                        .mediaBlobBase64(base64Image)
-                        .externalMediaUrl(post.getExternalMediaUrl())
-                        .creationYear(post.getCreationYear())
-                        .datePosted(post.getDatePosted())
-                        .description(post.getDescription())
-                        .likeCount(likeCount)
-                        .commentCount(commentCount)
-                        .build();
-            }).collect(Collectors.toList()) : List.of();
+            List<PostDTO> postDTOs = posts != null ? posts.stream()
+                    .map(PostDTO::PostToPostDTO).collect(Collectors.toList()) : List.of();
 
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Posts retrieved successfully", postDTOs));
         } catch (Exception e) {

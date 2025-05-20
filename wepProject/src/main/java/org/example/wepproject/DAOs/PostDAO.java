@@ -98,6 +98,7 @@ public class PostDAO extends AbstractDAO<Post,Long> {
     public Post findById(Long id) {
         try {
             List<Post> posts = executePlsqlFunction(CALL_GET_BY_ID, id);
+            System.out.println(posts.getFirst().getLikesCount());
             return posts.isEmpty() ? null : posts.getFirst();
         } catch (SQLException e) {
             if (e.getErrorCode() == 20003) {
