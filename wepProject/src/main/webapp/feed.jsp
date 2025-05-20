@@ -12,7 +12,7 @@
 </head>
 <body>
 
-  <p>Enter into your profile <a href="profile.jsp">Sign up</a></p>
+  <p>Enter into your profile <a href="${pageContext.request.contextPath}/profile">Sign up</a></p>
 
 </body>
 </html>

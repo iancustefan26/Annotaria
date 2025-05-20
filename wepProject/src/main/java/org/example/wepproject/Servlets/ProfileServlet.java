@@ -6,20 +6,32 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.wepproject.DAOs.PostDAO;
+import org.example.wepproject.DAOs.UserDAO;
+import org.example.wepproject.DTOs.PostDTO;
 import org.example.wepproject.Exceptions.PostNotFoundException;
 import org.example.wepproject.Models.Post;
 
 import java.io.IOException;
+import java.sql.Blob;
 import java.sql.SQLException;
+import java.util.Base64;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.example.wepproject.DAOs.LikeDAO;
+import org.example.wepproject.DAOs.CommentDAO;
 
 @WebServlet("/profile")
 public class ProfileServlet extends HttpServlet {
     private PostDAO postDAO;
-
+    private UserDAO userDAO;
+    private LikeDAO likeDAO;
+    private CommentDAO commentDAO;
     @Override
     public void init() {
         postDAO = new PostDAO();
+        userDAO = new UserDAO();
+        likeDAO = new LikeDAO();
+        commentDAO = new CommentDAO();
     }
 
     @Override
@@ -33,7 +45,10 @@ public class ProfileServlet extends HttpServlet {
             List<Post> posts = postDAO.findByUserId(userId);
             long postCount =  posts.size();
 
-            req.setAttribute("posts", posts);
+            List<PostDTO> postDTOs = posts != null ? posts.stream()
+                    .map(PostDTO::PostToPostDTO).collect(Collectors.toList()) : List.of();
+
+            req.setAttribute("posts", postDTOs);
             req.setAttribute("postCount", postCount);
             req.getRequestDispatcher("/profile.jsp").forward(req, resp);
         } catch (PostNotFoundException e) {
@@ -44,5 +59,5 @@ public class ProfileServlet extends HttpServlet {
             req.getRequestDispatcher("/error.jsp").forward(req, resp);
         }
     }
-
+    // add delete account
 }

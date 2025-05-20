@@ -11,6 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const postsContainer = document.getElementById("postsContainer");
     const enlargedImage = document.getElementById("enlargedImage");
     const imageDescription = document.getElementById("imageDescription");
+    const likeButton = document.getElementById("likeButton");
+    const commentButton = document.getElementById("commentButton");
+    const likeCount = document.getElementById("likeCount");
+    const commentCount = document.getElementById("commentCount");
+    const commentInput = document.getElementById("commentInput");
+    const submitComment = document.getElementById("submitComment");
+    const commentsContainer = document.getElementById("commentsContainer");
 
     newPostBtn.onclick = () => {
         console.log("Opening new post modal");
@@ -28,6 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
     imageCloseBtn.onclick = () => {
         console.log("Closing image modal");
         imageModal.style.display = "none";
+        commentInput.value = "";
+        commentsContainer.innerHTML = "";
     };
 
     window.onclick = (event) => {
@@ -40,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (event.target === imageModal) {
             console.log("Closing image modal via background click");
             imageModal.style.display = "none";
+            commentInput.value = "";
+            commentsContainer.innerHTML = "";
         }
     };
 
@@ -102,43 +113,108 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    loadPosts();
+    likeButton.onclick = async () => {
+        const postId = likeButton.dataset.postId;
+        console.log("Like button clicked for post ID:", postId);
 
-    async function loadPosts() {
         try {
-            const response = await fetch('/wepProject_war_exploded/posts', {
-                method: 'GET',
-                headers: { 'Accept': 'application/json' }
+            const response = await fetch("/wepProject_war_exploded/like", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ postId })
             });
-            console.log(`Fetch posts response status: ${response.status}`);
-            const text = await response.text();
-            console.log(`Raw posts response text: ${text}`);
-            const data = JSON.parse(text);
+            const result = await response.json();
+            console.log("Like response:", result);
 
-            postsContainer.innerHTML = '';
-            if (data.status === 'success' && data.data && data.data.length > 0) {
-                data.data.forEach(post => {
-                    if (post.mediaBlobBase64) {
-                        const postDiv = document.createElement('div');
-                        postDiv.className = 'post';
-                        postDiv.innerHTML = `
-                            <img src="${post.mediaBlobBase64}" alt="Post Image" class="post-image" data-description="${post.description || 'No description'}">
-                        `;
-                        postDiv.querySelector('.post-image').addEventListener('click', () => {
-                            enlargedImage.src = post.mediaBlobBase64;
-                            imageDescription.textContent = post.description || 'No description';
-                            imageModal.style.display = "flex";
-                            console.log("Opened image modal for post ID:", post.id);
-                        });
-                        postsContainer.appendChild(postDiv);
-                    }
-                });
+            if (result.status === "success") {
+                likeCount.textContent = `${result.data.likeCount} likes`;
+                likeIcon.textContent = result.data.userHasLiked ? "❤️" : "🤍";
             } else {
-                postsContainer.innerHTML = '<p class="text-center text-gray-500">No posts found.</p>';
+                alert(`Error: ${result.message}`);
             }
         } catch (error) {
-            console.error('Error loading posts:', error);
-            postsContainer.innerHTML = '<p class="text-center text-gray-500">Error loading posts: ' + error.message + '</p>';
+            console.error("Error liking post:", error);
+            alert("Failed to process like. Please try again.");
         }
-    }
+    };
+
+    commentButton.onclick = async () => {
+        const postId = commentButton.dataset.postId;
+        console.log("Comment button clicked for post ID:", postId);
+
+        try {
+            const response = await fetch(`/wepProject_war_exploded/comment?postId=${postId}`, {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            const result = await response.json();
+            console.log("Comments response:", result);
+
+            if (result.status === "success") {
+                commentsContainer.innerHTML = "";
+                if (result.data.length === 0) {
+                    commentsContainer.innerHTML = '<p class="text-gray-500 text-sm">No comments yet.</p>';
+                } else {
+                    result.data.forEach(comment => {
+                        const commentDiv = document.createElement("div");
+                        commentDiv.className = "comment";
+                        commentDiv.innerHTML = `
+                            <span class="comment-username">${comment.username}</span>
+                            <span class="comment-content">${comment.content}</span>
+                            <span class="comment-timestamp">${new Date(comment.datePosted).toLocaleString()}</span>
+                        `;
+                        commentsContainer.appendChild(commentDiv);
+                    });
+                }
+            } else {
+                alert(`Error: ${result.message}`);
+            }
+        } catch (error) {
+            console.error("Error fetching comments:", error);
+            alert("Failed to load comments. Please try again.");
+        }
+    };
+
+    submitComment.onclick = async () => {
+        const postId = commentButton.dataset.postId;
+        const content = commentInput.value.trim();
+        console.log("Submit comment for post ID:", postId, "Content:", content);
+
+        if (!content) {
+            alert("Comment cannot be empty.");
+            return;
+        }
+
+        try {
+            const response = await fetch("/wepProject_war_exploded/comment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ postId, content })
+            });
+            const result = await response.json();
+            console.log("Comment response:", result);
+
+            if (result.status === "success") {
+                commentCount.textContent = `${result.data.commentCount} comments`;
+                commentInput.value = "";
+                // Refresh comments
+                commentButton.click();
+            } else {
+                alert(`Error: ${result.message}`);
+            }
+        } catch (error) {
+            console.error("Error adding comment:", error);
+            alert("Failed to add comment. Please try again.");
+        }
+    };
+
+    // Optional: Trigger comment submission on Enter key
+    commentInput.onkeypress = (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            submitComment.click();
+        }
+    };
+
+
 });

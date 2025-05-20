@@ -7,6 +7,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.wepproject.DAOs.CommentDAO;
+import org.example.wepproject.DAOs.LikeDAO;
 import org.example.wepproject.DAOs.PostDAO;
 import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.PostDTO;
@@ -19,15 +21,19 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @WebServlet("/posts")
 public class ProfilePostsServlet extends HttpServlet {
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private PostDAO postDAO;
-    private ObjectMapper objectMapper;
+    private LikeDAO likeDAO;
+    private CommentDAO commentDAO;
 
     @Override
     public void init() throws ServletException {
         postDAO = new PostDAO();
-        objectMapper = new ObjectMapper();
+        likeDAO = new LikeDAO();
+        commentDAO = new CommentDAO();
     }
 
     @Override
@@ -44,30 +50,8 @@ public class ProfilePostsServlet extends HttpServlet {
 
             List<Post> posts = postDAO.findByUserId(userId);
 
-            List<PostDTO> postDTOs = posts != null ? posts.stream().map(post -> {
-                String base64Image = null;
-                if (post.getMediaBlob() != null) {
-                    try {
-                        Blob blob = post.getMediaBlob();
-                        byte[] bytes = blob.getBytes(1, (int) blob.length());
-                        base64Image = "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(bytes);
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
-                return new PostDTO(
-                        post.getId(),
-                        post.getAuthorId(),
-                        post.getCategoryId(),
-                        base64Image,
-                        post.getExternalMediaUrl(),
-                        post.getCreationYear(),
-                        post.getDatePosted(),
-                        post.getDescription(),
-                        post.getLikesCount(),
-                        post.getCommentsCount()
-                );
-            }).collect(Collectors.toList()) : List.of();
+            List<PostDTO> postDTOs = posts != null ? posts.stream()
+                    .map(PostDTO::PostToPostDTO).collect(Collectors.toList()) : List.of();
 
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Posts retrieved successfully", postDTOs));
         } catch (Exception e) {
@@ -77,5 +61,4 @@ public class ProfilePostsServlet extends HttpServlet {
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Failed to retrieve posts: " + e.getMessage()));
         }
     }
-
 }

@@ -32,7 +32,7 @@
       </div>
       <div class="mt-2">
         <a href="/wepProject_war_exploded/feed.jsp" class="text-blue-600 hover:underline">Feed</a> |
-        <a href="/wepProject_war_exploded/logout.jsp" class="text-blue-600 hover:underline">Logout</a>
+        <a href="/wepProject_war_exploded/logout" class="text-blue-600 hover:underline">Logout</a>
       </div>
     </div>
   </div>
@@ -40,15 +40,6 @@
   <!-- Post Creation -->
   <div class="mb-6">
     <button id="newPostBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">New Post</button>
-  </div>
-
-  <!-- Modal for enlarged image -->
-  <div id="imageModal" class="modal">
-    <div class="modal-content">
-      <span class="close">×</span>
-      <img id="enlargedImage" class="enlarged-image" src="" alt="Enlarged Post Image">
-      <p id="imageDescription" class="image-description"></p>
-    </div>
   </div>
 
   <!-- Section for displaying posts -->
@@ -61,11 +52,8 @@
       <div>
         <a href="/wepProject_war_exploded/post?id=${post.id}">
           <c:choose>
-            <c:when test="${not empty post.mediaBase64}">
-              <img src="data:image/jpeg;base64,${post.mediaBase64}" alt="Post" />
-            </c:when>
-            <c:when test="${not empty post.externalMediaUrl}">
-              <img src="${post.externalMediaUrl}" alt="Post" />
+            <c:when test="${not empty post.mediaBlobBase64}">
+              <img src="${post.mediaBlobBase64}"  />
             </c:when>
             <c:otherwise>
               <div class="bg-gray-200 h-[150px] flex items-center justify-center">No Media</div>
