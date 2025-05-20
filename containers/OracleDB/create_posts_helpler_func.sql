@@ -1,64 +1,119 @@
-
-
-CREATE or REPLACE FUNCTION get_post_by_id(p_id in NUMBER)
+-- Get post by ID
+CREATE OR REPLACE FUNCTION get_post_by_id(p_id IN NUMBER)
 RETURN SYS_REFCURSOR
 AS
-    l_cursor SYS_REFCURSOR;
-    l_count NUMBER;
+  l_cursor SYS_REFCURSOR;
+  l_count NUMBER;
 BEGIN
-    select count(*) into l_count from post where id = p_id;
-    if l_count = 0 then
-        raise posts_exceptions.post_not_found; 
-    end if;
-    open l_cursor for 
-        select * from post where id = p_id;
-    return l_cursor;
+  SELECT COUNT(*) INTO l_count 
+  FROM POST 
+  WHERE id = p_id;
+  
+  IF l_count = 0 THEN
+    RAISE posts_exceptions.post_not_found;
+  END IF;
+  
+  OPEN l_cursor FOR
+    SELECT id, author_id, category_id, media_blob, external_media_url, 
+           creation_year, date_posted, description, likes_count, comments_count
+    FROM POST
+    WHERE id = p_id;
+    
+  RETURN l_cursor;
+  
+EXCEPTION
+  WHEN posts_exceptions.post_not_found THEN
+    RAISE_APPLICATION_ERROR(-20003, 'Post with ID ' || p_id || ' not found');
+  WHEN OTHERS THEN
+    RAISE_APPLICATION_ERROR(-20103, 'Error retrieving post by ID: ' || SQLERRM);
 END get_post_by_id;
 /
 
-create or replace PROCEDURE delete_post_by_id(p_id in NUMBER)
+
+
+-- Delete post by ID
+CREATE OR REPLACE PROCEDURE delete_post_by_id(p_id IN NUMBER)
 AS
-    l_count NUMBER;
+  l_count NUMBER;
 BEGIN
-    select count(*) into l_count from post where id = p_id;
-    if l_count = 0 then
-        raise posts_exceptions.post_not_found; 
-    end if;
-    delete from post where id = p_id;
+  SELECT COUNT(*) INTO l_count 
+  FROM POST 
+  WHERE id = p_id;
+  
+  IF l_count = 0 THEN
+    RAISE posts_exceptions.post_not_found;
+  END IF;
+  
+  DELETE FROM POST
+  WHERE id = p_id;
+  
+EXCEPTION
+  WHEN posts_exceptions.post_not_found THEN
+    RAISE_APPLICATION_ERROR(-20003, 'Post with ID ' || p_id || ' not found');
+  WHEN OTHERS THEN
+    RAISE_APPLICATION_ERROR(-20103, 'Error deleting post by ID: ' || SQLERRM);
 END delete_post_by_id;
 /
 
-create or replace function get_post_by_category(p_category_id in NUMBER)
+-- Get posts by category
+CREATE OR REPLACE FUNCTION get_post_by_category(p_category_id IN NUMBER)
 RETURN SYS_REFCURSOR
 AS
-    l_cursor SYS_REFCURSOR;
-    l_count NUMBER;
+  l_cursor SYS_REFCURSOR;
+  l_count NUMBER;
 BEGIN
-    select count(*) into l_count from post where category_id = p_category_id;
-    if l_count = 0 then 
-        raise posts_exceptions.post_not_found;
-    end if;
-    open l_cursor for 
-        select * from post where category_id = p_category_id;
-    return l_cursor;
-end get_post_by_category;
-
+  SELECT COUNT(*) INTO l_count 
+  FROM POST 
+  WHERE category_id = p_category_id;
+  
+  IF l_count = 0 THEN
+    RAISE posts_exceptions.post_not_found;
+  END IF;
+  
+  OPEN l_cursor FOR
+    SELECT id, author_id, category_id, media_blob, external_media_url, 
+           creation_year, date_posted, description, likes_count, comments_count
+    FROM POST
+    WHERE category_id = p_category_id;
+    
+  RETURN l_cursor;
+  
+EXCEPTION
+  WHEN posts_exceptions.post_not_found THEN
+    RAISE_APPLICATION_ERROR(-20003, 'No posts found for category ID ' || p_category_id);
+  WHEN OTHERS THEN
+    RAISE_APPLICATION_ERROR(-20105, 'Error retrieving posts by category: ' || SQLERRM);
+END get_post_by_category;
 /
 
-create or replace function get_post_by_user_id(p_user_id in NUMBER)
-return SYS_REFCURSOR
+-- Get posts by user ID
+CREATE OR REPLACE FUNCTION get_post_by_user_id(p_user_id IN NUMBER)
+RETURN SYS_REFCURSOR
 AS
-    l_cursor SYS_REFCURSOR;
-    l_count NUMBER;
+  l_cursor SYS_REFCURSOR;
+  l_count NUMBER;
 BEGIN
-    select count(*) into l_count from post where author_id = p_user_id;
-    if l_count = 0 then
-        raise posts_exceptions.post_not_found;
-    end if;
-    open l_cursor for  
-        select * from post where author_id = p_user_id;
-    return l_cursor;
-end get_post_by_user_id;
-
+  SELECT COUNT(*) INTO l_count 
+  FROM POST 
+  WHERE author_id = p_user_id;
+  
+  IF l_count = 0 THEN
+    RAISE posts_exceptions.post_not_found;
+  END IF;
+  
+  OPEN l_cursor FOR
+    SELECT id, author_id, category_id, media_blob, external_media_url, 
+           creation_year, date_posted, description, likes_count, comments_count
+    FROM POST
+    WHERE author_id = p_user_id;
+    
+  RETURN l_cursor;
+  
+EXCEPTION
+  WHEN posts_exceptions.post_not_found THEN
+    RAISE_APPLICATION_ERROR(-20003, 'No posts found for user ID ' || p_user_id);
+  WHEN OTHERS THEN
+    RAISE_APPLICATION_ERROR(-20107, 'Error retrieving posts by user ID: ' || SQLERRM);
+END get_post_by_user_id;
 /
 
