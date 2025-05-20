@@ -26,24 +26,47 @@
   <div class="flex items-center mb-6">
     <div class="w-24 h-24 bg-gray-300 rounded-full mr-4"></div>
     <div>
-      <h1 class="text-2xl font-bold"><c:out value="${sessionScope.username}"/></h1>
+      <h1 class="text-2xl font-bold">
+        <c:choose>
+          <c:when test="${profileUser != null}">
+            <c:out value="${profileUser.username}"/>
+          </c:when>
+          <c:otherwise>
+            <c:out value="${sessionScope.username}"/>
+          </c:otherwise>
+        </c:choose>
+      </h1>
       <div class="mt-2">
         <span><strong>${postCount}</strong> posts</span>
       </div>
       <div class="mt-2">
         <a href="/wepProject_war_exploded/feed.jsp" class="text-blue-600 hover:underline">Feed</a> |
-        <a href="/wepProject_war_exploded/logout" class="text-blue-600 hover:underline">Logout</a>
+        <c:if test="${isOwnProfile}">
+          <a href="/wepProject_war_exploded/logout" class="text-blue-600 hover:underline">Logout</a>
+        </c:if>
+        <c:if test="${!isOwnProfile}">
+          <a href="/wepProject_war_exploded/profile" class="text-blue-600 hover:underline">My Profile</a>
+        </c:if>
       </div>
     </div>
   </div>
 
-  <!-- Post Creation -->
-  <div class="mb-6">
-    <button id="newPostBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">New Post</button>
-  </div>
+  <!-- Post Creation - Only visible on own profile -->
+  <c:if test="${isOwnProfile}">
+    <div class="mb-6">
+      <button id="newPostBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">New Post</button>
+    </div>
+  </c:if>
 
   <!-- Section for displaying posts -->
-  <h2 class="text-xl font-bold mb-4">Your Posts</h2>
+  <h2 class="text-xl font-bold mb-4">
+    <c:choose>
+      <c:when test="${isOwnProfile}">Your Posts</c:when>
+      <c:otherwise>
+        <c:out value="${profileUser.username}"/>'s Posts
+      </c:otherwise>
+    </c:choose>
+  </h2>
   <div id="postsContainer" class="posts-container"></div>
 
   <!-- Post Grid (Fallback) -->
@@ -53,7 +76,7 @@
         <a href="/wepProject_war_exploded/post?id=${post.id}">
           <c:choose>
             <c:when test="${not empty post.mediaBlobBase64}">
-              <img src="${post.mediaBlobBase64}"  />
+              <img src="${post.mediaBlobBase64}" alt="Post image" />
             </c:when>
             <c:otherwise>
               <div class="bg-gray-200 h-[150px] flex items-center justify-center">No Media</div>
@@ -67,28 +90,30 @@
     </c:if>
   </div>
 
-  <!-- Post Creation Modal -->
-  <div id="postModal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal">×</span>
-      <h2 class="text-xl font-bold mb-4">Create Post</h2>
-      <div id="postMessage" class="mb-4"></div>
-      <form id="postForm" enctype="multipart/form-data" action="/wepProject_war_exploded/import" method="post">
-        <div class="mb-4">
-          <label for="contentFile" class="block text-sm font-medium">Image</label>
-          <input type="file" id="contentFile" name="contentFile" accept="image/*" required class="mt-1 block w-full border rounded p-2">
-        </div>
-        <div class="mb-4">
-          <img id="previewImage" alt="Preview" />
-        </div>
-        <div class="mb-4">
-          <label for="description" class="block text-sm font-medium">Description</label>
-          <textarea id="description" name="description" rows="4" class="mt-1 block w-full border rounded p-2"></textarea>
-        </div>
-        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Post</button>
-      </form>
+  <!-- Post Creation Modal - Only needed on own profile -->
+  <c:if test="${isOwnProfile}">
+    <div id="postModal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">×</span>
+        <h2 class="text-xl font-bold mb-4">Create Post</h2>
+        <div id="postMessage" class="mb-4"></div>
+        <form id="postForm" enctype="multipart/form-data" action="/wepProject_war_exploded/import" method="post">
+          <div class="mb-4">
+            <label for="contentFile" class="block text-sm font-medium">Image</label>
+            <input type="file" id="contentFile" name="contentFile" accept="image/*" required class="mt-1 block w-full border rounded p-2">
+          </div>
+          <div class="mb-4">
+            <img id="previewImage" alt="Preview" />
+          </div>
+          <div class="mb-4">
+            <label for="description" class="block text-sm font-medium">Description</label>
+            <textarea id="description" name="description" rows="4" class="mt-1 block w-full border rounded p-2"></textarea>
+          </div>
+          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Post</button>
+        </form>
+      </div>
     </div>
-  </div>
+  </c:if>
 </div>
 
 <script src="/wepProject_war_exploded/js/profile.js"></script>

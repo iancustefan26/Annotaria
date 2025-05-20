@@ -71,7 +71,6 @@ public class PostDTO {
                 e.printStackTrace();
             }
         }
-        System.out.println(post.getLikesCount());
         return PostDTO.builder()
                 .id(post.getId())
                 .authorId(post.getAuthorId())

@@ -9,6 +9,7 @@ import org.example.wepproject.DAOs.PostDAO;
 import org.example.wepproject.DAOs.UserDAO;
 import org.example.wepproject.DTOs.PostDTO;
 import org.example.wepproject.Exceptions.PostNotFoundException;
+import org.example.wepproject.Exceptions.UserNotFoundException;
 import org.example.wepproject.Models.Post;
 
 import java.io.IOException;
@@ -19,13 +20,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.example.wepproject.DAOs.LikeDAO;
 import org.example.wepproject.DAOs.CommentDAO;
-
+import org.example.wepproject.Models.User;
 @WebServlet("/profile")
 public class ProfileServlet extends HttpServlet {
     private PostDAO postDAO;
     private UserDAO userDAO;
     private LikeDAO likeDAO;
     private CommentDAO commentDAO;
+
     @Override
     public void init() {
         postDAO = new PostDAO();
@@ -40,24 +42,63 @@ public class ProfileServlet extends HttpServlet {
             resp.sendRedirect("login.jsp");
             return;
         }
+
         try {
-            Long userId = (Long) req.getSession().getAttribute("userId");
-            List<Post> posts = postDAO.findByUserId(userId);
-            long postCount =  posts.size();
+            Long loggedInUserId = (Long) req.getSession().getAttribute("userId");
+            Long profileUserId = loggedInUserId; // Default to viewing own profile
+            boolean isOwnProfile = true;
+
+            // Check if we're visiting another user's profile via the id parameter
+            String userIdParam = req.getParameter("userId");
+            if (userIdParam != null && !userIdParam.isEmpty()) {
+                try {
+                    profileUserId = Long.parseLong(userIdParam);
+                    isOwnProfile = profileUserId.equals(loggedInUserId);
+
+                    User profileUser = userDAO.findById(profileUserId);
+
+                    // pass user info to the jsp
+                    req.setAttribute("profileUser", profileUser);
+                } catch (NumberFormatException e) {
+                    req.setAttribute("error", "Invalid user ID");
+                    req.getRequestDispatcher("/error.jsp").forward(req, resp);
+                    return;
+                }catch (UserNotFoundException e) {
+                    req.setAttribute("error", "User not found");
+                    req.getRequestDispatcher("/error.jsp").forward(req, resp);
+                    return;
+                }
+                catch (Exception e) {
+                    req.setAttribute("error", "Error finding user: " + e.getMessage());
+                    req.getRequestDispatcher("/error.jsp").forward(req, resp);
+                    return;
+                }
+            }
+            System.out.println(profileUserId);
+            // Get the user's posts
+            List<Post> posts = postDAO.findByUserId(profileUserId);
+            long postCount = posts.size();
 
             List<PostDTO> postDTOs = posts != null ? posts.stream()
                     .map(PostDTO::PostToPostDTO).collect(Collectors.toList()) : List.of();
 
             req.setAttribute("posts", postDTOs);
             req.setAttribute("postCount", postCount);
+            req.setAttribute("isOwnProfile", isOwnProfile);
+
             req.getRequestDispatcher("/profile.jsp").forward(req, resp);
         } catch (PostNotFoundException e) {
-            // no posts found
-        }catch (RuntimeException e) {
+            //
+            List<PostDTO> postDTOs = List.of();
+            req.setAttribute("posts", postDTOs);
+            req.setAttribute("postCount", 0);
+            req.getRequestDispatcher("/profile.jsp").forward(req, resp);
+        } catch (RuntimeException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             req.setAttribute("error", "Failed to load profile: " + e.getMessage());
             req.getRequestDispatcher("/error.jsp").forward(req, resp);
         }
     }
+
     // add delete account
 }
