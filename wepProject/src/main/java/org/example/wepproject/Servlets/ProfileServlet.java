@@ -1,5 +1,6 @@
 package org.example.wepproject.Servlets;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -7,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.wepproject.DAOs.PostDAO;
 import org.example.wepproject.DAOs.UserDAO;
+import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.PostDTO;
 import org.example.wepproject.Exceptions.PostNotFoundException;
 import org.example.wepproject.Exceptions.UserNotFoundException;
@@ -27,13 +29,42 @@ public class ProfileServlet extends HttpServlet {
     private UserDAO userDAO;
     private LikeDAO likeDAO;
     private CommentDAO commentDAO;
-
+    private ObjectMapper objectMapper;
     @Override
     public void init() {
         postDAO = new PostDAO();
         userDAO = new UserDAO();
         likeDAO = new LikeDAO();
         commentDAO = new CommentDAO();
+        objectMapper = new ObjectMapper();
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("application/json");
+        System.out.println("hello from delete profile servlet");
+        if(req.getSession().getAttribute("userId") != null) {
+            resp.sendRedirect("login.jsp");
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error","User not logged in"));
+            return;
+        }
+        try{
+            Long profileUserId = Long.parseLong(req.getSession().getAttribute("userId").toString());
+            boolean isOwnProfile = true;
+            userDAO.deleteById(profileUserId);
+            req.setAttribute("isOwnProfile", isOwnProfile);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("success","User deleted"));
+        }catch (UserNotFoundException e) {
+            req.setAttribute("error", "User not found " + e.getMessage());
+            req.getRequestDispatcher("/error.jsp").forward(req, resp);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error","User not found"));
+            return;
+        }catch (Exception e) {
+            req.setAttribute("error", e.getMessage());
+            req.getRequestDispatcher("/error.jsp").forward(req, resp);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error","Undefined error"));
+            return;
+        }
     }
 
     @Override

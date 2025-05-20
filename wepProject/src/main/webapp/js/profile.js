@@ -1,220 +1,157 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
     const modal = document.getElementById("postModal");
-    const imageModal = document.getElementById("imageModal");
     const newPostBtn = document.getElementById("newPostBtn");
     const postCloseBtn = document.querySelector(".close-modal");
-    const imageCloseBtn = document.querySelector("#imageModal .close");
     const fileInput = document.getElementById("contentFile");
     const previewImage = document.getElementById("previewImage");
     const form = document.getElementById("postForm");
     const messageDiv = document.getElementById("postMessage");
-    const postsContainer = document.getElementById("postsContainer");
-    const enlargedImage = document.getElementById("enlargedImage");
-    const imageDescription = document.getElementById("imageDescription");
-    const likeButton = document.getElementById("likeButton");
-    const commentButton = document.getElementById("commentButton");
-    const likeCount = document.getElementById("likeCount");
-    const commentCount = document.getElementById("commentCount");
-    const commentInput = document.getElementById("commentInput");
-    const submitComment = document.getElementById("submitComment");
-    const commentsContainer = document.getElementById("commentsContainer");
+    const postsContainer = document.querySelector(".post-grid");
 
-    newPostBtn.onclick = () => {
-        console.log("Opening new post modal");
-        modal.style.display = "flex";
+    // Initial load of posts - needed if AJAX loading is implemented
+    // loadPosts();
+
+    // Open modal when "New Post" button is clicked
+    if (newPostBtn) {
+        newPostBtn.onclick = () => {
+            console.log("Opening new post modal");
+            modal.style.display = "flex";
+        };
+    }
+
+    // Close modal when X is clicked
+    if (postCloseBtn) {
+        postCloseBtn.onclick = () => {
+            console.log("Closing post modal");
+            closePostModal();
+        };
+    }
+
+    // Close modal when clicking outside
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            console.log("Closing post modal via background click");
+            closePostModal();
+        }
     };
 
-    postCloseBtn.onclick = () => {
-        console.log("Closing post modal");
+    // Function to close modal and reset form
+    function closePostModal() {
         modal.style.display = "none";
         form.reset();
         previewImage.style.display = "none";
         messageDiv.innerHTML = "";
-    };
+    }
 
-    imageCloseBtn.onclick = () => {
-        console.log("Closing image modal");
-        imageModal.style.display = "none";
-        commentInput.value = "";
-        commentsContainer.innerHTML = "";
-    };
+    // Show image preview when file is selected
+    if (fileInput) {
+        fileInput.onchange = () => {
+            const file = fileInput.files[0];
+            if (file) {
+                console.log("File selected:", file.name, file.size, file.type);
 
-    window.onclick = (event) => {
-        if (event.target === modal) {
-            console.log("Closing post modal via background click");
-            modal.style.display = "none";
-            form.reset();
-            previewImage.style.display = "none";
-            messageDiv.innerHTML = "";
-        } else if (event.target === imageModal) {
-            console.log("Closing image modal via background click");
-            imageModal.style.display = "none";
-            commentInput.value = "";
-            commentsContainer.innerHTML = "";
-        }
-    };
-
-    fileInput.onchange = () => {
-        const file = fileInput.files[0];
-        if (file) {
-            console.log("File selected:", file.name, file.size, file.type);
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                previewImage.src = e.target.result;
-                previewImage.style.display = "block";
-                console.log("Preview image loaded");
-            };
-            reader.readAsDataURL(file);
-        } else {
-            console.log("No file selected");
-        }
-    };
-
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
-        console.log("Submitting form with file:", formData.get("contentFile")?.name, "description:", formData.get("description"));
-
-        try {
-            const response = await fetch("/wepProject_war_exploded/import", {
-                method: "POST",
-                body: formData
-            });
-            console.log("Fetch response status:", response.status, response.statusText);
-            console.log("Response headers:", [...response.headers.entries()]);
-
-            const responseText = await response.text();
-            console.log("Raw response text:", responseText);
-
-            let result;
-            try {
-                result = JSON.parse(responseText);
-            } catch (e) {
-                console.error("JSON parse error:", e.message, "Response text:", responseText);
-                throw new Error("Server did not return valid JSON");
-            }
-
-            console.log("Fetch response JSON:", result);
-            messageDiv.innerHTML = `<p class="${result.status === 'success' ? 'text-green-500' : 'text-red-500'}">${result.message}</p>`;
-
-            if (result.status === "success") {
-                console.log("Post created successfully, reloading in 1s");
-                setTimeout(() => {
-                    modal.style.display = "none";
-                    form.reset();
-                    previewImage.style.display = "none";
-                    messageDiv.innerHTML = "";
-                    loadPosts();
-                }, 1000);
-            }
-        } catch (error) {
-            console.error("Network error details:", error.message, error.stack);
-            messageDiv.innerHTML = `<p class="text-red-500">Network error: ${error.message}</p>`;
-        }
-    };
-
-    likeButton.onclick = async () => {
-        const postId = likeButton.dataset.postId;
-        console.log("Like button clicked for post ID:", postId);
-
-        try {
-            const response = await fetch("/wepProject_war_exploded/like", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ postId })
-            });
-            const result = await response.json();
-            console.log("Like response:", result);
-
-            if (result.status === "success") {
-                likeCount.textContent = `${result.data.likeCount} likes`;
-                likeIcon.textContent = result.data.userHasLiked ? "❤️" : "🤍";
-            } else {
-                alert(`Error: ${result.message}`);
-            }
-        } catch (error) {
-            console.error("Error liking post:", error);
-            alert("Failed to process like. Please try again.");
-        }
-    };
-
-    commentButton.onclick = async () => {
-        const postId = commentButton.dataset.postId;
-        console.log("Comment button clicked for post ID:", postId);
-
-        try {
-            const response = await fetch(`/wepProject_war_exploded/comment?postId=${postId}`, {
-                method: "GET",
-                headers: { "Accept": "application/json" }
-            });
-            const result = await response.json();
-            console.log("Comments response:", result);
-
-            if (result.status === "success") {
-                commentsContainer.innerHTML = "";
-                if (result.data.length === 0) {
-                    commentsContainer.innerHTML = '<p class="text-gray-500 text-sm">No comments yet.</p>';
-                } else {
-                    result.data.forEach(comment => {
-                        const commentDiv = document.createElement("div");
-                        commentDiv.className = "comment";
-                        commentDiv.innerHTML = `
-                            <span class="comment-username">${comment.username}</span>
-                            <span class="comment-content">${comment.content}</span>
-                            <span class="comment-timestamp">${new Date(comment.datePosted).toLocaleString()}</span>
-                        `;
-                        commentsContainer.appendChild(commentDiv);
-                    });
+                // Validate file is an image
+                if (!file.type.startsWith('image/')) {
+                    messageDiv.innerHTML = '<p class="text-red-500">Please select an image file</p>';
+                    fileInput.value = '';
+                    return;
                 }
+
+                // Size validation - alert if over 10MB
+                if (file.size > 10 * 1024 * 1024) {
+                    messageDiv.innerHTML = '<p class="text-yellow-500">Warning: Large image files may take longer to upload</p>';
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = "block";
+                    console.log("Preview image loaded");
+                };
+                reader.readAsDataURL(file);
             } else {
-                alert(`Error: ${result.message}`);
+                console.log("No file selected");
+                previewImage.style.display = "none";
             }
-        } catch (error) {
-            console.error("Error fetching comments:", error);
-            alert("Failed to load comments. Please try again.");
-        }
-    };
+        };
+    }
 
-    submitComment.onclick = async () => {
-        const postId = commentButton.dataset.postId;
-        const content = commentInput.value.trim();
-        console.log("Submit comment for post ID:", postId, "Content:", content);
-
-        if (!content) {
-            alert("Comment cannot be empty.");
-            return;
-        }
-
-        try {
-            const response = await fetch("/wepProject_war_exploded/comment", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ postId, content })
-            });
-            const result = await response.json();
-            console.log("Comment response:", result);
-
-            if (result.status === "success") {
-                commentCount.textContent = `${result.data.commentCount} comments`;
-                commentInput.value = "";
-                // Refresh comments
-                commentButton.click();
-            } else {
-                alert(`Error: ${result.message}`);
-            }
-        } catch (error) {
-            console.error("Error adding comment:", error);
-            alert("Failed to add comment. Please try again.");
-        }
-    };
-
-    // Optional: Trigger comment submission on Enter key
-    commentInput.onkeypress = (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
+    // Form submission
+    if (form) {
+        form.onsubmit = async (e) => {
             e.preventDefault();
-            submitComment.click();
-        }
-    };
 
+            // Display loading state
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.innerText;
+            submitButton.innerText = "Uploading...";
+            submitButton.disabled = true;
+            messageDiv.innerHTML = '<p class="text-blue-500">Uploading your post...</p>';
 
+            const formData = new FormData(form);
+            console.log("Submitting form with file:", formData.get("contentFile")?.name, "description:", formData.get("description"));
+
+            try {
+                const response = await fetch("/wepProject_war_exploded/import", {
+                    method: "POST",
+                    body: formData
+                });
+                console.log("Fetch response status:", response.status, response.statusText);
+
+                const responseText = await response.text();
+                console.log("Raw response text:", responseText);
+
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (e) {
+                    console.error("JSON parse error:", e.message, "Response text:", responseText);
+                    throw new Error("Server did not return valid JSON");
+                }
+
+                console.log("Fetch response JSON:", result);
+                messageDiv.innerHTML = `<p class="${result.status === 'success' ? 'text-green-500' : 'text-red-500'}">${result.message}</p>`;
+
+                if (result.status === "success") {
+                    console.log("Post created successfully, reloading in 1.5s");
+                    setTimeout(() => {
+                        // Redirect to profile page to see the new post
+                        window.location.href = "/wepProject_war_exploded/profile";
+                    }, 1500);
+                } else {
+                    // Reset button if there was an error
+                    submitButton.innerText = originalButtonText;
+                    submitButton.disabled = false;
+                }
+            } catch (error) {
+                console.error("Network error details:", error.message, error.stack);
+                messageDiv.innerHTML = `<p class="text-red-500">Network error: ${error.message}</p>`;
+                submitButton.innerText = originalButtonText;
+                submitButton.disabled = false;
+            }
+        };
+    }
+
+    function loadPosts() {
+        fetch("/wepProject_war_exploded/profile", {
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest" // Signal this is an AJAX request
+            }
+        })
+            .then(response => response.text())
+            .then(html => {
+                // This is a simple approach - in production you might want to use JSON responses
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                const newPostsContainer = tempDiv.querySelector('.post-grid');
+                if (newPostsContainer) {
+                    postsContainer.innerHTML = newPostsContainer.innerHTML;
+                }
+            })
+            .catch(error => {
+                console.error("Error refreshing posts:", error);
+            });
+    }
 });

@@ -22,7 +22,7 @@ public class PostDAO extends AbstractDAO<Post,Long> {
     private static final String FIND_ALL_QUERY = "SELECT id, author_id, category_id, media_blob, external_media_url," +
             " creation_year, date_posted, description, " +
             "likes_count, comments_count FROM POST";
-    private static final String CALL_DELETE_BY_ID = "{ ? = call delete_post_by_id(?) }";
+    private static final String CALL_DELETE_BY_ID = "{call delete_post_by_id(?) }";
     private static final String CALL_GET_BY_ID = "{ ? = call get_post_by_id(?) }";
     private static final String CALL_GET_BY_CATEGORY_ID = "{ ? = call get_post_by_category_id(?) }";
     private static final String CALL_GET_BY_USER_ID = "{ ? = call get_post_by_user_id(?) }";
@@ -138,11 +138,13 @@ public class PostDAO extends AbstractDAO<Post,Long> {
     @Override
     public void deleteById(Long id) {
        try{
+           System.out.println("hello from delete post by id");
            executeSqlFunctionNoReturn(CALL_DELETE_BY_ID, id);
        }catch (SQLException e){
            if(e.getErrorCode() == 20003) {
                throw new PostNotFoundException("Post with ID " + id + " not found", e);
            }else{
+               System.out.println(e.getMessage());
                throw new RuntimeException("Failed to delete post by ID: " + id, e);
            }
        }

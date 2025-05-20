@@ -20,7 +20,6 @@ $(document).ready(function() {
         $('#commentInput').focus();
     });
 
-    // Handle like button click
     $('#likeButton').click(function() {
         if (!postId) return;
 
@@ -107,15 +106,10 @@ $(document).ready(function() {
     function checkUserLike() {
         if (!postId) return;
 
-        // For simplicity, we're using the like icon state based on the DOM
-        // In a real app, you would make an API call to check the like status
-
-        // For now, we'll simulate this with a class check
         userHasLiked = $('#likeIcon').hasClass('fas');
         updateLikeUI(userHasLiked, $('#likesNumber').text());
     }
 
-    // Function to update UI based on like status
     function updateLikeUI(liked, count) {
         userHasLiked = liked;
 
@@ -128,7 +122,6 @@ $(document).ready(function() {
         $('#likesNumber').text(count);
     }
 
-    // Function to load comments
     function loadComments() {
         if (!postId) return;
 

@@ -1,10 +1,12 @@
 package org.example.wepproject.Servlets;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.wepproject.DAOs.PostDAO;
+import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.PostDTO;
 import org.example.wepproject.Exceptions.PostNotFoundException;
 import org.example.wepproject.Models.Post;
@@ -17,30 +19,85 @@ import static org.example.wepproject.DTOs.PostDTO.PostToPostDTO;
 @WebServlet("/post")
 public class PostServlet extends HttpServlet {
     private PostDAO postDAO;
+    private ObjectMapper objectMapper;
 
     @Override
     public void init() throws ServletException {
         postDAO = new PostDAO();
+        objectMapper = new ObjectMapper();
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException{
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+
+        // Check if user is logged in
+        if (req.getSession().getAttribute("userId") == null) {
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "User not logged in"));
+            return;
+        }
+
+        try{
+            String idParam = req.getParameter("id");
+            if(idParam == null || idParam.trim().isEmpty()){
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Post id required"));
+                return;
+            }
+            Long postId = Long.parseLong(idParam);
+            postDAO.deleteById(postId);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Post deleted"));
+        }catch(PostNotFoundException e){
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Post not found"));
+            return;
+        }catch(NumberFormatException e){
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid post id"));
+        }catch (Exception e){
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", e.getMessage()));
+        }
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // Set response type to JSON
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+
         if (req.getSession().getAttribute("userId") == null) {
-            resp.sendRedirect("login.jsp");
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "User not logged in"));
             return;
         }
-        try {
-            Long postId = Long.parseLong(req.getParameter("id"));
 
+        try {
+            String idParam = req.getParameter("id");
+            if (idParam == null || idParam.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Post ID is required"));
+                return;
+            }
+
+            Long postId = Long.parseLong(idParam);
             Post post = postDAO.findById(postId);
-            System.out.println("from post servlet" + post.getLikesCount());
+
             PostDTO postDTO = PostToPostDTO(post);
-            req.setAttribute("post", postDTO);
-            req.getRequestDispatcher("/post.jsp").forward(req, resp);
+
+            objectMapper.writeValue(resp.getWriter(), postDTO);
+
+        } catch (NumberFormatException e) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid post ID format"));
         } catch (PostNotFoundException e) {
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Post not found: " + e.getMessage()));
+        } catch (Exception e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            req.setAttribute("error", "Failed to load post: " + e.getMessage());
-            req.getRequestDispatcher("/error.jsp").forward(req, resp);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Server error: " + e.getMessage()));
         }
     }
 }
