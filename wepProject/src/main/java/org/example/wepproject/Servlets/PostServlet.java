@@ -39,6 +39,7 @@ public class PostServlet extends HttpServlet {
             return;
         }
         try{
+
             Long LoggedInUserId = Long.parseLong(req.getSession().getAttribute("userId").toString());
             String idParam = req.getParameter("id");
             if(idParam == null || idParam.trim().isEmpty()){
@@ -48,22 +49,26 @@ public class PostServlet extends HttpServlet {
             }
             Long postId = Long.parseLong(idParam);
             Post post = postDAO.findById(postId);
+            Long authorId = post.getAuthorId();
             if(post.getAuthorId() != LoggedInUserId ){
                 resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "User doest not have permission to delete another user post"));
                 return;
             }
+            System.out.println(authorId + " " + LoggedInUserId);
             postDAO.deleteByIdWithQuerry(postId);
-            //postDAO.deleteById(postId);
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Post deleted"));
         }catch(PostNotFoundException e){
+            System.out.println("catch 1");
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Post not found"));
             return;
         }catch(NumberFormatException e){
+            System.out.println("catch 2");
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid post id"));
         }catch (Exception e){
+            System.out.println("catch 3");
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", e.getMessage()));
         }
@@ -74,8 +79,8 @@ public class PostServlet extends HttpServlet {
         // Set response type to JSON
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
-
-        if (req.getSession().getAttribute("userId") == null) {
+        Long userId = Long.parseLong(req.getSession().getAttribute("userId").toString());
+        if (userId == null) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
             return;
@@ -90,11 +95,14 @@ public class PostServlet extends HttpServlet {
 
             Long postId = Long.parseLong(idParam);
             Post post = postDAO.findById(postId);
+            Long postAuthorId = post.getAuthorId();
+
 
             PostDTO postDTO = PostToPostDTO(post);
-
+            boolean isOwnProfile = postAuthorId.equals(userId) ? true : false;
             req.setAttribute("post", postDTO);
-            req.getRequestDispatcher("post.jsp").forward(req, resp);
+            req.setAttribute("isOwnProfile", isOwnProfile);
+            req.getRequestDispatcher("/post.jsp").forward(req, resp);
         } catch (NumberFormatException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             req.setAttribute("error", "Number format exception");

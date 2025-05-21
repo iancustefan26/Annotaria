@@ -25,6 +25,8 @@ public class LikeServlet extends HttpServlet {
         likeDAO = new LikeDAO();
     }
 
+
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json");

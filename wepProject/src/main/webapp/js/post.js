@@ -96,8 +96,6 @@ $(document).ready(function() {
         });
     }
 
-
-
     function updateLikeUI(liked, count) {
         userHasLiked = liked;
 
@@ -164,6 +162,14 @@ $(document).ready(function() {
             day: 'numeric'
         });
 
+        // Conditionally add delete button if the user is the comment's author
+        const isOwnComment = comment.isOwnComment; // Assuming backend provides this flag
+        const deleteButton = isOwnComment ? `
+            <button class="ml-2 text-gray-500 hover:text-red-500 delete-comment-btn" data-comment-id="${comment.id}" title="Delete Comment">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        ` : '';
+
         return `
             <div class="mb-3 comment-item" data-comment-id="${comment.id}">
                 <div class="flex">
@@ -176,18 +182,61 @@ $(document).ready(function() {
                     ${formattedDate}
                     <button class="ml-2 text-gray-500 hover:text-gray-700 like-comment-btn">Like</button>
                     <button class="ml-2 text-gray-500 hover:text-gray-700 reply-comment-btn">Reply</button>
+                    ${deleteButton}
                 </div>
             </div>
         `;
     }
 
-    // Dynamically adjust textarea height based on content
+    // Handle delete comment button click
+    $(document).on('click', '.delete-comment-btn', function() {
+        const commentId = $(this).data('comment-id');
+        if (!commentId) return;
+
+        if (!confirm('Are you sure you want to delete this comment?')) {
+            return;
+        }
+
+        $.ajax({
+            url: `/wepProject_war_exploded/comment?id=${commentId}`,
+            type: 'DELETE',
+            headers: {
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Remove the comment from the DOM
+                    $(`.comment-item[data-comment-id="${commentId}"]`).remove();
+
+                    // Update comment count
+                    const currentCount = parseInt($('#commentCount').text()) || 0;
+                    $('#commentCount').text(currentCount - 1);
+
+                    // Show "No comments yet" if no comments remain
+                    if ($('#commentsContainer').children().length === 0) {
+                        $('#commentsContainer').append('<p class="text-gray-500 text-center py-4">No comments yet</p>');
+                    }
+
+                    alert('Comment deleted successfully');
+                }
+            },
+            error: function(xhr) {
+                const response = xhr.responseJSON;
+                if (xhr.status === 401) {
+                    alert('Please log in to delete this comment');
+                    window.location.href = '/wepProject_war_exploded/login';
+                } else {
+                    alert(response?.message || 'Error deleting comment');
+                }
+            }
+        });
+    });
+
     $('#commentInput').on('input', function() {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
     });
 
-    // Double-tap/click to like (for mobile and desktop)
     let lastTap = 0;
     $('.post-media').on('click', function(e) {
         const currentTime = new Date().getTime();
@@ -215,5 +264,36 @@ $(document).ready(function() {
         }
 
         lastTap = currentTime;
+    });
+
+    $('#deleteButton').click(function() {
+        if (!postId) return;
+
+        if (!confirm('Are you sure you want to delete this post?')) {
+            return;
+        }
+
+        $.ajax({
+            url: `/wepProject_war_exploded/post?id=${postId}`,
+            type: 'DELETE',
+            headers: {
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                if (response.status === 'success') {
+                    alert('Post deleted successfully');
+                    window.location.href = '/wepProject_war_exploded/profile';
+                }
+            },
+            error: function(xhr) {
+                const response = xhr.responseJSON;
+                if (xhr.status === 401) {
+                    alert('Please log in to delete this post');
+                    window.location.href = '/wepProject_war_exploded/login';
+                } else {
+                    alert(response?.message || 'Error deleting post');
+                }
+            }
+        });
     });
 });
