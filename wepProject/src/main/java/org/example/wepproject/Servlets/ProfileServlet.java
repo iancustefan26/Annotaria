@@ -42,28 +42,29 @@ public class ProfileServlet extends HttpServlet {
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
         System.out.println("hello from delete profile servlet");
-        if(req.getSession().getAttribute("userId") != null) {
-            resp.sendRedirect("login.jsp");
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error","User not logged in"));
+
+        Object userIdObj = req.getSession().getAttribute("userId");
+        if (userIdObj == null) {
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "User not logged in"));
             return;
         }
-        try{
-            Long profileUserId = Long.parseLong(req.getSession().getAttribute("userId").toString());
-            boolean isOwnProfile = true;
+
+        try {
+            Long profileUserId = Long.parseLong(userIdObj.toString());
             userDAO.deleteById(profileUserId);
-            req.setAttribute("isOwnProfile", isOwnProfile);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("success","User deleted"));
-        }catch (UserNotFoundException e) {
-            req.setAttribute("error", "User not found " + e.getMessage());
-            req.getRequestDispatcher("/error.jsp").forward(req, resp);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error","User not found"));
-            return;
-        }catch (Exception e) {
-            req.setAttribute("error", e.getMessage());
-            req.getRequestDispatcher("/error.jsp").forward(req, resp);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error","Undefined error"));
-            return;
+            // Invalidate session after deletion
+            req.getSession().invalidate();
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "User deleted"));
+            System.out.println("user deleted successfully");
+        } catch (UserNotFoundException e) {
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "User not found: " + e.getMessage()));
+        } catch (Exception e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Server error: " + e.getMessage()));
         }
     }
 

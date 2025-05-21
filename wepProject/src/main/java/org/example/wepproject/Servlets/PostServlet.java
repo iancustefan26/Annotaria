@@ -38,8 +38,8 @@ public class PostServlet extends HttpServlet {
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "User not logged in"));
             return;
         }
-
         try{
+            Long LoggedInUserId = Long.parseLong(req.getSession().getAttribute("userId").toString());
             String idParam = req.getParameter("id");
             if(idParam == null || idParam.trim().isEmpty()){
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -47,7 +47,14 @@ public class PostServlet extends HttpServlet {
                 return;
             }
             Long postId = Long.parseLong(idParam);
-            postDAO.deleteById(postId);
+            Post post = postDAO.findById(postId);
+            if(post.getAuthorId() != LoggedInUserId ){
+                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "User doest not have permission to delete another user post"));
+                return;
+            }
+            postDAO.deleteByIdWithQuerry(postId);
+            //postDAO.deleteById(postId);
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Post deleted"));
         }catch(PostNotFoundException e){
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -70,7 +77,7 @@ public class PostServlet extends HttpServlet {
 
         if (req.getSession().getAttribute("userId") == null) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "User not logged in"));
+
             return;
         }
 
@@ -78,7 +85,6 @@ public class PostServlet extends HttpServlet {
             String idParam = req.getParameter("id");
             if (idParam == null || idParam.isEmpty()) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Post ID is required"));
                 return;
             }
 
@@ -87,17 +93,20 @@ public class PostServlet extends HttpServlet {
 
             PostDTO postDTO = PostToPostDTO(post);
 
-            objectMapper.writeValue(resp.getWriter(), postDTO);
-
+            req.setAttribute("post", postDTO);
+            req.getRequestDispatcher("post.jsp").forward(req, resp);
         } catch (NumberFormatException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid post ID format"));
+            req.setAttribute("error", "Number format exception");
+            req.getRequestDispatcher("/post.jsp").forward(req, resp);
         } catch (PostNotFoundException e) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Post not found: " + e.getMessage()));
+            req.setAttribute("error", "Invalid post id");
+            req.getRequestDispatcher("/post.jsp").forward(req, resp);
         } catch (Exception e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Server error: " + e.getMessage()));
+            req.setAttribute("error", "Internal server error");
+            req.getRequestDispatcher("/post.jsp").forward(req, resp);
         }
     }
 }

@@ -8,11 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById("postForm");
     const messageDiv = document.getElementById("postMessage");
     const postsContainer = document.querySelector(".post-grid");
+    const deleteProfileBtn = document.getElementById("deletePostBtn");
 
-    // Initial load of posts - needed if AJAX loading is implemented
-    // loadPosts();
-
-    // Open modal when "New Post" button is clicked
     if (newPostBtn) {
         newPostBtn.onclick = () => {
             console.log("Opening new post modal");
@@ -35,6 +32,39 @@ document.addEventListener('DOMContentLoaded', () => {
             closePostModal();
         }
     };
+
+    if(deleteProfileBtn) {
+        deleteProfileBtn.onclick = () => {
+            if (!confirm('Are you sure you want to delete your profile? This action cannot be undone.')) {
+                return;
+            }
+
+            $.ajax({
+                url: '/wepProject_war_exploded/profile',
+                type: 'DELETE',
+                headers: {
+                    'Accept': 'application/json'
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        alert('Profile deleted successfully.');
+                        window.location.href = '/wepProject_war_exploded/login.jsp';
+                    } else {
+                        alert(response.message || 'Error deleting profile');
+                    }
+                },
+                error: function(xhr) {
+                    const response = xhr.responseJSON;
+                    if (xhr.status === 401) {
+                        alert('Please log in to delete your profile');
+                        window.location.href = '/wepProject_war_exploded/login.jsp';
+                    } else {
+                        alert(response?.message || 'Error deleting profile');
+                    }
+                }
+            });
+        }
+    }
 
     // Function to close modal and reset form
     function closePostModal() {

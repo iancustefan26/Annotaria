@@ -122,6 +122,6 @@
   </c:if>
 </div>
 
-<script src="/wepProject_war_exploded/js/post.js"></script>
+<script src="js/post.js"></script>
 </body>
 </html>

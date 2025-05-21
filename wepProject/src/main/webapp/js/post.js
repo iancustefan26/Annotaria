@@ -1,12 +1,6 @@
 $(document).ready(function() {
     const postId = new URLSearchParams(window.location.search).get('id');
-    let userHasLiked = false;
-
-    // Check if user has liked this post on page load
-    checkUserLike();
-
-    // Load comments on page load
-    loadComments();
+    let userHasLiked = $('#likeIcon').hasClass('fas');
 
     // Handle comment button click
     $('#commentButton').click(function() {
@@ -102,13 +96,7 @@ $(document).ready(function() {
         });
     }
 
-    // Function to check if the user has liked the post
-    function checkUserLike() {
-        if (!postId) return;
 
-        userHasLiked = $('#likeIcon').hasClass('fas');
-        updateLikeUI(userHasLiked, $('#likesNumber').text());
-    }
 
     function updateLikeUI(liked, count) {
         userHasLiked = liked;
@@ -128,6 +116,9 @@ $(document).ready(function() {
         $.ajax({
             url: `/wepProject_war_exploded/comment?postId=${postId}`,
             type: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            },
             success: function(response) {
                 if (response.status === 'success' && Array.isArray(response.data)) {
                     const comments = response.data;
@@ -160,6 +151,9 @@ $(document).ready(function() {
             }
         });
     }
+
+    // Load comments on page load
+    loadComments();
 
     // Function to create a comment element
     function createCommentElement(comment) {

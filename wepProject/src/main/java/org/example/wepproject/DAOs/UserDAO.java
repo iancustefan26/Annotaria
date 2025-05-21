@@ -91,7 +91,8 @@ public class UserDAO extends AbstractDAO<User, Long> {
     @Override
     public void deleteById(Long id) {
         try{
-            executeSqlFunctionNoReturn(CALL_DELETE_USER_BY_ID, id);
+            int rownum = executeUpdate(DELETE_BY_ID_QUERY, id);
+            //executeSqlFunctionNoReturn(CALL_DELETE_USER_BY_ID, id);
         }catch (SQLException e){
             if (e.getErrorCode() == 20002) {
                 throw new UserNotFoundException("User with ID " + id + " not found", e);

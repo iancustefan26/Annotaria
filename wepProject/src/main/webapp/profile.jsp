@@ -56,6 +56,9 @@
     <div class="mb-6">
       <button id="newPostBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">New Post</button>
     </div>
+    <div class="mb-6 flex space-x-4">
+      <button id="deleteProfileBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Delete Profile</button>
+    </div>
   </c:if>
 
   <!-- Section for displaying posts -->
@@ -115,6 +118,7 @@
     </div>
   </c:if>
 </div>
+
 
 <script src="/wepProject_war_exploded/js/profile.js"></script>
 </body>
