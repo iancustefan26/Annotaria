@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById("postForm");
     const messageDiv = document.getElementById("postMessage");
     const postsContainer = document.querySelector(".post-grid");
-    const deleteProfileBtn = document.getElementById("deletePostBtn");
+    const deleteProfileBtn = document.getElementById("deleteProfileBtn");
 
     if (newPostBtn) {
         newPostBtn.onclick = () => {
@@ -33,12 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    if(deleteProfileBtn) {
+    if (deleteProfileBtn) {
         deleteProfileBtn.onclick = () => {
+            console.log('Delete button clicked');
             if (!confirm('Are you sure you want to delete your profile? This action cannot be undone.')) {
                 return;
             }
-
+            console.log('Confirmed deletion');
             $.ajax({
                 url: '/wepProject_war_exploded/profile',
                 type: 'DELETE',
@@ -46,24 +47,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Accept': 'application/json'
                 },
                 success: function(response) {
+                    console.log('Success response:', response);
                     if (response.status === 'success') {
                         alert('Profile deleted successfully.');
-                        window.location.href = '/wepProject_war_exploded/login.jsp';
+                        window.location.href = '/wepProject_war_exploded/login';
                     } else {
                         alert(response.message || 'Error deleting profile');
                     }
                 },
                 error: function(xhr) {
+                    console.error('Error response:', xhr);
                     const response = xhr.responseJSON;
                     if (xhr.status === 401) {
                         alert('Please log in to delete your profile');
-                        window.location.href = '/wepProject_war_exploded/login.jsp';
+                        window.location.href = '${pageContext.request.contextPath}/login.jsp';
                     } else {
                         alert(response?.message || 'Error deleting profile');
                     }
                 }
             });
-        }
+        };
+    } else {
+        console.error('Delete Profile button not found');
     }
 
     // Function to close modal and reset form

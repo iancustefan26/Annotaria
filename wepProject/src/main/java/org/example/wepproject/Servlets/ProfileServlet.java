@@ -55,10 +55,9 @@ public class ProfileServlet extends HttpServlet {
         try {
             Long profileUserId = Long.parseLong(userIdObj.toString());
             userDAO.deleteById(profileUserId);
-            // Invalidate session after deletion
+
             req.getSession().invalidate();
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "User deleted"));
-            System.out.println("user deleted successfully");
         } catch (UserNotFoundException e) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "User not found: " + e.getMessage()));
@@ -75,10 +74,10 @@ public class ProfileServlet extends HttpServlet {
             return;
         }
 
+        boolean isOwnProfile = true;
         try {
             Long loggedInUserId = (Long) req.getSession().getAttribute("userId");
             Long profileUserId = loggedInUserId; // Default to viewing own profile
-            boolean isOwnProfile = true;
 
             // Check if we're visiting another user's profile via the id parameter
             String userIdParam = req.getParameter("userId");
@@ -106,14 +105,13 @@ public class ProfileServlet extends HttpServlet {
                     return;
                 }
             }
-            System.out.println(profileUserId);
             // Get the user's posts
             List<Post> posts = postDAO.findByUserId(profileUserId);
+
             long postCount = posts.size();
 
             List<PostDTO> postDTOs = posts != null ? posts.stream()
                     .map(PostDTO::PostToPostDTO).collect(Collectors.toList()) : List.of();
-
             req.setAttribute("posts", postDTOs);
             req.setAttribute("postCount", postCount);
             req.setAttribute("isOwnProfile", isOwnProfile);
@@ -124,6 +122,7 @@ public class ProfileServlet extends HttpServlet {
             List<PostDTO> postDTOs = List.of();
             req.setAttribute("posts", postDTOs);
             req.setAttribute("postCount", 0);
+            req.setAttribute("isOwnProfile", isOwnProfile);
             req.getRequestDispatcher("/profile.jsp").forward(req, resp);
         } catch (RuntimeException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
