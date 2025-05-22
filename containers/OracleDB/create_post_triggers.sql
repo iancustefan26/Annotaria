@@ -31,7 +31,7 @@ COMPOUND TRIGGER
     WHEN NO_DATA_FOUND THEN
         raise post_exceptions.no_such_post;
     WHEN OTHERS THEN
-        raise post_exceptions.unexpected_post_error;
+        raise;
     
     END AFTER EACH ROW;
 
@@ -72,19 +72,134 @@ BEGIN
         END IF;
     END IF;
 
-
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
         raise post_exceptions.no_such_post;
     WHEN OTHERS THEN
-        raise post_exceptions.unexpected_post_error;
+        raise;
 
 END valid_post_trigger;
 
 /
 
+CREATE OR REPLACE TRIGGER update_category_frames_and_interest
+AFTER INSERT OR DELETE ON POST
+FOR EACH ROW
+DECLARE
+    v_rows_category NUMBER;
+BEGIN
+    CASE
+        WHEN INSERTING THEN
+            SELECT COUNT(*) INTO v_rows_category FROM CATEGORY_INTEREST WHERE user_id = :NEW.author_id AND category_id = :NEW.category_id;
+            INSERT INTO CATEGORY_FRAMES VALUES(
+                :NEW.category_id,
+                :NEW.id
+            );
+            -- increasing category interest
+            IF v_rows_category = 0 THEN
+                INSERT INTO CATEGORY_INTEREST VALUES(
+                    :NEW.author_id,
+                    :NEW.category_id,
+                    1
+                );
+            ELSE
+                UPDATE CATEGORY_INTEREST SET interest = interest + 1 WHERE user_id = :NEW.author_id AND category_id = :NEW.category_id;
+            END IF;
+
+        -- decreasing category interest
+        WHEN DELETING THEN
+            SELECT COUNT(*) INTO v_rows_category FROM CATEGORY_INTEREST WHERE user_id = :OLD.author_id AND category_id = :OLD.category_id;
+            IF v_rows_category = 0 THEN
+                DELETE FROM CATEGORY_INTEREST WHERE user_id = :OLD.author_id AND category_id = :OLD.category_id;
+            ELSE
+                UPDATE CATEGORY_INTEREST SET interest = interest - 1 WHERE user_id = :NEW.author_id AND category_id = :NEW.category_id;
+            END IF;
+    END CASE;
+END update_category_frames_and_interest;
+
+/
+
 CREATE OR REPLACE TRIGGER update_likes_interest
 AFTER INSERT OR DELETE ON LIKES
+FOR EACH ROW
+DECLARE
+    v_rows_friendship NUMBER;
+    v_rows_category NUMBER;
+    v_post_author_id POST.author_id%TYPE;
+    v_category_id POST.CATEGORY_ID%TYPE;
+    v_interest NUMBER;   
+BEGIN
+    CASE
+        WHEN INSERTING THEN
+            SELECT author_id INTO v_post_author_id FROM POST WHERE id = :NEW.post_id;
+            SELECT category_id INTO v_category_id FROM POST WHERE id = :NEW.post_id;
+            SELECT COUNT(*) INTO v_rows_friendship FROM FRIENDSHIP WHERE user1_id = :NEW.user_id AND user2_id = v_post_author_id;
+            SELECT COUNT(*) INTO v_rows_category FROM CATEGORY_INTEREST WHERE user_id = :NEW.user_id AND category_id = v_category_id;
+            -- increasing friendship interest
+            IF v_rows_friendship = 0 THEN
+                INSERT INTO FRIENDSHIP VALUES(
+                    :NEW.user_id,
+                    v_post_author_id,
+                    1
+                );
+            ELSE
+                UPDATE FRIENDSHIP SET interest = interest + 1 WHERE user1_id = :NEW.user_id AND user2_id = v_post_author_id;
+            END IF;
+
+            -- increasing category interest
+            IF v_rows_category = 0 THEN
+                INSERT INTO CATEGORY_INTEREST VALUES(
+                    :NEW.user_id,
+                    v_category_id,
+                    1
+                );
+            ELSE
+                UPDATE CATEGORY_INTEREST SET interest = interest + 1 WHERE user_id = :NEW.user_id AND category_id = v_category_id;
+            END IF;
+            UPDATE POST SET likes_count = likes_count + 1 WHERE id = :NEW.post_id;
+
+        WHEN DELETING THEN
+            SELECT author_id INTO v_post_author_id FROM POST WHERE id = :OLD.post_id;
+            SELECT category_id INTO v_category_id FROM POST WHERE id = :OLD.post_id;
+            SELECT COUNT(*) INTO v_rows_friendship FROM FRIENDSHIP WHERE user1_id = :OLD.user_id AND user2_id = v_post_author_id;
+            SELECT COUNT(*) INTO v_rows_category FROM CATEGORY_INTEREST WHERE user_id = :OLD.user_id AND category_id = v_category_id;
+            -- decreasing friendship interest
+            IF v_rows_friendship = 0 THEN
+                raise post_exceptions.no_existing_unlike_operation;
+            ELSE
+                SELECT interest INTO v_interest FROM FRIENDSHIP WHERE user1_id = :OLD.user_id AND user2_id = v_post_author_id;
+                IF v_interest = 0 THEN
+                    DELETE FROM FRIENDSHIP WHERE user1_id = :OLD.user_id AND user2_id = v_post_author_id;
+                ELSE 
+                    UPDATE FRIENDSHIP SET interest = interest - 1 WHERE user1_id = :OLD.user_id AND user2_id = v_post_author_id;
+                END IF;
+            END IF;
+            
+            -- decreasing category interest
+            IF v_rows_category = 0 THEN
+                raise post_exceptions.no_existing_category_interest_operation;
+            ELSE
+                SELECT interest INTO v_interest FROM CATEGORY_INTEREST WHERE user_id = :OLD.user_id AND category_id = v_category_id;
+                IF v_interest = 0 THEN
+                    DELETE FROM CATEGORY_INTEREST WHERE user_id = :OLD.user_id AND category_id = v_category_id;
+                ELSE
+                    UPDATE CATEGORY_INTEREST SET interest = interest - 1 WHERE user_id = :OLD.user_id AND category_id = v_category_id;
+                END IF;
+            END IF;
+            UPDATE POST SET likes_count = likes_count - 1 WHERE id = :OLD.post_id;
+    END CASE;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        raise post_exceptions.no_such_post;
+    WHEN OTHERS THEN
+        raise;
+
+END update_likes_interest;
+
+/
+
+CREATE OR REPLACE TRIGGER update_comments_interest
+AFTER INSERT OR DELETE ON COMMENTS
 FOR EACH ROW
 DECLARE
     v_rows_friendship NUMBER;
@@ -120,7 +235,7 @@ BEGIN
             ELSE
                 UPDATE CATEGORY_INTEREST SET interest = interest + 1 WHERE user_id = :NEW.user_id AND category_id = v_category_id;
             END IF;
-
+            UPDATE POST SET comments_count = comments_count + 1 WHERE id = :NEW.post_id;
         WHEN DELETING THEN
             -- decreasing friendship interest
             IF v_rows_friendship = 0 THEN
@@ -145,12 +260,13 @@ BEGIN
                     UPDATE CATEGORY_INTEREST SET interest = interest - 1 WHERE user_id = :OLD.user_id AND category_id = v_category_id;
                 END IF;
             END IF;
+            UPDATE POST SET comments_count = comments_count - 1 WHERE id = :OLD.post_id;
     END CASE;
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
         raise post_exceptions.no_such_post;
     WHEN OTHERS THEN
-        raise post_exceptions.unexpected_post_error;
+        raise;
 
 END update_likes_interest;
 
