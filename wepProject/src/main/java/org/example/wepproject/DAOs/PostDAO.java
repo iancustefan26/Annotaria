@@ -28,7 +28,6 @@ public class PostDAO extends AbstractDAO<Post,Long> {
     private static final String CALL_GET_BY_USER_ID = "{ ? = call get_post_by_user_id(?) }";
     private static final String DELETE_BY_ID_QUERY = "DELETE FROM POST WHERE id = ?";
 
-
     @Override
     protected Post mapResultSetToEntity(ResultSet rs) throws SQLException {
         return Post.builder()
