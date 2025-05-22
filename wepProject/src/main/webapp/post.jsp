@@ -32,8 +32,16 @@
         <div class="flex-1">
           <p class="font-semibold">User #${post.authorId}</p>
         </div>
-        <div class="text-gray-500">
-          <i class="fas fa-ellipsis-h"></i>
+
+        <div class="flex items-center space-x-2">
+          <c:if test="${isOwnProfile}">
+            <button id="deleteButton" class="focus:outline-none text-red-500 hover:text-red-700" data-post-id="${post.id}" title="Delete Post">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </c:if>
+          <div class="text-gray-500">
+            <i class="fas fa-ellipsis-h"></i>
+          </div>
         </div>
       </div>
 
@@ -122,6 +130,6 @@
   </c:if>
 </div>
 
-<script src="/wepProject_war_exploded/js/post.js"></script>
+<script src="js/post.js"></script>
 </body>
 </html>

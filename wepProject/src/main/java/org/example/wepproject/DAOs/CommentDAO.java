@@ -3,9 +3,8 @@ package org.example.wepproject.DAOs;
 
 import org.example.wepproject.Models.Comment;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CommentDAO extends AbstractDAO<Comment, Long> {
@@ -13,7 +12,7 @@ public class CommentDAO extends AbstractDAO<Comment, Long> {
     private static final String INSERT_QUERY = "INSERT INTO COMMENTS (post_id, user_id, content, date_posted) VALUES (?, ?, ?, ?)";
     private static final String FIND_BY_POST_ID_QUERY = "SELECT id, post_id, user_id, content, date_posted FROM COMMENTS WHERE post_id = ? ORDER BY date_posted DESC";
     private static final String DELETE_QUERY = "DELETE FROM COMMENTS WHERE id = ?";
-
+    private static final String FIND_USER_ID_FROM_COMMENT_QUERY = "SELECT user_id FROM COMMENTS WHERE id = ?";
     @Override
     protected Comment mapResultSetToEntity(ResultSet rs) throws SQLException {
         return Comment.builder()
@@ -74,6 +73,22 @@ public class CommentDAO extends AbstractDAO<Comment, Long> {
         }
     }
 
+    public Long findUserIdFromComment(Long commentId) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(FIND_USER_ID_FROM_COMMENT_QUERY)) {
+
+            stmt.setLong(1, commentId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getLong("user_id");
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding user ID from comment: " + e.getMessage(), e);
+        }
+    }
+
     public List<Comment> findByPostId(Long postId) {
         try {
             List<Comment> comments = executeQuery(FIND_BY_POST_ID_QUERY, postId);
@@ -104,6 +119,8 @@ public class CommentDAO extends AbstractDAO<Comment, Long> {
             throw new RuntimeException("Failed to delete comment with id: " + id, e);
         }
     }
+
+
 
     @Override
     public void update(Comment entity) {

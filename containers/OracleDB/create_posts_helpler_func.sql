@@ -55,6 +55,7 @@ EXCEPTION
 END delete_post_by_id;
 /
 
+
 -- Get posts by category
 CREATE OR REPLACE FUNCTION get_post_by_category(p_category_id IN NUMBER)
 RETURN SYS_REFCURSOR

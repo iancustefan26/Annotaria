@@ -12,7 +12,7 @@ public class UserDAO extends AbstractDAO<User, Long> {
     private static final String UPDATE_QUERY = "UPDATE USERS SET username = ?, password_hash = ?, email = ? WHERE id = ?";
     private static final String FIND_ALL_QUERY = "SELECT id, username, password_hash, email FROM USERS";
     private static final String DELETE_BY_ID_QUERY = "DELETE FROM USERS WHERE id = ?";
-    private static final String CALL_DELETE_USER_BY_ID = "{? = call delete_user_by_id(?)}";
+    private static final String CALL_DELETE_USER_BY_ID = "{call delete_user_by_id(?)}";
     private static final String CALL_GET_USER_BY_USERNAME = "{? = call get_user_by_username(?)}";
     private static final String CALL_GET_USER_BY_ID = "{? = call get_user_by_id(?)}";
     private static final String CALL_GET_USER_BY_EMAIL = "{? = call get_user_by_email(?)}";
@@ -91,7 +91,8 @@ public class UserDAO extends AbstractDAO<User, Long> {
     @Override
     public void deleteById(Long id) {
         try{
-            executeSqlFunctionNoReturn(CALL_DELETE_USER_BY_ID, id);
+            int rownum = executeUpdate(DELETE_BY_ID_QUERY, id);
+            //executeSqlFunctionNoReturn(CALL_DELETE_USER_BY_ID, id);
         }catch (SQLException e){
             if (e.getErrorCode() == 20002) {
                 throw new UserNotFoundException("User with ID " + id + " not found", e);

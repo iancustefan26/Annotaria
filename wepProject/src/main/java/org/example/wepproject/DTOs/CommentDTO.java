@@ -23,4 +23,6 @@ public class CommentDTO {
     private Timestamp datePosted;
     @JsonProperty("commentCount")
     private long commentCount;
+    @JsonProperty("isOwnComment")
+    private boolean isOwnComment;
 }

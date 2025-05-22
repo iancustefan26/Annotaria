@@ -12,6 +12,7 @@ import org.example.wepproject.DTOs.CommentDTO;
 import org.example.wepproject.Models.Comment;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,38 @@ public class CommentServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         commentDAO = new CommentDAO();
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("application/json");
+        Long userId = (Long) req.getSession().getAttribute("userId");
+        if(userId == null){
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "User not logged in"));
+        }
+        try{
+            Long commentId = Long.parseLong(req.getParameter("id"));
+            if(commentId == null){
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Comment id is required"));
+            }
+            Long userIdFromComment = commentDAO.findUserIdFromComment(commentId);
+            if(userIdFromComment == null){
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Comment not found"));
+            }
+
+            commentDAO.deleteById(commentId);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Comment deleted"));
+        }catch (NumberFormatException e){
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Comment id is not a number"));
+        }catch(Exception e){
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Internal server error"));
+        }
+
     }
 
     @Override
@@ -107,7 +140,6 @@ public class CommentServlet extends HttpServlet {
                 return;
             }
 
-            System.out.println("Fetching comments for postId: " + postId);
             List<Comment> comments = commentDAO.findByPostId(postId);
             List<CommentDTO> commentDTOs = comments.stream().map(comment -> CommentDTO.builder()
                     .id(comment.getId())
@@ -117,6 +149,7 @@ public class CommentServlet extends HttpServlet {
                     .content(comment.getContent())
                     .datePosted(comment.getDatePosted())
                     .commentCount(comments.size())
+                    .isOwnComment(userId != null && comment.getUserId().equals(userId))
                     .build()
             ).collect(Collectors.toList());
 
