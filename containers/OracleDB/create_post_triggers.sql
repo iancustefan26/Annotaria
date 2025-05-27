@@ -47,7 +47,6 @@ BEGIN
        AND LENGTH(:NEW.description) > 1000
     THEN
         RAISE post_exceptions.description_too_large;
-    ELSE RAISE post_exceptions.unexpected_post_error;
     END IF;
 
     -- media BLOB larger than 50 MB?
@@ -56,7 +55,6 @@ BEGIN
        AND DBMS_LOB.GETLENGTH(:NEW.media_blob) > 50*1024*1024
     THEN
         raise post_exceptions.media_blob_too_large;
-    ELSE RAISE post_exceptions.unexpected_post_error;
     END IF;
 
     IF :NEW.creation_year IS NOT NULL
@@ -68,7 +66,6 @@ BEGIN
            )
         THEN
             raise post_exceptions.invalid_creation_date;
-        ELSE RAISE post_exceptions.unexpected_post_error;
         END IF;
     END IF;
 
@@ -208,12 +205,12 @@ DECLARE
     v_category_id POST.CATEGORY_ID%TYPE;
     v_interest NUMBER;   
 BEGIN
-    SELECT author_id INTO v_post_author_id FROM POST WHERE id = :OLD.post_id;
-    SELECT category_id INTO v_category_id FROM POST WHERE id = :OLD.post_id;
-    SELECT COUNT(*) INTO v_rows_friendship FROM FRIENDSHIP WHERE user1_id = :OLD.user_id AND user2_id = v_post_author_id;
-    SELECT COUNT(*) INTO v_rows_category FROM CATEGORY_INTEREST WHERE user_id = :OLD.user_id AND category_id = v_category_id;
     CASE
         WHEN INSERTING THEN
+            SELECT author_id INTO v_post_author_id FROM POST WHERE id = :NEW.post_id;
+    SELECT category_id INTO v_category_id FROM POST WHERE id = :NEW.post_id;
+    SELECT COUNT(*) INTO v_rows_friendship FROM FRIENDSHIP WHERE user1_id = :NEW.user_id AND user2_id = v_post_author_id;
+    SELECT COUNT(*) INTO v_rows_category FROM CATEGORY_INTEREST WHERE user_id = :NEW.user_id AND category_id = v_category_id;
             -- increasing friendship interest
             IF v_rows_friendship = 0 THEN
                 INSERT INTO FRIENDSHIP VALUES(
