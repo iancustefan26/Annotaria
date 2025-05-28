@@ -24,10 +24,15 @@ VALUES (2, 2, 2023, 'Exploring a hidden beach in Thailand');
 INSERT INTO POST (author_id, category_id, creation_year, description) 
 VALUES (3, 3, 2025, 'Delicious street food in Vietnam');
 
+INSERT INTO POST (author_id, category_id, creation_year, description) 
+VALUES (1, 3, 2025, 'Delicious street food in Vaslui');
+
+
 -- LIKES
 INSERT INTO LIKES (user_id, post_id) VALUES (1, 2);  -- Alice likes Bob's post
 INSERT INTO LIKES (user_id, post_id) VALUES (2, 1);  -- Bob likes Alice's post
 INSERT INTO LIKES (user_id, post_id) VALUES (3, 1);  -- Carol likes Alice's post
+
 
 
 -- COMMENTS

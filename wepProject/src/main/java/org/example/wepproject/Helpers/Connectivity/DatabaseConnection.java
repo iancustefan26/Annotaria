@@ -1,4 +1,4 @@
-package org.example.wepproject.Helpers;
+package org.example.wepproject.Helpers.Connectivity;
 
 
 import com.zaxxer.hikari.HikariConfig;
