@@ -6,18 +6,25 @@ import jakarta.servlet.http.*;
 
 
 import jakarta.servlet.ServletException;
+import org.example.wepproject.DAOs.MatrixDAO;
 import org.example.wepproject.DAOs.UserDAO;
 import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.LoginDTO;
+import org.example.wepproject.Helpers.MatrixConvertor;
+import org.example.wepproject.Models.MatrixCell;
 import org.example.wepproject.Models.User;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
     private UserDAO userDAO;
     private ObjectMapper objectMapper;
+
     @Override
     public void init() throws ServletException {
         userDAO = new UserDAO();
@@ -26,6 +33,68 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        MatrixDAO matrix = new MatrixDAO() {
+            @Override
+            protected String getTableName() {
+                return "";
+            }
+
+            @Override
+            protected String getInsertQuery() {
+                return "";
+            }
+
+            @Override
+            protected String getUpdateQuery() {
+                return "";
+            }
+
+            @Override
+            protected Object[] getInsertParams(MatrixCell entity) {
+                return new Object[0];
+            }
+
+            @Override
+            protected Object[] getUpdateParams(MatrixCell entity) {
+                return new Object[0];
+            }
+
+            @Override
+            protected void setId(MatrixCell entity, Long aLong) {
+
+            }
+
+            @Override
+            public MatrixCell findById(Long aLong) {
+                return null;
+            }
+
+            @Override
+            public List<MatrixCell> findAll() {
+                return List.of();
+            }
+
+            @Override
+            public MatrixCell save(MatrixCell entity) {
+                return null;
+            }
+
+            @Override
+            public void update(MatrixCell entity) {
+
+            }
+
+            @Override
+            public void deleteById(Long aLong) {
+
+            }
+        };
+        try {
+            var m = MatrixConvertor.toMatrix(matrix.getMatrixFromFunction(2L, 10, 2));
+            MatrixConvertor.printMatrix(m);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         req.getRequestDispatcher("/login.jsp").forward(req, resp);
     }
 
