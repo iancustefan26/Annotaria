@@ -91,7 +91,7 @@ public class LoginServlet extends HttpServlet {
             }
         };
         try {
-            var m = MatrixConvertor.toMatrix(matrix.getMatrixFromFunction(2L, 10, 2));
+            var m = MatrixConvertor.toMatrix(matrix.getMatrixFromFunction(2L, 3, 2));
             var alg = new PageRanker(m);
             System.out.println(Arrays.toString(alg.runAndGetRankedPostIds()));
         } catch (SQLException e) {

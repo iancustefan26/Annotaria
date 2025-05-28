@@ -50,7 +50,16 @@ AS
     BEGIN
         SELECT p.id BULK COLLECT INTO v_post_ids FROM POST p 
         WHERE p.author_id IN (
-            SELECT * FROM (SELECT user2_id FROM FRIENDSHIP WHERE user1_id = p_user_id) WHERE ROWNUM < p_best_friends_number
+            SELECT * FROM (SELECT user2_id FROM FRIENDSHIP WHERE user1_id = p_user_id ORDER BY interest) WHERE ROWNUM < p_best_friends_number   --best friend matching
+            )
+            OR p.author_id IN (
+                SELECT * FROM (SELECT user2_id FROM FRIENDSHIP WHERE user1_id = p_user_id ORDER BY DBMS_RANDOM.RANDOM) WHERE ROWNUM < p_random_friends_number   -- random friend matching
+            )
+            OR p.category_id IN (
+                SELECT * FROM (SELECT category_id FROM CATEGORY_INTEREST WHERE user_id = p_user_id ORDER BY interest ORDER BY interest) WHERE ROWNUM < p_best_friends_number  -- best category matching
+            )
+            OR p.author_id IN (
+                SELECT author_id FROM POST WHERE ROWNUM <= 20 -- latest posts
             );
         v_post_rank_score := float_array();
         FOR i in v_post_ids.first..v_post_ids.last LOOP
