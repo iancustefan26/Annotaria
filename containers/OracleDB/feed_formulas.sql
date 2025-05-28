@@ -8,9 +8,9 @@ AS
     ------------------------
 
     -- alpha + beta + gamma = 1
-    v_alpha FLOAT := 0.33;  -- social_affinity importance index
-    v_beta FLOAT := 0.33;   -- post_impact importance index
-    v_gamma FLOAT := 0.33;  -- category_relevance importance index
+    v_alpha FLOAT := 0.6;  -- social_affinity importance index
+    v_beta FLOAT := 0.1;   -- post_impact importance index
+    v_gamma FLOAT := 0.3;  -- category_relevance importance index
     --------------
 
     -- used for post_impact function
@@ -30,7 +30,7 @@ AS
     -- Score(u, p) = alpha * Social_Affinity(u, p) + beta * Post_Impact(p) + gamma * Category_Relevance(u, p)
     -- returns a number between [0, 1]
     -- alpha + beta + gamma = 1
-    FUNCTION score (p_user_id USERS.id%TYPE, p_post_id POST.id%TYPE) RETURN FLOAT;
+    FUNCTION score (p_user_id NUMBER, p_post_id NUMBER) RETURN FLOAT;
 
     -- Popularity(p) = a * likes + b * comments
     FUNCTION popularity (p_post_id POST.id%TYPE) RETURN FLOAT;
@@ -57,7 +57,7 @@ IS
     -- Score(u, p) = alpha * Social_Affinity(u, p) + beta * Post_Impact(p) + gamma * Category_Relevance(u, p)
     -- returns a number between [0, 1]
     -- alpha + beta + gamma = 1
-    FUNCTION score (p_user_id USERS.id%TYPE, p_post_id POST.id%TYPE) RETURN FLOAT
+    FUNCTION score (p_user_id NUMBER, p_post_id NUMBER) RETURN FLOAT
     AS
     BEGIN
         RETURN 
@@ -75,16 +75,20 @@ IS
     FUNCTION recency (p_post_id POST.id%TYPE) RETURN FLOAT
 AS
     v_post_timestamp POST.date_posted%TYPE;
-    v_seconds_diff   NUMBER : = 0;
 BEGIN
     SELECT date_posted INTO v_post_timestamp FROM POST WHERE id = p_post_id;
-    --v_seconds_diff := (SYSTIMESTAMP - v_post_timestamp) * 24 * 60 * 60;
-    RETURN 1.0 - (1.0 / POWER(c_euler_number, v_delta_decay_rate * v_seconds_diff));
-
+    RETURN 1.0 - (1.0 / (
+        1440 * EXTRACT(DAY FROM (SYSTIMESTAMP - v_post_timestamp)) +
+        60 * EXTRACT(HOUR FROM (SYSTIMESTAMP - v_post_timestamp)) +
+        EXTRACT(MINUTE FROM (SYSTIMESTAMP - v_post_timestamp))
+    ));
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
         raise post_exceptions.no_such_post;
     WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error Code    : ' || SQLCODE);
+        DBMS_OUTPUT.PUT_LINE('Error Message : ' || SQLERRM);
+        DBMS_OUTPUT.PUT_LINE('Backtrace feed     : ' || DBMS_UTILITY.FORMAT_ERROR_BACKTRACE);
         raise post_exceptions.unexpected_post_error;
 END recency;
 
@@ -155,13 +159,17 @@ END feed_formulas;
 
 /
 
-DECLARE
-    v_number NUMBER;
-
-BEGIN
-    v_number := feed_formulas.score(2, 1);
-    DBMS_OUTPUT.PUT_LINE(v_number);
-END;
-
 exit;
 
+
+DECLARE
+    v_graph graph;
+BEGIN
+    v_graph := graph_generator.generate(2, 10, 2);
+     FOR i in v_graph.first..v_graph.last LOOP
+        FOR j in v_graph(i).first..v_graph(i).last LOOP
+            DBMS_OUTPUT.PUT(v_graph(i)(j)|| ' ');
+        END LOOP;
+        DBMS_OUTPUT.PUT_LINE('');
+    END LOOP;
+END;

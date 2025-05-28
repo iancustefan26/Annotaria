@@ -10,7 +10,8 @@ import org.example.wepproject.DAOs.MatrixDAO;
 import org.example.wepproject.DAOs.UserDAO;
 import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.LoginDTO;
-import org.example.wepproject.Helpers.MatrixConvertor;
+import org.example.wepproject.Helpers.FeedAlgorithmic.MatrixConvertor;
+import org.example.wepproject.Helpers.FeedAlgorithmic.PageRanker;
 import org.example.wepproject.Models.MatrixCell;
 import org.example.wepproject.Models.User;
 import org.mindrot.jbcrypt.BCrypt;
@@ -91,7 +92,8 @@ public class LoginServlet extends HttpServlet {
         };
         try {
             var m = MatrixConvertor.toMatrix(matrix.getMatrixFromFunction(2L, 10, 2));
-            MatrixConvertor.printMatrix(m);
+            var alg = new PageRanker(m);
+            System.out.println(Arrays.toString(alg.runAndGetRankedPostIds()));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

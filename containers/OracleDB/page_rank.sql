@@ -5,6 +5,22 @@ CREATE OR REPLACE TYPE number_array IS TABLE OF NUMBER;
 /
 CREATE OR REPLACE TYPE graph IS TABLE OF float_array;
 /
+
+CREATE OR REPLACE FUNCTION from_number_to_float_array(
+    p_numbers IN number_array
+) RETURN float_array
+AS
+    v_result float_array := float_array();
+BEGIN
+    FOR i IN 1 .. p_numbers.COUNT LOOP
+        v_result.EXTEND;
+        v_result(i) := CAST(p_numbers(i) AS FLOAT);
+    END LOOP;
+
+    RETURN v_result;
+END;
+
+/
 CREATE OR REPLACE PACKAGE graph_generator
 as
     FUNCTION generate(
@@ -36,7 +52,6 @@ AS
         WHERE p.author_id IN (
             SELECT * FROM (SELECT user2_id FROM FRIENDSHIP WHERE user1_id = p_user_id) WHERE ROWNUM < p_best_friends_number
             );
-
         v_post_rank_score := float_array();
         FOR i in v_post_ids.first..v_post_ids.last LOOP
             v_post_rank_score.EXTEND;
@@ -66,6 +81,10 @@ AS
             v_graph.EXTEND;
             v_graph(i) := v_row;
         END LOOP;
+        --- add graph post ids labels to the last row
+        v_graph.EXTEND;
+        v_row := from_number_to_float_array(v_post_ids);
+        v_graph(v_graph.COUNT) := v_row;
         RETURN v_graph;
         EXCEPTION
             WHEN OTHERS THEN

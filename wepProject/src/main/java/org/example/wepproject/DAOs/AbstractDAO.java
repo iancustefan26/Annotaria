@@ -1,9 +1,8 @@
 package org.example.wepproject.DAOs;
 
 import oracle.jdbc.OracleTypes;
-import org.example.wepproject.Helpers.DatabaseConnection;
+import org.example.wepproject.Helpers.Connectivity.DatabaseConnection;
 import org.example.wepproject.Interfaces.CrudDAO;
-import org.example.wepproject.Models.Like;
 
 import java.math.BigDecimal;
 import java.sql.Connection;

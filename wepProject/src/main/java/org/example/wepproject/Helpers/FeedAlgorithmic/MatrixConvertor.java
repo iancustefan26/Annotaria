@@ -1,4 +1,4 @@
-package org.example.wepproject.Helpers;
+package org.example.wepproject.Helpers.FeedAlgorithmic;
 
 import org.example.wepproject.Models.MatrixCell;
 
@@ -6,6 +6,7 @@ import java.util.List;
 
 public class MatrixConvertor {
     public static float[][] toMatrix(List<MatrixCell> cells) {
+        // last line are the ids of the post (n)(0) = id of the first post.. and so on
         int maxRow = 0, maxCol = 0;
         for (MatrixCell cell : cells) {
             if (cell.getRowIndex() > maxRow) maxRow = cell.getRowIndex();

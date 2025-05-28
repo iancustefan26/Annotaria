@@ -1,4 +1,4 @@
-package org.example.wepproject.Helpers;
+package org.example.wepproject.Helpers.Connectivity;
 
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
