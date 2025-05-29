@@ -1,4 +1,4 @@
-package org.example.wepproject.Helpers.FeedAlgorithmic;
+package org.example.wepproject.Helpers.PageRank;
 
 import org.example.wepproject.Models.MatrixCell;
 
