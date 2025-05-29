@@ -39,6 +39,7 @@
     </div>
 </div>
 
+<script src="/wepProject_war_exploded/js/social.js"></script>
 <script src="/wepProject_war_exploded/js/feed.js"></script>
 </body>
 </html>

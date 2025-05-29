@@ -1,13 +1,15 @@
-document.addEventListener('DOMContentLoaded', () => {
+$(document).ready(function() {
     function loadPosts() {
         $.ajax({
             url: '/wepProject_war_exploded/feed',
             type: 'GET',
             headers: { 'Accept': 'application/json' },
             success: function(response) {
+                console.log('AJAX response:', response);
                 if (response.status === 'success') {
                     const postsContainer = $('#postsContainer');
                     postsContainer.empty();
+                    console.log('Received posts:', response.data.length, response.data);
 
                     if (response.data.length === 0) {
                         postsContainer.append('<p class="text-gray-500 text-center">No posts available.</p>');
@@ -15,8 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     response.data.forEach(post => {
+                        console.log('Rendering post:', post.id);
                         const postHtml = `
-              <div class="bg-white rounded-lg shadow-md max-w-xl mx-auto mb-8">
+              <div class="bg-white rounded-lg shadow-md max-w-xl mx-auto mb-8" data-post-id="${post.id}">
                 <div class="flex items-center p-4 border-b">
                   <div class="w-8 h-8 bg-gray-300 rounded-full mr-3"></div>
                   <div class="flex-1">
@@ -55,9 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="p-4">
                   <div class="flex space-x-4 mb-2">
                     <button class="likeButton focus:outline-none" data-post-id="${post.id}">
-                      <i class="far fa-heart text-2xl"></i>
+                      <i class="${post.isLiked ? 'fas text-red-500' : 'far'} fa-heart text-2xl"></i>
                     </button>
-                    <button class="commentButton focus:outline-none" onclick="window.location.href='/wepProject_war_exploded/post?id=${post.id}'">
+                    <button class="commentButton focus:outline-none" data-post-id="${post.id}">
                       <i class="far fa-comment text-2xl"></i>
                     </button>
                     <div class="flex-grow"></div>
@@ -79,13 +82,72 @@ document.addEventListener('DOMContentLoaded', () => {
                   <p class="text-gray-500 text-sm mb-2">
                     <span class="commentCount">${post.commentCount}</span> comments
                   </p>
+                  <div class="commentsContainer max-h-60 overflow-y-auto mb-3 hidden" data-post-id="${post.id}">
+                    <!-- Comments loaded here -->
+                  </div>
+                  <div class="border-t pt-3">
+                    <div class="flex">
+                      <textarea class="commentInput flex-grow border-none bg-transparent focus:outline-none resize-none" placeholder="Add a comment..." rows="1" data-post-id="${post.id}"></textarea>
+                      <button class="submitComment text-blue-500 font-semibold ml-2" data-post-id="${post.id}">Post</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             `;
                         postsContainer.append(postHtml);
+                        loadComments(post.id, postsContainer.find(`[data-post-id="${post.id}"] .commentsContainer`), postsContainer.find(`[data-post-id="${post.id}"] .commentCount`));
+                        handleDoubleTap(post.id, postsContainer, postsContainer.find(`.likeButton[data-post-id="${post.id}"]`));
                     });
 
-                    $('.deleteButton').on('click', function() {
+                    // Like button handler
+                    postsContainer.find('.likeButton').on('click', function() {
+                        const postId = $(this).data('post-id');
+                        console.log('Liking post:', postId);
+                        toggleLike(postId, postsContainer);
+                    });
+
+                    // Comment button handler
+                    postsContainer.find('.commentButton').on('click', function() {
+                        const postId = $(this).data('post-id');
+                        const commentsContainer = postsContainer.find(`[data-post-id="${postId}"] .commentsContainer`);
+                        commentsContainer.toggleClass('hidden');
+                        if (!commentsContainer.hasClass('hidden')) {
+                            loadComments(postId, commentsContainer, postsContainer.find(`[data-post-id="${postId}"] .commentCount`));
+                            postsContainer.find(`textarea[data-post-id="${postId}"]`).focus();
+                        }
+                    });
+
+                    // Submit comment handler
+                    postsContainer.find('.submitComment').on('click', function() {
+                        const postId = $(this).data('post-id');
+                        console.log('Submitting comment for postId:', postId);
+                        const commentInput = postsContainer.find(`textarea[data-post-id="${postId}"]`);
+                        const commentsContainer = postsContainer.find(`[data-post-id="${postId}"] .commentsContainer`);
+                        const commentCountElement = postsContainer.find(`[data-post-id="${postId}"] .commentCount`);
+                        submitComment(postId, commentInput, commentsContainer, commentCountElement);
+                    });
+
+                    // Submit comment with Enter key
+                    postsContainer.find('.commentInput').on('keypress', function(e) {
+                        if (e.which === 13 && !e.shiftKey) {
+                            e.preventDefault();
+                            const postId = $(this).data('post-id');
+                            console.log('Submitting comment for postId (Enter):', postId);
+                            const commentInput = $(this);
+                            const commentsContainer = postsContainer.find(`[data-post-id="${postId}"] .commentsContainer`);
+                            const commentCountElement = postsContainer.find(`[data-post-id="${postId}"] .commentCount`);
+                            submitComment(postId, commentInput, commentsContainer, commentCountElement);
+                        }
+                    });
+
+                    // Auto-resize textarea
+                    postsContainer.find('.commentInput').on('input', function() {
+                        this.style.height = 'auto';
+                        this.style.height = (this.scrollHeight) + 'px';
+                    });
+
+                    // Delete post handler
+                    postsContainer.find('.deleteButton').on('click', function() {
                         const postId = $(this).data('post-id');
                         if (confirm('Are you sure you want to delete this post?')) {
                             $.ajax({
@@ -101,11 +163,20 @@ document.addEventListener('DOMContentLoaded', () => {
                                     }
                                 },
                                 error: function(xhr) {
-                                    alert(xhr.responseJSON?.message || 'Error deleting post');
+                                    const response = xhr.responseJSON;
+                                    if (xhr.status === 401) {
+                                        alert('Please log in to delete this post');
+                                        window.location.href = '/wepProject_war_exploded/login.jsp';
+                                    } else {
+                                        alert(response?.message || 'Error deleting post');
+                                    }
                                 }
                             });
                         }
                     });
+
+                    // Setup comment deletion
+                    setupCommentDeletion(postsContainer);
                 } else {
                     $('#postsContainer').html('<p class="text-red-500 text-center">' + response.message + '</p>');
                 }

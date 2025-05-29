@@ -56,6 +56,7 @@ public class FeedServlet extends HttpServlet {
         } else {
             // Handle HTML request
             List<Post> posts = postDAO.findAll();
+            System.out.println(posts.size());
             req.setAttribute("posts", posts != null ? posts : List.of());
             req.getRequestDispatcher("/feed.jsp").forward(req, resp);
         }

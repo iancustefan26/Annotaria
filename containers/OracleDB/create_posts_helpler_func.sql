@@ -106,7 +106,7 @@ BEGIN
     SELECT id, author_id, category_id, media_blob, external_media_url, 
            creation_year, date_posted, description, likes_count, comments_count
     FROM POST
-    WHERE author_id = p_user_id;
+    WHERE author_id = p_user_id order by date_posted;
     
   RETURN l_cursor;
   

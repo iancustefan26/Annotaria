@@ -131,5 +131,6 @@
 </div>
 
 <script src="js/post.js"></script>
+<script src="js/social.js"></script>
 </body>
 </html>
