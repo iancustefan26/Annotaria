@@ -65,10 +65,8 @@ IS
         v_beta * post_impact(p_user_id) +
         v_gamma * category_relevance(p_user_id, p_post_id);
     EXCEPTION
-        WHEN post_exceptions.no_such_post THEN
-            raise post_exceptions.no_such_post;
         WHEN OTHERS THEN
-            raise post_exceptions.unexpected_post_error;
+            raise;
     END score;
 
     -- Recency(p) = 1 - 1 / (e ^ ( -delta * (now - post_timestamp)))
@@ -98,10 +96,8 @@ END recency;
     BEGIN
         RETURN (popularity(p_post_id) + recency(p_post_id)) / 2.0;
     EXCEPTION
-        WHEN post_exceptions.no_such_post THEN
-            raise post_exceptions.no_such_post;
         WHEN OTHERS THEN
-            raise post_exceptions.unexpected_post_error;
+            raise;
     END post_impact;
 
     -- Social_Affinity(u, p) = 1 - 1 / FRIENDSHIP(user_id, Author(post_id)) (TABLE)
@@ -117,7 +113,7 @@ END recency;
         RETURN 1.0 - (1.0 / v_friendship_interest);
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
-            raise post_exceptions.no_such_post;
+            RETURN 0.1;
         WHEN OTHERS THEN
             raise post_exceptions.unexpected_post_error;
     END social_affinity;
@@ -130,11 +126,11 @@ END recency;
         SELECT interest INTO v_relevance FROM CATEGORY_INTEREST
         WHERE user_id = p_user_id 
         AND 
-        category_id = (SELECT id FROM CATEGORY WHERE id = (SELECT category_id  FROM POST WHERE id = p_post_id));
+        category_id = (SELECT category_id  FROM POST WHERE id = p_post_id);
         RETURN 1.0 - (1.0 / v_relevance);
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
-            raise post_exceptions.no_such_post;
+            RETURN 0.1;
         WHEN OTHERS THEN
             raise post_exceptions.unexpected_post_error;
     END category_relevance;
@@ -150,7 +146,7 @@ END recency;
         RETURN v_a_like_importance * v_likes + v_b_comment_importance * v_comments;
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
-            raise post_exceptions.no_such_post;
+            RETURN 0.1;
         WHEN OTHERS THEN
             raise post_exceptions.unexpected_post_error;
     END popularity;
@@ -165,7 +161,7 @@ exit;
 DECLARE
     v_graph graph;
 BEGIN
-    v_graph := graph_generator.generate(2, 10, 2);
+    v_graph := graph_generator.generate(2, 5, 2);
      FOR i in v_graph.first..v_graph.last LOOP
         FOR j in v_graph(i).first..v_graph(i).last LOOP
             DBMS_OUTPUT.PUT(v_graph(i)(j)|| ' ');
@@ -173,3 +169,5 @@ BEGIN
         DBMS_OUTPUT.PUT_LINE('');
     END LOOP;
 END;
+
+select * from user_source;

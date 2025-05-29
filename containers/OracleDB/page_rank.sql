@@ -56,7 +56,7 @@ AS
                 SELECT * FROM (SELECT user2_id FROM FRIENDSHIP WHERE user1_id = p_user_id ORDER BY DBMS_RANDOM.RANDOM) WHERE ROWNUM < p_random_friends_number   -- random friend matching
             )
             OR p.category_id IN (
-                SELECT * FROM (SELECT category_id FROM CATEGORY_INTEREST WHERE user_id = p_user_id ORDER BY interest ORDER BY interest) WHERE ROWNUM < p_best_friends_number  -- best category matching
+                SELECT * FROM (SELECT category_id FROM CATEGORY_INTEREST WHERE user_id = p_user_id ORDER BY interest) WHERE ROWNUM < p_best_friends_number  -- best category matching
             )
             OR p.author_id IN (
                 SELECT author_id FROM POST WHERE ROWNUM <= 20 -- latest posts
