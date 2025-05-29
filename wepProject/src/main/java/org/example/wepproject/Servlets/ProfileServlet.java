@@ -108,11 +108,13 @@ public class ProfileServlet extends HttpServlet {
             }
             // Get the user's posts
             List<Post> posts = postDAO.findByUserId(profileUserId);
-            System.out.println("posts size: " + posts.size());
             long postCount = posts.size();
 
+            User author = userDAO.findById(profileUserId);
+
             List<PostDTO> postDTOs = posts != null ? posts.stream()
-                    .map(PostDTO::PostToPostDTO).collect(Collectors.toList()) : List.of();
+                    .map(post -> PostDTO.PostToPostDTO(post, loggedInUserId, author.getUsername()))
+                    .collect(Collectors.toList()) : List.of();
 
             List<Category> categoryDAOs = categoryDAO.findAll();
             req.setAttribute("posts", postDTOs);

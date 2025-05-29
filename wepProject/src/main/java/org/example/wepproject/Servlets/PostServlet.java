@@ -6,10 +6,12 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.wepproject.DAOs.PostDAO;
+import org.example.wepproject.DAOs.UserDAO;
 import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.PostDTO;
 import org.example.wepproject.Exceptions.PostNotFoundException;
 import org.example.wepproject.Models.Post;
+import org.example.wepproject.Models.User;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -20,11 +22,12 @@ import static org.example.wepproject.DTOs.PostDTO.PostToPostDTO;
 public class PostServlet extends HttpServlet {
     private PostDAO postDAO;
     private ObjectMapper objectMapper;
-
+    private UserDAO userDAO;
     @Override
     public void init() throws ServletException {
         postDAO = new PostDAO();
         objectMapper = new ObjectMapper();
+        userDAO = new UserDAO();
     }
 
     @Override
@@ -92,13 +95,13 @@ public class PostServlet extends HttpServlet {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 return;
             }
-
             Long postId = Long.parseLong(idParam);
             Post post = postDAO.findById(postId);
             Long postAuthorId = post.getAuthorId();
 
+            User author = userDAO.findById(postAuthorId);
 
-            PostDTO postDTO = PostToPostDTO(post);
+            PostDTO postDTO = PostToPostDTO(post,userId, author.getUsername());
             boolean isOwnProfile = postAuthorId.equals(userId) ? true : false;
             req.setAttribute("post", postDTO);
             req.setAttribute("isOwnProfile", isOwnProfile);
