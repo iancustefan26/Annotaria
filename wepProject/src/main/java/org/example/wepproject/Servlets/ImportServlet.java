@@ -21,6 +21,22 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import javax.sql.rowset.serial.SerialBlob;
 
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Blob;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import jakarta.servlet.http.HttpSession;
+import javax.sql.rowset.serial.SerialBlob;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @WebServlet("/import")
 @MultipartConfig(maxFileSize = 1024 * 1024 * 50) // 50MB limit
 public class ImportServlet extends HttpServlet {
@@ -47,6 +63,16 @@ public class ImportServlet extends HttpServlet {
 
             Part filePart = req.getPart("contentFile");
             String description = req.getParameter("description");
+            String categoryIdStr = req.getParameter("categoryId");
+            Long categoryId;
+
+            try {
+                categoryId = Long.parseLong(categoryIdStr);
+            } catch (NumberFormatException e) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid category selected"));
+                return;
+            }
 
             Blob mediaBlob = null;
             if (filePart != null && filePart.getSize() > 0) {
@@ -78,6 +104,7 @@ public class ImportServlet extends HttpServlet {
                     .mediaBlob(mediaBlob)
                     .datePosted(new Timestamp(System.currentTimeMillis()))
                     .likesCount(0)
+                    .categoryId(categoryId)
                     .commentsCount(0)
                     .build();
             postDAO.save(post);
@@ -98,11 +125,5 @@ public class ImportServlet extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Failed to save post: " + errorMessage));
         }
-    }
-
-    @Override
-    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        System.out.println("Handling OPTIONS request for /import");
-        resp.setStatus(HttpServletResponse.SC_OK);
     }
 }

@@ -10,7 +10,7 @@ BEGIN
   WHERE id = p_id;
   
   IF l_count = 0 THEN
-    RAISE posts_exceptions.post_not_found;
+    RAISE post_exceptions.no_such_post;
   END IF;
   
   OPEN l_cursor FOR
@@ -22,7 +22,7 @@ BEGIN
   RETURN l_cursor;
   
 EXCEPTION
-  WHEN posts_exceptions.post_not_found THEN
+  WHEN post_exceptions.no_such_post THEN
     RAISE_APPLICATION_ERROR(-20003, 'Post with ID ' || p_id || ' not found');
   WHEN OTHERS THEN
     RAISE_APPLICATION_ERROR(-20103, 'Error retrieving post by ID: ' || SQLERRM);
@@ -41,14 +41,14 @@ BEGIN
   WHERE id = p_id;
   
   IF l_count = 0 THEN
-    RAISE posts_exceptions.post_not_found;
+    RAISE post_exceptions.no_such_post;
   END IF;
   
   DELETE FROM POST
   WHERE id = p_id;
   
 EXCEPTION
-  WHEN posts_exceptions.post_not_found THEN
+  WHEN post_exceptions.no_such_post THEN
     RAISE_APPLICATION_ERROR(-20003, 'Post with ID ' || p_id || ' not found');
   WHEN OTHERS THEN
     RAISE_APPLICATION_ERROR(-20103, 'Error deleting post by ID: ' || SQLERRM);
@@ -68,7 +68,7 @@ BEGIN
   WHERE category_id = p_category_id;
   
   IF l_count = 0 THEN
-    RAISE posts_exceptions.post_not_found;
+    RAISE post_exceptions.no_such_post;
   END IF;
   
   OPEN l_cursor FOR
@@ -80,7 +80,7 @@ BEGIN
   RETURN l_cursor;
   
 EXCEPTION
-  WHEN posts_exceptions.post_not_found THEN
+  WHEN post_exceptions.no_such_post THEN
     RAISE_APPLICATION_ERROR(-20003, 'No posts found for category ID ' || p_category_id);
   WHEN OTHERS THEN
     RAISE_APPLICATION_ERROR(-20105, 'Error retrieving posts by category: ' || SQLERRM);
@@ -99,7 +99,7 @@ BEGIN
   WHERE author_id = p_user_id;
   
   IF l_count = 0 THEN
-    RAISE posts_exceptions.post_not_found;
+    RAISE post_exceptions.no_such_post;
   END IF;
   
   OPEN l_cursor FOR
@@ -111,7 +111,7 @@ BEGIN
   RETURN l_cursor;
   
 EXCEPTION
-  WHEN posts_exceptions.post_not_found THEN
+  WHEN post_exceptions.no_such_post THEN
     RAISE_APPLICATION_ERROR(-20003, 'No posts found for user ID ' || p_user_id);
   WHEN OTHERS THEN
     RAISE_APPLICATION_ERROR(-20107, 'Error retrieving posts by user ID: ' || SQLERRM);

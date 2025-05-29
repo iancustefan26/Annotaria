@@ -131,7 +131,6 @@ public class LoginServlet extends HttpServlet {
                 resp.addCookie(sessionCookie);
 
                 objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Login successful"));
-                System.out.println("Redirecting to feed.jsp");
 
             } else {
                 resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

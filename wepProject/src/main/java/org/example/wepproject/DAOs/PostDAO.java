@@ -135,6 +135,7 @@ public class PostDAO extends AbstractDAO<Post,Long> {
             List<Post> posts = executePlsqlFunction(CALL_GET_BY_USER_ID, userId);
             return posts.isEmpty() ? null : posts;
         }catch (SQLException e){
+            System.out.println("SqlException: " + e.getErrorCode());
             if(e.getErrorCode() == 20003) {
                 throw new PostNotFoundException("Post with ID " + userId + " not found", e);
             }else{

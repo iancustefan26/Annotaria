@@ -14,7 +14,7 @@
 <body>
 <h1>Welcome!</h1>
 <p>Login was successful.</p>
-<a href="feed.jsp">Go to Feed</a>
+<a href="feed">Go to Feed</a>
 </body>
 </html>
 

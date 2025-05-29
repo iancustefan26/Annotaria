@@ -41,7 +41,7 @@
         <span><strong>${postCount}</strong> posts</span>
       </div>
       <div class="mt-2">
-        <a href="/wepProject_war_exploded/feed.jsp" class="text-blue-600 hover:underline">Feed</a> |
+        <a href="/wepProject_war_exploded/feed" class="text-blue-600 hover:underline">Feed</a> |
         <c:if test="${isOwnProfile}">
           <a href="/wepProject_war_exploded/logout" class="text-blue-600 hover:underline">Logout</a>
         </c:if>
@@ -110,6 +110,15 @@
             <img id="previewImage" alt="Preview" />
           </div>
           <div class="mb-4">
+            <label for="categoryId" class="block text-sm font-medium">Category</label>
+            <select id="categoryId" name="categoryId" required class="mt-1 block w-full border rounded p-2">
+              <option value="" disabled selected>Select a category</option>
+              <c:forEach var="category" items="${categories}">
+                <option value="${category.id}"><c:out value="${category.name}"/></option>
+              </c:forEach>
+            </select>
+          </div>
+          <div class="mb-4">
             <label for="description" class="block text-sm font-medium">Description</label>
             <textarea id="description" name="description" rows="4" class="mt-1 block w-full border rounded p-2"></textarea>
           </div>
@@ -118,6 +127,7 @@
       </div>
     </div>
   </c:if>
+</div>
 </div>
 
 

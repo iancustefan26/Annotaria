@@ -17,6 +17,7 @@ docker cp feed_formulas.sql oracle-web:/tmp/
 docker cp page_rank.sql oracle-web:/tmp/
 docker cp create_graph_wrappers.sql oracle-web:/tmp/
 
+
 echo "Waiting for Oracle to be ready..."
 until docker logs oracle-web 2>&1 | grep -q "DATABASE IS READY TO USE"; do
   sleep 2

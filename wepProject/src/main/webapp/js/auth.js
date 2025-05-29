@@ -31,7 +31,7 @@ function handleFormSubmit(formId, url, redirectUrl, includeEmail = false) {
 
 document.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById("loginForm")) {
-        handleFormSubmit("loginForm", "login", "feed.jsp");
+        handleFormSubmit("loginForm", "login", "feed");
     }
     if (document.getElementById("signupForm")) {
         handleFormSubmit("signupForm", "signup", "login.jsp", true);

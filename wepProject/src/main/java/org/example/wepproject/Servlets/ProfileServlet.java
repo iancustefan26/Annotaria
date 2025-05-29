@@ -15,9 +15,6 @@ import org.example.wepproject.Exceptions.UserNotFoundException;
 import org.example.wepproject.Models.Post;
 
 import java.io.IOException;
-import java.sql.Blob;
-import java.sql.SQLException;
-import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.example.wepproject.DAOs.LikeDAO;
@@ -43,7 +40,6 @@ public class ProfileServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
-        System.out.println("hello from delete profile servlet");
 
         Object userIdObj = req.getSession().getAttribute("userId");
         if (userIdObj == null) {
@@ -51,17 +47,21 @@ public class ProfileServlet extends HttpServlet {
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "User not logged in"));
             return;
         }
-
         try {
             Long profileUserId = Long.parseLong(userIdObj.toString());
+            System.out.println("hello from delete profile servlet");
             userDAO.deleteById(profileUserId);
 
             req.getSession().invalidate();
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "User deleted"));
         } catch (UserNotFoundException e) {
+
+            System.out.println("user not found" + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "User not found: " + e.getMessage()));
         } catch (Exception e) {
+
+            System.out.println("exception" + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Server error: " + e.getMessage()));
         }
@@ -107,7 +107,7 @@ public class ProfileServlet extends HttpServlet {
             }
             // Get the user's posts
             List<Post> posts = postDAO.findByUserId(profileUserId);
-
+            System.out.println("posts size: " + posts.size());
             long postCount = posts.size();
 
             List<PostDTO> postDTOs = posts != null ? posts.stream()
@@ -116,15 +116,19 @@ public class ProfileServlet extends HttpServlet {
             req.setAttribute("postCount", postCount);
             req.setAttribute("isOwnProfile", isOwnProfile);
 
+            System.out.println("hello from profile servlet");
+
             req.getRequestDispatcher("/profile.jsp").forward(req, resp);
         } catch (PostNotFoundException e) {
             //
+            System.out.println("error finding post");
             List<PostDTO> postDTOs = List.of();
             req.setAttribute("posts", postDTOs);
             req.setAttribute("postCount", 0);
             req.setAttribute("isOwnProfile", isOwnProfile);
             req.getRequestDispatcher("/profile.jsp").forward(req, resp);
         } catch (RuntimeException e) {
+            System.out.println("error runtime exception in profile servlet : " + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             req.setAttribute("error", "Failed to load profile: " + e.getMessage());
             req.getRequestDispatcher("/error.jsp").forward(req, resp);

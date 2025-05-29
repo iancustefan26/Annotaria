@@ -120,7 +120,7 @@
 
     <!-- Navigation -->
     <div class="flex justify-center">
-      <a href="/wepProject_war_exploded/feed.jsp" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+      <a href="/wepProject_war_exploded/feed" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
         Back to Feed
       </a>
       <a href="/wepProject_war_exploded/profile" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-3">

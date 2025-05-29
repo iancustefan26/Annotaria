@@ -35,6 +35,6 @@
     </form>
     <p>Don't have an account? <a href="${pageContext.request.contextPath}/signup">Sign up</a></p>
 </div>
-<script src="${pageContext.request.contextPath}/js/auth.js"></script>
+<script src="js/auth.js"></script>
 </body>
 </html>
