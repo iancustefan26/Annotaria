@@ -38,7 +38,6 @@ public class LikeServlet extends HttpServlet {
             }
 
             Map<String, Object> requestBody = objectMapper.readValue(req.getReader(), HashMap.class);
-            System.out.println("Like request body: " + requestBody);
             Object postIdObj = requestBody.get("postId");
             Long postId;
 

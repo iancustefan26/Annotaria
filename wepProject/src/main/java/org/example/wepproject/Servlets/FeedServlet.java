@@ -5,6 +5,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.wepproject.DAOs.CategoryDAO;
 import org.example.wepproject.DAOs.PostDAO;
 import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.PostDTO;
@@ -13,25 +14,17 @@ import org.example.wepproject.Models.Post;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @WebServlet("/feed")
 public class FeedServlet extends HttpServlet {
     private ObjectMapper objectMapper = new ObjectMapper();
     private PostDAO postDAO;
+    private CategoryDAO categoryDAO;
 
     @Override
     public void init() throws ServletException {
         postDAO = new PostDAO();
+        categoryDAO = new CategoryDAO();
     }
 
     @Override

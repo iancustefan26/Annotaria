@@ -48,24 +48,36 @@
         <c:if test="${!isOwnProfile}">
           <a href="/wepProject_war_exploded/profile" class="text-blue-600 hover:underline">My Profile</a>
         </c:if>
+        <c:if test="${isOwnProfile && saved}">
+          <a href="/wepProject_war_exploded/profile" class="text-blue-600 hover:underline"> | My Profile</a>
+        </c:if>
       </div>
     </div>
   </div>
 
   <!-- Post Creation - Only visible on own profile -->
-  <c:if test="${isOwnProfile}">
+  <c:if test="${isOwnProfile && !saved}">
     <div class="mb-6">
       <button id="newPostBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">New Post</button>
     </div>
     <div class="mb-6 flex space-x-4">
       <button id="deleteProfileBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Delete Profile</button>
     </div>
+    <div class="mb-6 flex space-x-4">
+      <button id="savedPostsBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Saved Posts</button>
+    </div>
   </c:if>
+
 
   <!-- Section for displaying posts -->
   <h2 class="text-xl font-bold mb-4">
     <c:choose>
-      <c:when test="${isOwnProfile}">Your Posts</c:when>
+      <c:when test="${isOwnProfile}">
+        <c:choose>
+          <c:when test="${saved}">Your saved posts</c:when>
+          <c:otherwise>Your posts</c:otherwise>
+        </c:choose>
+      </c:when>
       <c:otherwise>
         <c:out value="${profileUser.username}"/>'s Posts
       </c:otherwise>

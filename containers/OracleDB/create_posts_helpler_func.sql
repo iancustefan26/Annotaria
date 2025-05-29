@@ -118,3 +118,53 @@ EXCEPTION
 END get_post_by_user_id;
 /
 
+CREATE OR REPLACE FUNCTION get_saved_posts_by_user_id(p_user_id IN NUMBER)
+RETURN SYS_REFCURSOR
+AS
+  l_cursor SYS_REFCURSOR;
+  l_count NUMBER;
+BEGIN
+  -- Check if the user has any saved posts
+  SELECT COUNT(*) INTO l_count
+  FROM SAVED_POSTS
+  WHERE user_id = p_user_id;
+
+  IF l_count = 0 THEN
+    RAISE post_exceptions.no_such_post;
+  END IF;
+
+  -- Open a cursor for the saved posts
+  OPEN l_cursor FOR
+    SELECT 
+      p.id, 
+      p.author_id, 
+      p.category_id, 
+      p.media_blob, 
+      p.external_media_url,
+      p.creation_year, 
+      p.date_posted, 
+      p.description, 
+      p.likes_count, 
+      p.comments_count
+    FROM 
+      POST p
+    JOIN 
+      SAVED_POSTS s ON p.id = s.post_id
+    WHERE 
+      s.user_id = p_user_id
+    ORDER BY 
+      p.date_posted;
+
+  RETURN l_cursor;
+
+EXCEPTION
+  WHEN post_exceptions.no_such_post THEN
+    RAISE_APPLICATION_ERROR(-20004, 'No saved posts found for user ID ' || p_user_id);
+  WHEN OTHERS THEN
+    RAISE_APPLICATION_ERROR(-20108, 'Error retrieving saved posts by user ID: ' || SQLERRM);
+END get_saved_posts_by_user_id;
+/
+
+select GET_SAVED_POSTS_BY_USER_ID(11) from dual;
+
+select * from saved_posts;

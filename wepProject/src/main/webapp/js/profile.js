@@ -9,6 +9,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageDiv = document.getElementById("postMessage");
     const postsContainer = document.querySelector(".post-grid");
     const deleteProfileBtn = document.getElementById("deleteProfileBtn");
+    const savedPostsBtn = document.getElementById("savedPostsBtn");
+
+    if (savedPostsBtn) {
+        console.log("Saved Posts button found, attaching event listener");
+        savedPostsBtn.addEventListener("click", function (event) {
+            event.preventDefault();
+            console.log("Saved Posts button clicked!");
+            alert("Button clicked!");
+            window.location.href = "/wepProject_war_exploded/profile?saved=1";
+        });
+    } else {
+        console.error("Saved Posts button not found in DOM");
+    }
+
 
     if (newPostBtn) {
         newPostBtn.onclick = () => {
