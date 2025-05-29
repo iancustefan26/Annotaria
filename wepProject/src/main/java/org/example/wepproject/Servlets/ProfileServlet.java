@@ -6,19 +6,18 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.example.wepproject.DAOs.PostDAO;
-import org.example.wepproject.DAOs.UserDAO;
+import org.example.wepproject.DAOs.*;
 import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.PostDTO;
 import org.example.wepproject.Exceptions.PostNotFoundException;
 import org.example.wepproject.Exceptions.UserNotFoundException;
+import org.example.wepproject.Models.Category;
 import org.example.wepproject.Models.Post;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.example.wepproject.DAOs.LikeDAO;
-import org.example.wepproject.DAOs.CommentDAO;
+
 import org.example.wepproject.Models.User;
 @WebServlet("/profile")
 public class ProfileServlet extends HttpServlet {
@@ -27,6 +26,7 @@ public class ProfileServlet extends HttpServlet {
     private LikeDAO likeDAO;
     private CommentDAO commentDAO;
     private ObjectMapper objectMapper;
+    private CategoryDAO categoryDAO;
     @Override
     public void init() {
         postDAO = new PostDAO();
@@ -34,6 +34,7 @@ public class ProfileServlet extends HttpServlet {
         likeDAO = new LikeDAO();
         commentDAO = new CommentDAO();
         objectMapper = new ObjectMapper();
+        categoryDAO = new CategoryDAO();
     }
 
     @Override
@@ -112,11 +113,12 @@ public class ProfileServlet extends HttpServlet {
 
             List<PostDTO> postDTOs = posts != null ? posts.stream()
                     .map(PostDTO::PostToPostDTO).collect(Collectors.toList()) : List.of();
+
+            List<Category> categoryDAOs = categoryDAO.findAll();
             req.setAttribute("posts", postDTOs);
             req.setAttribute("postCount", postCount);
             req.setAttribute("isOwnProfile", isOwnProfile);
-
-            System.out.println("hello from profile servlet");
+            req.setAttribute("categories", categoryDAOs);
 
             req.getRequestDispatcher("/profile.jsp").forward(req, resp);
         } catch (PostNotFoundException e) {
@@ -135,5 +137,4 @@ public class ProfileServlet extends HttpServlet {
         }
     }
 
-    // add delete account
 }
