@@ -27,7 +27,7 @@ public class PostDAO extends AbstractDAO<Post,Long> {
     private static final String CALL_GET_BY_CATEGORY_ID = "{ ? = call get_post_by_category_id(?) }";
     private static final String CALL_GET_BY_USER_ID = "{ ? = call get_post_by_user_id(?) }";
     private static final String DELETE_BY_ID_QUERY = "DELETE FROM POST WHERE id = ?";
-
+    private static final String CALL_GET_SAVED_POSTS_BY_USER_ID = "{ ? = call get_saved_posts_by_user_id(?) }";
     @Override
     protected Post mapResultSetToEntity(ResultSet rs) throws SQLException {
         return Post.builder()
@@ -109,6 +109,7 @@ public class PostDAO extends AbstractDAO<Post,Long> {
         }
     }
 
+
     public void deleteByIdWithQuerry(Long id){
         try{
             int rowNum = executeUpdate(DELETE_BY_ID_QUERY, id);
@@ -147,7 +148,6 @@ public class PostDAO extends AbstractDAO<Post,Long> {
     @Override
     public void deleteById(Long id) {
        try{
-           System.out.println("hello from delete post by id");
            executeSqlFunctionNoReturn(CALL_DELETE_BY_ID, id);
        }catch (SQLException e){
            if(e.getErrorCode() == 20003) {
@@ -165,6 +165,20 @@ public class PostDAO extends AbstractDAO<Post,Long> {
            return executeQuery(FIND_ALL_QUERY);
         }catch (SQLException e){
             throw new RuntimeException("Failed to find posts", e);
+        }
+    }
+
+    public List<Post> findAllSavedPostsByUserId(Long userId) {
+        try{
+            List<Post> posts = executePlsqlFunction(CALL_GET_SAVED_POSTS_BY_USER_ID, userId);
+            return posts.isEmpty() ? null : posts;
+        }catch (SQLException e){
+           if(e.getErrorCode() == 20003) {
+               throw new PostNotFoundException("No posts found", e);
+           }else{
+               System.out.println(e.getMessage());
+               throw new RuntimeException("Failed to retrieve saved photos of the user " + userId , e);
+           }
         }
     }
 

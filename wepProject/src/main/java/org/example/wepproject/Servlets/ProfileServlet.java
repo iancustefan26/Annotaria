@@ -6,19 +6,18 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.example.wepproject.DAOs.PostDAO;
-import org.example.wepproject.DAOs.UserDAO;
+import org.example.wepproject.DAOs.*;
 import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.PostDTO;
 import org.example.wepproject.Exceptions.PostNotFoundException;
 import org.example.wepproject.Exceptions.UserNotFoundException;
+import org.example.wepproject.Models.Category;
 import org.example.wepproject.Models.Post;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.example.wepproject.DAOs.LikeDAO;
-import org.example.wepproject.DAOs.CommentDAO;
+
 import org.example.wepproject.Models.User;
 @WebServlet("/profile")
 public class ProfileServlet extends HttpServlet {
@@ -27,6 +26,7 @@ public class ProfileServlet extends HttpServlet {
     private LikeDAO likeDAO;
     private CommentDAO commentDAO;
     private ObjectMapper objectMapper;
+    private CategoryDAO categoryDAO;
     @Override
     public void init() {
         postDAO = new PostDAO();
@@ -34,6 +34,7 @@ public class ProfileServlet extends HttpServlet {
         likeDAO = new LikeDAO();
         commentDAO = new CommentDAO();
         objectMapper = new ObjectMapper();
+        categoryDAO = new CategoryDAO();
     }
 
     @Override
@@ -94,29 +95,45 @@ public class ProfileServlet extends HttpServlet {
                     req.setAttribute("error", "Invalid user ID");
                     req.getRequestDispatcher("/error.jsp").forward(req, resp);
                     return;
-                }catch (UserNotFoundException e) {
+                } catch (UserNotFoundException e) {
                     req.setAttribute("error", "User not found");
                     req.getRequestDispatcher("/error.jsp").forward(req, resp);
                     return;
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     req.setAttribute("error", "Error finding user: " + e.getMessage());
                     req.getRequestDispatcher("/error.jsp").forward(req, resp);
                     return;
                 }
             }
+            List<Post> posts;
+            Long saved;
+            if (isOwnProfile) {
+                saved =  Long.parseLong(req.getParameter("saved") == null ? "0" : req.getParameter("saved"));
+                if(saved == 0){
+                    posts = postDAO.findByUserId(profileUserId);
+                }
+                else{
+                    posts = postDAO.findAllSavedPostsByUserId(profileUserId);
+                }
+            }else{
+                posts = postDAO.findByUserId(profileUserId);
+                saved = 0L;
+            }
             // Get the user's posts
-            List<Post> posts = postDAO.findByUserId(profileUserId);
-            System.out.println("posts size: " + posts.size());
             long postCount = posts.size();
 
+            User author = userDAO.findById(profileUserId);
+
             List<PostDTO> postDTOs = posts != null ? posts.stream()
-                    .map(PostDTO::PostToPostDTO).collect(Collectors.toList()) : List.of();
+                    .map(post -> PostDTO.PostToPostDTO(post, loggedInUserId, author.getUsername()))
+                    .collect(Collectors.toList()) : List.of();
+
+            List<Category> categoryDAOs = categoryDAO.findAll();
             req.setAttribute("posts", postDTOs);
             req.setAttribute("postCount", postCount);
             req.setAttribute("isOwnProfile", isOwnProfile);
-
-            System.out.println("hello from profile servlet");
+            req.setAttribute("categories", categoryDAOs);
+            req.setAttribute("saved", saved == 1 ? true : false);
 
             req.getRequestDispatcher("/profile.jsp").forward(req, resp);
         } catch (PostNotFoundException e) {
@@ -135,5 +152,12 @@ public class ProfileServlet extends HttpServlet {
         }
     }
 
-    // add delete account
 }
+
+/* TODO :
+    1. MAKE THE SAVED PHOTOS BUTTON TO WORK
+    2. ADD SAVE BUTTON IN EVERY POST AND BUILD A SERVLET THAT HANDLES THE FUNCTIONALITY
+    3. ADD BUTTON FOR IMPORT AND EXPORT THE SAVED PHOTOS IN JSON AND XML
+    4. RESOLVE FOR THE POSTS AND CATEGORY TO APPEAR THE ACTUAL NAMES NOT IDS
+    5. LOOK INTO CSV/SVG FORMATING FOR STATISTICS
+* */

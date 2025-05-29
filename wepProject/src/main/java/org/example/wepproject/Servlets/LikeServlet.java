@@ -25,8 +25,6 @@ public class LikeServlet extends HttpServlet {
         likeDAO = new LikeDAO();
     }
 
-
-
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json");
@@ -39,11 +37,31 @@ public class LikeServlet extends HttpServlet {
                 return;
             }
 
-            Map<String, String> requestBody = objectMapper.readValue(req.getReader(), HashMap.class);
-            Long postId = Long.valueOf(requestBody.get("postId"));
-            if (postId == null) {
+            Map<String, Object> requestBody = objectMapper.readValue(req.getReader(), HashMap.class);
+            Object postIdObj = requestBody.get("postId");
+            Long postId;
+
+            if (postIdObj == null) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Post ID is required"));
+                return;
+            }
+
+            if (postIdObj instanceof String) {
+                try {
+                    postId = Long.valueOf((String) postIdObj);
+                } catch (NumberFormatException e) {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid post ID format"));
+                    return;
+                }
+            } else if (postIdObj instanceof Integer) {
+                postId = ((Integer) postIdObj).longValue();
+            } else if (postIdObj instanceof Long) {
+                postId = (Long) postIdObj;
+            } else {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Post ID must be a number"));
                 return;
             }
 
@@ -51,7 +69,6 @@ public class LikeServlet extends HttpServlet {
             long likeCount;
 
             if (existingLike != null) {
-                // delete the like if exists
                 likeDAO.deleteById(existingLike.getId());
                 likeCount = likeDAO.findByPostId(postId).size();
                 objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Like removed", LikeDTO.builder()
@@ -62,7 +79,6 @@ public class LikeServlet extends HttpServlet {
                         .likeCount(likeCount)
                         .build()));
             } else {
-                // add like
                 Like like = Like.builder()
                         .userId(userId)
                         .postId(postId)
@@ -77,9 +93,6 @@ public class LikeServlet extends HttpServlet {
                         .likeCount(likeCount)
                         .build()));
             }
-        } catch (NumberFormatException e) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid post ID format"));
         } catch (Exception e) {
             System.out.println("Error processing like: " + e.getMessage());
             e.printStackTrace();

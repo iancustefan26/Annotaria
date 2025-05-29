@@ -9,6 +9,14 @@ import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.Base64;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Data;
+
+import java.sql.Blob;
+import java.sql.SQLException;
+import java.util.Base64;
+
 @Data
 @Builder
 public class PostDTO {
@@ -17,6 +25,9 @@ public class PostDTO {
 
     @JsonProperty("authorId")
     private Long authorId;
+
+    @JsonProperty("authorUsername")
+    private String authorUsername;
 
     @JsonProperty("categoryId")
     private Long categoryId;
@@ -42,11 +53,15 @@ public class PostDTO {
     @JsonProperty("commentCount")
     private long commentCount;
 
-    public PostDTO(Long id, Long authorId, Long categoryId, String mediaBlobBase64, String externalMediaUrl,
-                   Integer creationYear, java.sql.Timestamp datePosted, String description,
-                   long likeCount, long commentCount) {
+    @JsonProperty("isOwnPost")
+    private Boolean isOwnPost;
+
+    public PostDTO(Long id, Long authorId, String authorUsername, Long categoryId, String mediaBlobBase64,
+                   String externalMediaUrl, Integer creationYear, java.sql.Timestamp datePosted,
+                   String description, long likeCount, long commentCount, Boolean isOwnPost) {
         this.id = id;
         this.authorId = authorId;
+        this.authorUsername = authorUsername;
         this.categoryId = categoryId;
         this.mediaBlobBase64 = mediaBlobBase64;
         this.externalMediaUrl = externalMediaUrl;
@@ -55,11 +70,10 @@ public class PostDTO {
         this.description = description;
         this.likeCount = likeCount;
         this.commentCount = commentCount;
+        this.isOwnPost = isOwnPost;
     }
 
-    public static PostDTO PostToPostDTO(Post post) {
-
-
+    public static PostDTO PostToPostDTO(Post post, Long currentUserId, String authorUsername) {
         String base64Image = null;
         if (post.getMediaBlob() != null) {
             try {
@@ -74,6 +88,7 @@ public class PostDTO {
         return PostDTO.builder()
                 .id(post.getId())
                 .authorId(post.getAuthorId())
+                .authorUsername(authorUsername)
                 .categoryId(post.getCategoryId())
                 .mediaBlobBase64(base64Image)
                 .externalMediaUrl(post.getExternalMediaUrl())
@@ -82,6 +97,7 @@ public class PostDTO {
                 .description(post.getDescription())
                 .likeCount(post.getLikesCount())
                 .commentCount(post.getCommentsCount())
+                .isOwnPost(post.getAuthorId().equals(currentUserId))
                 .build();
     }
 }

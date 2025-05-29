@@ -5,6 +5,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.wepproject.DAOs.CategoryDAO;
 import org.example.wepproject.DAOs.PostDAO;
 import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.PostDTO;
@@ -17,25 +18,40 @@ import java.util.stream.Collectors;
 @WebServlet("/feed")
 public class FeedServlet extends HttpServlet {
     private ObjectMapper objectMapper = new ObjectMapper();
-    private PostDAO postDAO = new PostDAO();
+    private PostDAO postDAO;
+    private CategoryDAO categoryDAO;
+
+    @Override
+    public void init() throws ServletException {
+        postDAO = new PostDAO();
+        categoryDAO = new CategoryDAO();
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("application/json");
+        Long userId = (Long) req.getSession().getAttribute("userId");
+        System.out.println("FeedServlet: Session userId = " + userId);
 
-        try {
-            Long userId = (Long) req.getSession().getAttribute("userId");
-            System.out.println("FeedServlet: Session userId = " + userId);
+        if (userId == null) {
+            resp.sendRedirect("login.jsp");
+            return;
+        }
 
+        String acceptHeader = req.getHeader("Accept");
+        if (acceptHeader != null && acceptHeader.contains("application/json")) {
+            // Handle AJAX request
+            resp.setContentType("application/json");
             List<Post> posts = postDAO.findAll();
-            List<PostDTO> postDTOs = posts.stream().map(PostDTO::PostToPostDTO).collect(Collectors.toList());
-
+            List<PostDTO> postDTOs = posts.stream()
+                    .map(post -> PostDTO.PostToPostDTO(post, userId, getUsernameFromSessionOrDB(req, post.getAuthorId())))
+                    .collect(Collectors.toList());
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Posts retrieved successfully", postDTOs));
-        } catch (Exception e) {
-            System.out.println("FeedServlet: Error = " + e.getMessage());
-            e.printStackTrace();
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Failed to retrieve posts: " + e.getMessage()));
+        } else {
+            // Handle HTML request
+            List<Post> posts = postDAO.findAll();
+            System.out.println(posts.size());
+            req.setAttribute("posts", posts != null ? posts : List.of());
+            req.getRequestDispatcher("/feed.jsp").forward(req, resp);
         }
     }
 
@@ -44,6 +60,7 @@ public class FeedServlet extends HttpServlet {
         if (username != null && req.getSession().getAttribute("userId").equals(userId)) {
             return username;
         }
+        // TODO: Replace with UserDAO.getUsernameById(userId) if available
         return "User" + userId;
     }
 }
