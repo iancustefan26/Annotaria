@@ -74,7 +74,8 @@ public class ProfileServlet extends HttpServlet {
             resp.sendRedirect("login.jsp");
             return;
         }
-
+        List<Category> categoryDAOs;
+        categoryDAOs = categoryDAO.findAll();
         boolean isOwnProfile = true;
         try {
             Long loggedInUserId = (Long) req.getSession().getAttribute("userId");
@@ -128,7 +129,7 @@ public class ProfileServlet extends HttpServlet {
                     .map(post -> PostDTO.PostToPostDTO(post, loggedInUserId, author.getUsername()))
                     .collect(Collectors.toList()) : List.of();
 
-            List<Category> categoryDAOs = categoryDAO.findAll();
+            System.out.println(categoryDAOs.size());
             req.setAttribute("posts", postDTOs);
             req.setAttribute("postCount", postCount);
             req.setAttribute("isOwnProfile", isOwnProfile);
@@ -138,11 +139,11 @@ public class ProfileServlet extends HttpServlet {
             req.getRequestDispatcher("/profile.jsp").forward(req, resp);
         } catch (PostNotFoundException e) {
             //
-            System.out.println("error finding post");
             List<PostDTO> postDTOs = List.of();
             req.setAttribute("posts", postDTOs);
             req.setAttribute("postCount", 0);
             req.setAttribute("isOwnProfile", isOwnProfile);
+            req.setAttribute("categories", categoryDAOs);
             req.getRequestDispatcher("/profile.jsp").forward(req, resp);
         } catch (RuntimeException e) {
             System.out.println("error runtime exception in profile servlet : " + e.getMessage());
@@ -155,8 +156,8 @@ public class ProfileServlet extends HttpServlet {
 }
 
 /* TODO :
-    1. MAKE THE SAVED PHOTOS BUTTON TO WORK
-    2. ADD SAVE BUTTON IN EVERY POST AND BUILD A SERVLET THAT HANDLES THE FUNCTIONALITY
+    1. MAKE THE SAVED PHOTOS BUTTON TO WORK - DONE
+    2. ADD SAVE BUTTON IN EVERY POST AND BUILD A SERVLET THAT HANDLES THE FUNCTIONALITY - DONE
     3. ADD BUTTON FOR IMPORT AND EXPORT THE SAVED PHOTOS IN JSON AND XML
     4. RESOLVE FOR THE POSTS AND CATEGORY TO APPEAR THE ACTUAL NAMES NOT IDS
     5. LOOK INTO CSV/SVG FORMATING FOR STATISTICS

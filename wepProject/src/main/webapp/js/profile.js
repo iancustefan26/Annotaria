@@ -1,37 +1,127 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements
-    const modal = document.getElementById("postModal");
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM elements
+    const postModal = document.getElementById("postModal");
     const newPostBtn = document.getElementById("newPostBtn");
     const postCloseBtn = document.querySelector(".close-modal");
     const fileInput = document.getElementById("contentFile");
     const previewImage = document.getElementById("previewImage");
-    const form = document.getElementById("postForm");
-    const messageDiv = document.getElementById("postMessage");
+    const postForm = document.getElementById("postForm");
+    const postMessageDiv = document.getElementById("postMessage");
     const postsContainer = document.querySelector(".post-grid");
     const deleteProfileBtn = document.getElementById("deleteProfileBtn");
     const savedPostsBtn = document.getElementById("savedPostsBtn");
+    const exportBtn = document.getElementById("exportBtn");
+    const exportModal = document.getElementById("exportModal");
+    const exportJsonBtn = document.getElementById("exportJsonBtn");
+    const exportXmlBtn = document.getElementById("exportXmlBtn");
+    const exportCloseBtn = exportModal?.querySelector(".close-modal");
 
+    // Saved Posts Button
     if (savedPostsBtn) {
         console.log("Saved Posts button found, attaching event listener");
-        savedPostsBtn.addEventListener("click", function (event) {
+        savedPostsBtn.addEventListener("click", function(event) {
             event.preventDefault();
-            console.log("Saved Posts button clicked!");
-            alert("Button clicked!");
             window.location.href = "/wepProject_war_exploded/profile?saved=1";
         });
     } else {
         console.error("Saved Posts button not found in DOM");
     }
 
-
-    if (newPostBtn) {
-        newPostBtn.onclick = () => {
-            console.log("Opening new post modal");
-            modal.style.display = "flex";
+    // Export Modal Handling
+    if (exportBtn) {
+        exportBtn.onclick = () => {
+            console.log("Opening export modal");
+            exportModal.style.display = "flex";
         };
     }
 
-    // Close modal when X is clicked
+    if (exportCloseBtn) {
+        exportCloseBtn.onclick = () => {
+            console.log("Closing export modal");
+            exportModal.style.display = "none";
+        };
+    }
+
+    // Close modals when clicking outside
+    window.onclick = (event) => {
+        if (event.target === exportModal) {
+            console.log("Closing export modal via background click");
+            exportModal.style.display = "none";
+        }
+        if (event.target === postModal) {
+            console.log("Closing post modal via background click");
+            closePostModal();
+        }
+    };
+
+    // Export JSON
+    if (exportJsonBtn) {
+        exportJsonBtn.onclick = () => {
+            console.log("Exporting saved posts as JSON");
+            $.ajax({
+                url: '/wepProject_war_exploded/export-saved-posts',
+                type: 'GET',
+                data: { format: 'json' },
+                success: function(response) {
+                    const blob = new Blob([JSON.stringify(response, null, 2)], { type: 'application/json' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'saved_posts.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    exportModal.style.display = "none";
+                },
+                error: function(xhr) {
+                    console.error("Error exporting JSON:", xhr);
+                    alert('Error exporting posts: ' + (xhr.responseJSON?.message || 'Server error'));
+                    exportModal.style.display = "none";
+                }
+            });
+        };
+    }
+
+    // Export XML
+    if (exportXmlBtn) {
+        exportXmlBtn.onclick = () => {
+            console.log("Exporting saved posts as XML");
+            $.ajax({
+                url: '/wepProject_war_exploded/export-saved-posts',
+                type: 'GET',
+                data: { format: 'xml' },
+                dataType: 'text', // Force text response to avoid XML parsing
+                success: function(response) {
+                    const blob = new Blob([response], { type: 'application/xml' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'saved_posts.xml';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    exportModal.style.display = "none";
+                },
+                error: function(xhr) {
+                    console.error("Error exporting XML:", xhr);
+                    alert('Error exporting posts: ' + (xhr.responseText || 'Server error'));
+                    exportModal.style.display = "none";
+                }
+            });
+        };
+    }
+
+    // New Post Modal
+    if (newPostBtn) {
+        newPostBtn.onclick = () => {
+            console.log("Opening new post modal");
+            postModal.style.display = "flex";
+        };
+    }
+
+    // Close post modal
     if (postCloseBtn) {
         postCloseBtn.onclick = () => {
             console.log("Closing post modal");
@@ -39,14 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // Close modal when clicking outside
-    window.onclick = (event) => {
-        if (event.target === modal) {
-            console.log("Closing post modal via background click");
-            closePostModal();
-        }
-    };
-
+    // Delete Profile
     if (deleteProfileBtn) {
         deleteProfileBtn.onclick = () => {
             console.log('Delete button clicked');
@@ -57,9 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
             $.ajax({
                 url: '/wepProject_war_exploded/profile',
                 type: 'DELETE',
-                headers: {
-                    'Accept': 'application/json'
-                },
+                headers: { 'Accept': 'application/json' },
                 success: function(response) {
                     console.log('Success response:', response);
                     if (response.status === 'success') {
@@ -74,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const response = xhr.responseJSON;
                     if (xhr.status === 401) {
                         alert('Please log in to delete your profile');
-                        window.location.href = '${pageContext.request.contextPath}/login.jsp';
+                        window.location.href = '/wepProject_war_exploded/login.jsp';
                     } else {
                         alert(response?.message || 'Error deleting profile');
                     }
@@ -85,33 +166,28 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Delete Profile button not found');
     }
 
-    // Function to close modal and reset form
+    // Close post modal and reset form
     function closePostModal() {
-        modal.style.display = "none";
-        form.reset();
+        postModal.style.display = "none";
+        postForm.reset();
         previewImage.style.display = "none";
-        messageDiv.innerHTML = "";
+        postMessageDiv.innerHTML = "";
     }
 
-    // Show image preview when file is selected
+    // Image Preview
     if (fileInput) {
         fileInput.onchange = () => {
             const file = fileInput.files[0];
             if (file) {
                 console.log("File selected:", file.name, file.size, file.type);
-
-                // Validate file is an image
                 if (!file.type.startsWith('image/')) {
-                    messageDiv.innerHTML = '<p class="text-red-500">Please select an image file</p>';
+                    postMessageDiv.innerHTML = '<p class="text-red-500">Please select an image file</p>';
                     fileInput.value = '';
                     return;
                 }
-
-                // Size validation - alert if over 10MB
                 if (file.size > 10 * 1024 * 1024) {
-                    messageDiv.innerHTML = '<p class="text-yellow-500">Warning: Large image files may take longer to upload</p>';
+                    postMessageDiv.innerHTML = '<p class="text-yellow-500">Warning: Large image files may take longer to upload</p>';
                 }
-
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     previewImage.src = e.target.result;
@@ -126,19 +202,17 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // Form submission
-    if (form) {
-        form.onsubmit = async (e) => {
+    // Form Submission
+    if (postForm) {
+        postForm.onsubmit = async (e) => {
             e.preventDefault();
-
-            // Display loading state
-            const submitButton = form.querySelector('button[type="submit"]');
+            const submitButton = postForm.querySelector('button[type="submit"]');
             const originalButtonText = submitButton.innerText;
             submitButton.innerText = "Uploading...";
             submitButton.disabled = true;
-            messageDiv.innerHTML = '<p class="text-blue-500">Uploading your post...</p>';
+            postMessageDiv.innerHTML = '<p class="text-blue-500">Uploading your post...</p>';
 
-            const formData = new FormData(form);
+            const formData = new FormData(postForm);
             console.log("Submitting form with file:", formData.get("contentFile")?.name, "description:", formData.get("description"));
 
             try {
@@ -147,51 +221,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: formData
                 });
                 console.log("Fetch response status:", response.status, response.statusText);
-
-                const responseText = await response.text();
-                console.log("Raw response text:", responseText);
-
-                let result;
-                try {
-                    result = JSON.parse(responseText);
-                } catch (e) {
-                    console.error("JSON parse error:", e.message, "Response text:", responseText);
-                    throw new Error("Server did not return valid JSON");
-                }
-
+                const result = await response.json();
                 console.log("Fetch response JSON:", result);
-                messageDiv.innerHTML = `<p class="${result.status === 'success' ? 'text-green-500' : 'text-red-500'}">${result.message}</p>`;
+                postMessageDiv.innerHTML = `<p class="${result.status === 'success' ? 'text-green-500' : 'text-red-500'}">${result.message}</p>`;
 
                 if (result.status === "success") {
                     console.log("Post created successfully, reloading in 1.5s");
                     setTimeout(() => {
-                        // Redirect to profile page to see the new post
                         window.location.href = "/wepProject_war_exploded/profile";
                     }, 1500);
                 } else {
-                    // Reset button if there was an error
                     submitButton.innerText = originalButtonText;
                     submitButton.disabled = false;
                 }
             } catch (error) {
                 console.error("Network error details:", error.message, error.stack);
-                messageDiv.innerHTML = `<p class="text-red-500">Network error: ${error.message}</p>`;
+                postMessageDiv.innerHTML = `<p class="text-red-500">Network error: ${error.message}</p>`;
                 submitButton.innerText = originalButtonText;
                 submitButton.disabled = false;
             }
         };
     }
 
+    // Load Posts
     function loadPosts() {
         fetch("/wepProject_war_exploded/profile", {
             method: "GET",
-            headers: {
-                "X-Requested-With": "XMLHttpRequest" // Signal this is an AJAX request
-            }
+            headers: { "X-Requested-With": "XMLHttpRequest" }
         })
             .then(response => response.text())
             .then(html => {
-                // This is a simple approach - in production you might want to use JSON responses
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = html;
                 const newPostsContainer = tempDiv.querySelector('.post-grid');

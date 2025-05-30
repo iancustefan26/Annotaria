@@ -28,6 +28,10 @@ public class PostDAO extends AbstractDAO<Post,Long> {
     private static final String CALL_GET_BY_USER_ID = "{ ? = call get_post_by_user_id(?) }";
     private static final String DELETE_BY_ID_QUERY = "DELETE FROM POST WHERE id = ?";
     private static final String CALL_GET_SAVED_POSTS_BY_USER_ID = "{ ? = call get_saved_posts_by_user_id(?) }";
+    private static final String IS_SAVED_POST_BY_USER_ID = "SELECT COUNT(*) FROM saved_posts WHERE user_id = ? AND post_id = ?";
+
+
+
     @Override
     protected Post mapResultSetToEntity(ResultSet rs) throws SQLException {
         return Post.builder()
@@ -108,7 +112,38 @@ public class PostDAO extends AbstractDAO<Post,Long> {
             }
         }
     }
+    public boolean isSavedPostById(Long userId, Long postId) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(IS_SAVED_POST_BY_USER_ID)) {
+            stmt.setLong(1, userId);
+            stmt.setLong(2, postId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+                return false;
+            }
+        }catch (SQLException e){
+           throw new RuntimeException("Failed to find post by ID: " + postId, e);
+        }
+    }
 
+    public boolean isPostLiked(Long userId, Long postId) {
+        String query = "SELECT COUNT(*) AS count FROM likes WHERE user_id = ? AND post_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setLong(1, userId);
+            stmt.setLong(2, postId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("count") > 0;
+                }
+                return false;
+            }
+        }catch (SQLException e){
+            throw new RuntimeException("Failed to find post by ID: " + postId, e);
+        }
+    }
 
     public void deleteByIdWithQuerry(Long id){
         try{
@@ -252,6 +287,27 @@ public class PostDAO extends AbstractDAO<Post,Long> {
             return null;
         }
     }
+
+    public void savePost(Long userId, Long postId) throws SQLException {
+        String query = "INSERT INTO saved_posts (user_id, post_id) VALUES (?, ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setLong(1, userId);
+            stmt.setLong(2, postId);
+            stmt.executeUpdate();
+        }
+    }
+
+    public void unsavePost(Long userId, Long postId) throws SQLException {
+        String query = "DELETE FROM saved_posts WHERE user_id = ? AND post_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setLong(1, userId);
+            stmt.setLong(2, postId);
+            stmt.executeUpdate();
+        }
+    }
+
 
 }
 

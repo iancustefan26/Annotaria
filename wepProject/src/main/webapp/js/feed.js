@@ -63,6 +63,9 @@ $(document).ready(function() {
                     <button class="commentButton focus:outline-none" data-post-id="${post.id}">
                       <i class="far fa-comment text-2xl"></i>
                     </button>
+                    <button class="saveButton focus:outline-none" data-post-id="${post.id}">
+                      <i class="${post.isSaved ? 'fas' : 'far'} fa-bookmark text-2xl"></i>
+                    </button>
                     <div class="flex-grow"></div>
                   </div>
                   <div class="mb-2">
@@ -104,6 +107,13 @@ $(document).ready(function() {
                         const postId = $(this).data('post-id');
                         console.log('Liking post:', postId);
                         toggleLike(postId, postsContainer);
+                    });
+
+                    // Save button handler
+                    postsContainer.find('.saveButton').on('click', function() {
+                        const postId = $(this).data('post-id');
+                        console.log('Saving post:', postId);
+                        toggleSave(postId, postsContainer);
                     });
 
                     // Comment button handler

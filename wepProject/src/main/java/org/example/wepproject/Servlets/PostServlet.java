@@ -79,44 +79,50 @@ public class PostServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Set response type to JSON
-        resp.setContentType("application/json");
+        resp.setContentType("text/html");
         resp.setCharacterEncoding("UTF-8");
-        Long userId = Long.parseLong(req.getSession().getAttribute("userId").toString());
-        if (userId == null) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
+        Long userId = (Long) req.getSession().getAttribute("userId");
+        if (userId == null) {
+            resp.sendRedirect("/wepProject_war_exploded/login.jsp");
             return;
         }
 
         try {
             String idParam = req.getParameter("id");
-            if (idParam == null || idParam.isEmpty()) {
+            if (idParam == null || idParam.trim().isEmpty()) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                req.setAttribute("error", "Post ID is required");
+                req.getRequestDispatcher("/post.jsp").forward(req, resp);
                 return;
             }
+
             Long postId = Long.parseLong(idParam);
             Post post = postDAO.findById(postId);
             Long postAuthorId = post.getAuthorId();
 
             User author = userDAO.findById(postAuthorId);
+            PostDTO postDTO = PostDTO.PostToPostDTO(post, userId, author.getUsername());
+            boolean isOwnProfile = postAuthorId.equals(userId);
 
-            PostDTO postDTO = PostToPostDTO(post,userId, author.getUsername());
-            boolean isOwnProfile = postAuthorId.equals(userId) ? true : false;
             req.setAttribute("post", postDTO);
             req.setAttribute("isOwnProfile", isOwnProfile);
             req.getRequestDispatcher("/post.jsp").forward(req, resp);
         } catch (NumberFormatException e) {
+            System.err.println("Invalid post ID format: " + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            req.setAttribute("error", "Number format exception");
+            req.setAttribute("error", "Invalid post ID format");
             req.getRequestDispatcher("/post.jsp").forward(req, resp);
         } catch (PostNotFoundException e) {
+            System.err.println("Post not found: " + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            req.setAttribute("error", "Invalid post id");
+            req.setAttribute("error", "Post not found");
             req.getRequestDispatcher("/post.jsp").forward(req, resp);
         } catch (Exception e) {
+            System.err.println("Unexpected error: " + e.getMessage());
+            e.printStackTrace();
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            req.setAttribute("error", "Internal server error");
+            req.setAttribute("error", "Internal server error: " + e.getMessage());
             req.getRequestDispatcher("/post.jsp").forward(req, resp);
         }
     }

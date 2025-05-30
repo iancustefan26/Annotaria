@@ -106,7 +106,7 @@ public abstract class AbstractDAO<T, ID> implements CrudDAO<T, ID> {
         }
     }
 
-    private void setParameters(PreparedStatement stmt, Object... params) throws SQLException {
+    protected void setParameters(PreparedStatement stmt, Object... params) throws SQLException {
         for (int i = 0; i < params.length; i++) {
             stmt.setObject(i + 1, params[i]);
         }
