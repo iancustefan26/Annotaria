@@ -91,7 +91,6 @@ BEGIN
   END LOOP;
 END;
 /
-
 -- NAMED_TAG_FRAMES (some tags reused across multiple posts)
 INSERT INTO NAMED_TAG_FRAMES (named_tag_id, post_id) VALUES (1, 1);
 INSERT INTO NAMED_TAG_FRAMES (named_tag_id, post_id) VALUES (1, 6);
@@ -115,6 +114,7 @@ INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id) VALUES (7,
 INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id) VALUES (8, 8, 9);
 INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id) VALUES (9, 9, 10);
 INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id) VALUES (10, 10, 1);
+
 
 -- COMMIT
 COMMIT;

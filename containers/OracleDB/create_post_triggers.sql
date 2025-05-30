@@ -208,9 +208,9 @@ BEGIN
     CASE
         WHEN INSERTING THEN
             SELECT author_id INTO v_post_author_id FROM POST WHERE id = :NEW.post_id;
-    SELECT category_id INTO v_category_id FROM POST WHERE id = :NEW.post_id;
-    SELECT COUNT(*) INTO v_rows_friendship FROM FRIENDSHIP WHERE user1_id = :NEW.user_id AND user2_id = v_post_author_id;
-    SELECT COUNT(*) INTO v_rows_category FROM CATEGORY_INTEREST WHERE user_id = :NEW.user_id AND category_id = v_category_id;
+            SELECT category_id INTO v_category_id FROM POST WHERE id = :NEW.post_id;
+            SELECT COUNT(*) INTO v_rows_friendship FROM FRIENDSHIP WHERE user1_id = :NEW.user_id AND user2_id = v_post_author_id;
+            SELECT COUNT(*) INTO v_rows_category FROM CATEGORY_INTEREST WHERE user_id = :NEW.user_id AND category_id = v_category_id;
             -- increasing friendship interest
             IF v_rows_friendship = 0 THEN
                 INSERT INTO FRIENDSHIP VALUES(
@@ -234,6 +234,10 @@ BEGIN
             END IF;
             UPDATE POST SET comments_count = comments_count + 1 WHERE id = :NEW.post_id;
         WHEN DELETING THEN
+            SELECT author_id INTO v_post_author_id FROM POST WHERE id = :OLD.post_id;
+            SELECT category_id INTO v_category_id FROM POST WHERE id = :OLD.post_id;
+            SELECT COUNT(*) INTO v_rows_friendship FROM FRIENDSHIP WHERE user1_id = :OLD.user_id AND user2_id = v_post_author_id;
+            SELECT COUNT(*) INTO v_rows_category FROM CATEGORY_INTEREST WHERE user_id = :OLD.user_id AND category_id = v_category_id;
             -- decreasing friendship interest
             IF v_rows_friendship = 0 THEN
                 raise post_exceptions.no_existing_unlike_operation;
