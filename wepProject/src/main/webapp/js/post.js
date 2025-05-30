@@ -3,11 +3,11 @@ $(document).ready(function() {
     const postsContainer = $('#postsContainer');
 
     if (!postId) {
-        $('#postsContainer').html('<p class="text-red-500 text-center">Invalid post ID</p>');
+        postsContainer.html('<p class="text-red-500 text-center">Invalid post ID</p>');
         return;
     }
 
-    $('#commentButton').click(function() {
+    $('#commentButton').on('click', function() {
         loadComments(postId, postsContainer.find('.commentsContainer'), postsContainer.find('.commentCount'));
         $('html, body').animate({
             scrollTop: $('.commentsContainer').offset().top - 100
@@ -15,14 +15,19 @@ $(document).ready(function() {
         $('#commentInput').focus();
     });
 
-    postsContainer.find('.likeButton').on('click', function() {
+    $('#likeButton').on('click', function() {
         console.log('Liking post:', postId);
         toggleLike(postId, postsContainer);
     });
 
-    postsContainer.find('.submitComment').on('click', function() {
+    $('#saveButton').on('click', function() {
+        console.log('Saving post:', postId);
+        toggleSave(postId, postsContainer);
+    });
+
+    $('#submitComment').on('click', function() {
         console.log('Submitting comment for postId:', postId);
-        const commentInput = postsContainer.find('.commentInput');
+        const commentInput = $('#commentInput');
         const commentsContainer = postsContainer.find('.commentsContainer');
         const commentCountElement = postsContainer.find('.commentCount');
         submitComment(postId, commentInput, commentsContainer, commentCountElement, () => {
@@ -30,7 +35,7 @@ $(document).ready(function() {
         });
     });
 
-    postsContainer.find('.commentInput').on('keypress', function(e) {
+    $('#commentInput').on('keypress', function(e) {
         if (e.which === 13 && !e.shiftKey) {
             e.preventDefault();
             console.log('Submitting comment for postId (Enter):', postId);
@@ -43,12 +48,12 @@ $(document).ready(function() {
         }
     });
 
-    postsContainer.find('.commentInput').on('input', function() {
+    $('#commentInput').on('input', function() {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
     });
 
-    $('#deleteButton').click(function() {
+    $('#deleteButton').on('click', function() {
         if (!confirm('Are you sure you want to delete this post?')) {
             return;
         }
@@ -77,7 +82,7 @@ $(document).ready(function() {
 
     setupCommentDeletion(postsContainer);
 
-    handleDoubleTap(postId, postsContainer, postsContainer.find('.likeButton'));
+    handleDoubleTap(postId, postsContainer, $('#likeButton'));
 
     loadComments(postId, postsContainer.find('.commentsContainer'), postsContainer.find('.commentCount'));
 });

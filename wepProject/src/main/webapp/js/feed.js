@@ -9,91 +9,99 @@ $(document).ready(function() {
                 if (response.status === 'success') {
                     const postsContainer = $('#postsContainer');
                     postsContainer.empty();
-                    console.log('Received posts:', response.data.length, response.data);
+                    const posts = response.data?.posts || [];
+                    const categoryMap = response.data?.categoryMap || {};
+                    console.log('Received posts:', posts.length, posts);
+                    console.log('Category map:', categoryMap);
 
-                    if (response.data.length === 0) {
+                    if (posts.length === 0) {
                         postsContainer.append('<p class="text-gray-500 text-center">No posts available.</p>');
                         return;
                     }
 
-                    response.data.forEach(post => {
+                    posts.forEach(post => {
                         console.log('Rendering post:', post.id);
+                        // Get category name from categoryMap or fallback
+                        const categoryName = post.categoryId ? categoryMap[post.categoryId] || 'Unknown category' : null;
                         const postHtml = `
               <div class="bg-white rounded-lg shadow-md max-w-xl mx-auto mb-8" data-post-id="${post.id}">
-                <div class="flex items-center p-4 border-b">
-                  <div class="w-8 h-8 bg-gray-300 rounded-full mr-3"></div>
-                  <div class="flex-1">
-                    <p class="font-semibold">${post.authorUsername || 'User #' + post.authorId}</p>
-                  </div>
-                  ${post.isOwnPost ? `
-                    <div class="flex items-center space-x-2">
-                      <button class="deleteButton focus:outline-none text-red-500 hover:text-red-700" data-post-id="${post.id}" title="Delete Post">
-                        <i class="fas fa-trash-alt"></i>
-                      </button>
-                      <div class="text-gray-500">
-                        <i class="fas fa-ellipsis-h"></i>
-                      </div>
-                    </div>
-                  ` : `
-                    <div class="text-gray-500">
-                      <i class="fas fa-ellipsis-h"></i>
-                    </div>
-                  `}
-                </div>
-                <div class="post-media relative">
-                  ${post.mediaBlobBase64 ? `
-                    <a href="/wepProject_war_exploded/post?id=${post.id}">
-                      <img src="${post.mediaBlobBase64}" alt="Post" class="w-full object-cover" />
-                    </a>
-                  ` : post.externalMediaUrl ? `
-                    <a href="/wepProject_war_exploded/post?id=${post.id}">
-                      <img src="${post.externalMediaUrl}" alt="Post" class="w-full object-cover" />
-                    </a>
-                  ` : `
-                    <div class="bg-gray-200 h-[400px] flex items-center justify-center">
-                      <span class="text-gray-500">No Media</span>
-                    </div>
-                  `}
-                </div>
-                <div class="p-4">
-                  <div class="flex space-x-4 mb-2">
-                    <button class="likeButton focus:outline-none" data-post-id="${post.id}">
-                      <i class="${post.isLiked ? 'fas text-red-500' : 'far'} fa-heart text-2xl"></i>
-                    </button>
-                    <button class="commentButton focus:outline-none" data-post-id="${post.id}">
-                      <i class="far fa-comment text-2xl"></i>
-                    </button>
-                    <div class="flex-grow"></div>
-                  </div>
-                  <div class="mb-2">
-                    <p class="font-semibold"><span class="likesNumber">${post.likeCount}</span> likes</p>
-                  </div>
-                  <div class="mb-3">
-                    <p>
-                      <span class="font-semibold">${post.authorUsername || 'User #' + post.authorId}</span>
-                      <span>${post.description}</span>
-                    </p>
-                  </div>
-                  <div class="text-gray-500 text-xs mb-3">
-                    ${new Date(post.datePosted).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                    ${post.creationYear ? ` · Created in ${post.creationYear}` : ''}
-                    ${post.categoryId ? ` · Category ID: ${post.categoryId}` : ''}
-                  </div>
-                  <p class="text-gray-500 text-sm mb-2">
-                    <span class="commentCount">${post.commentCount}</span> comments
-                  </p>
-                  <div class="commentsContainer max-h-60 overflow-y-auto mb-3 hidden" data-post-id="${post.id}">
-                    <!-- Comments loaded here -->
-                  </div>
-                  <div class="border-t pt-3">
-                    <div class="flex">
-                      <textarea class="commentInput flex-grow border-none bg-transparent focus:outline-none resize-none" placeholder="Add a comment..." rows="1" data-post-id="${post.id}"></textarea>
-                      <button class="submitComment text-blue-500 font-semibold ml-2" data-post-id="${post.id}">Post</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            `;
+                            <div class="flex items-center p-4 border-b">
+                              <div class="w-8 h-8 bg-gray-300 rounded-full mr-3"></div>
+                              <div class="flex-1">
+                                <p class="font-semibold">${post.authorUsername || 'User #' + post.authorId}</p>
+                              </div>
+                              ${post.isOwnPost ? `
+                                <div class="flex items-center space-x-2">
+                                  <button class="deleteButton focus:outline-none text-red-500 hover:text-red-700" data-post-id="${post.id}" title="Delete Post">
+                                    <i class="fas fa-trash-alt"></i>
+                                  </button>
+                                  <div class="text-gray-500">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                  </div>
+                                </div>
+                              ` : `
+                                <div class="text-gray-500">
+                                  <i class="fas fa-ellipsis-h"></i>
+                                </div>
+                              `}
+                            </div>
+                            <div class="post-media relative">
+                              ${post.mediaBlobBase64 ? `
+                                <a href="/wepProject_war_exploded/post?id=${post.id}">
+                                  <img src="${post.mediaBlobBase64}" alt="Post" class="w-full object-cover" />
+                                </a>
+                              ` : post.externalMediaUrl ? `
+                                <a href="/wepProject_war_exploded/post?id=${post.id}">
+                                  <img src="${post.externalMediaUrl}" alt="Post" class="w-full object-cover" />
+                                </a>
+                              ` : `
+                                <div class="bg-gray-200 h-[400px] flex items-center justify-center">
+                                  <span class="text-gray-500">No Media</span>
+                                </div>
+                              `}
+                            </div>
+                            <div class="p-4">
+                              <div class="flex space-x-4 mb-2">
+                                <button class="likeButton focus:outline-none" data-post-id="${post.id}">
+                                  <i class="${post.isLiked ? 'fas text-red-500' : 'far'} fa-heart text-2xl"></i>
+                                </button>
+                                <button class="commentButton focus:outline-none" data-post-id="${post.id}">
+                                  <i class="far fa-comment text-2xl"></i>
+                                </button>
+                                <button class="saveButton focus:outline-none" data-post-id="${post.id}">
+                                  <i class="${post.isSaved ? 'fas' : 'far'} fa-bookmark text-2xl"></i>
+                                </button>
+                                <div class="flex-grow"></div>
+                              </div>
+                              <div class="mb-2">
+                                <p class="font-semibold"><span class="likesNumber">${post.likeCount}</span> likes</p>
+                              </div>
+                              <div class="mb-3">
+                                <p>
+                                  <span class="font-semibold">${post.authorUsername || 'User #' + post.authorId}</span>
+                                  <span>${post.description}</span>
+                                </p>
+                              </div>
+                              <div class="text-gray-500 text-xs mb-3">
+                                ${new Date(post.datePosted).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                                ${post.creationYear ? ` · Created in ${post.creationYear}` : ''}
+                                ${categoryName ? ` · Category: ${categoryName}` : ''}
+                              </div>
+                              <p class="text-gray-500 text-sm mb-2">
+                                <span class="commentCount">${post.commentCount}</span> comments
+                              </p>
+                              <div class="commentsContainer max-h-60 overflow-y-auto mb-3 hidden" data-post-id="${post.id}">
+                                <!-- Comments loaded here -->
+                              </div>
+                              <div class="border-t pt-3">
+                                <div class="flex">
+                                  <textarea class="commentInput flex-grow border-none bg-transparent focus:outline-none resize-none" placeholder="Add a comment..." rows="1" data-post-id="${post.id}"></textarea>
+                                  <button class="submitComment text-blue-500 font-semibold ml-2" data-post-id="${post.id}">Post</button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        `;
                         postsContainer.append(postHtml);
                         loadComments(post.id, postsContainer.find(`[data-post-id="${post.id}"] .commentsContainer`), postsContainer.find(`[data-post-id="${post.id}"] .commentCount`));
                         handleDoubleTap(post.id, postsContainer, postsContainer.find(`.likeButton[data-post-id="${post.id}"]`));
@@ -104,6 +112,13 @@ $(document).ready(function() {
                         const postId = $(this).data('post-id');
                         console.log('Liking post:', postId);
                         toggleLike(postId, postsContainer);
+                    });
+
+                    // Save button handler
+                    postsContainer.find('.saveButton').on('click', function() {
+                        const postId = $(this).data('post-id');
+                        console.log('Saving post:', postId);
+                        toggleSave(postId, postsContainer);
                     });
 
                     // Comment button handler

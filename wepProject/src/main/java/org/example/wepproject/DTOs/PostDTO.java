@@ -1,8 +1,8 @@
 package org.example.wepproject.DTOs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
+import org.example.wepproject.DAOs.PostDAO;
 import org.example.wepproject.Models.Post;
 
 import java.sql.Blob;
@@ -16,9 +16,18 @@ import lombok.Data;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.Base64;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Data;
+
+import java.sql.Blob;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Base64;
 
 @Data
 @Builder
+@NoArgsConstructor
 public class PostDTO {
     @JsonProperty("id")
     private Long id;
@@ -42,7 +51,7 @@ public class PostDTO {
     private Integer creationYear;
 
     @JsonProperty("datePosted")
-    private java.sql.Timestamp datePosted;
+    private Timestamp datePosted;
 
     @JsonProperty("description")
     private String description;
@@ -56,9 +65,16 @@ public class PostDTO {
     @JsonProperty("isOwnPost")
     private Boolean isOwnPost;
 
+    @JsonProperty("isSaved")
+    private Boolean isSaved;
+
+    @JsonProperty("isLiked")
+    private Boolean isLiked;
+
     public PostDTO(Long id, Long authorId, String authorUsername, Long categoryId, String mediaBlobBase64,
-                   String externalMediaUrl, Integer creationYear, java.sql.Timestamp datePosted,
-                   String description, long likeCount, long commentCount, Boolean isOwnPost) {
+                   String externalMediaUrl, Integer creationYear, Timestamp datePosted,
+                   String description, long likeCount, long commentCount, Boolean isOwnPost,
+                   Boolean isSaved, Boolean isLiked) {
         this.id = id;
         this.authorId = authorId;
         this.authorUsername = authorUsername;
@@ -71,9 +87,11 @@ public class PostDTO {
         this.likeCount = likeCount;
         this.commentCount = commentCount;
         this.isOwnPost = isOwnPost;
+        this.isSaved = isSaved;
+        this.isLiked = isLiked;
     }
 
-    public static PostDTO PostToPostDTO(Post post, Long currentUserId, String authorUsername) {
+    public static PostDTO PostToPostDTO(Post post, Long currentUserId, String authorUsername)  {
         String base64Image = null;
         if (post.getMediaBlob() != null) {
             try {
@@ -81,10 +99,17 @@ public class PostDTO {
                 byte[] bytes = blob.getBytes(1, (int) blob.length());
                 base64Image = "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(bytes);
             } catch (SQLException e) {
-                System.out.println("SQLException in media blob conversion: " + e.getMessage());
-                e.printStackTrace();
+                System.err.println("SQLException in media blob conversion: " + e.getMessage());
+                throw new RuntimeException(e);
             }
         }
+
+        PostDAO postDAO = new PostDAO();
+        boolean isSaved = false;
+        boolean isLiked = false;
+        isSaved = postDAO.isSavedPostById(currentUserId, post.getId());
+        isLiked = postDAO.isPostLiked(currentUserId, post.getId());
+
         return PostDTO.builder()
                 .id(post.getId())
                 .authorId(post.getAuthorId())
@@ -95,9 +120,11 @@ public class PostDTO {
                 .creationYear(post.getCreationYear())
                 .datePosted(post.getDatePosted())
                 .description(post.getDescription())
-                .likeCount(post.getLikesCount())
+                .likeCount(post.getLikesCount() )
                 .commentCount(post.getCommentsCount())
                 .isOwnPost(post.getAuthorId().equals(currentUserId))
+                .isSaved(isSaved)
+                .isLiked(isLiked)
                 .build();
     }
 }

@@ -40,6 +40,53 @@ function toggleLike(postId, container) {
     });
 }
 
+function updateSaveUI(postId, saved, container) {
+    const postDiv = container.find(`[data-post-id="${postId}"]`);
+    const saveIcon = postDiv.find('.saveButton i'); // Use class-based selector
+    if (saved) {
+        saveIcon.removeClass('far').addClass('fas');
+    } else {
+        saveIcon.removeClass('fas').addClass('far');
+    }
+}
+
+function toggleSave(postId, container) {
+    const postDiv = container.find(`[data-post-id="${postId}"]`);
+    const saveIcon = postDiv.find('.saveButton i');
+    const isSaved = saveIcon.hasClass('fas');
+    const requestBody = {
+        postId: postId.toString(),
+        save: !isSaved
+    };
+    console.log('Toggling save:', requestBody);
+
+    $.ajax({
+        url: '/wepProject_war_exploded/save',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(requestBody),
+        success: function(response) {
+            console.log('Save response:', response);
+            if (response.status === 'success') {
+                updateSaveUI(postId, !isSaved, container);
+                // Remove alert to prevent pop-ups
+            } else {
+                alert(response.message || 'Error processing save');
+            }
+        },
+        error: function(xhr) {
+            console.error('Save error:', xhr.responseJSON);
+            const response = xhr.responseJSON;
+            if (xhr.status === 401) {
+                alert('Please log in to save posts');
+                window.location.href = '/wepProject_war_exploded/login.jsp';
+            } else {
+                alert(response?.message || 'Error processing save');
+            }
+        }
+    });
+}
+
 function submitComment(postId, commentInput, commentsContainer, commentCountElement, successCallback) {
     const content = commentInput.val().trim();
     if (!content) {
