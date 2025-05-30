@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.wepproject.DAOs.CategoryDAO;
 import org.example.wepproject.DAOs.PostDAO;
+import org.example.wepproject.DAOs.UserDAO;
 import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.PostDTO;
 import org.example.wepproject.Models.Post;
@@ -60,7 +61,6 @@ public class FeedServlet extends HttpServlet {
         if (username != null && req.getSession().getAttribute("userId").equals(userId)) {
             return username;
         }
-        // TODO: Replace with UserDAO.getUsernameById(userId) if available
-        return "User" + userId;
+        return new UserDAO().findById(userId).getUsername();
     }
 }

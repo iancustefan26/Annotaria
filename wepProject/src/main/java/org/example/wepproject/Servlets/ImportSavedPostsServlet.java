@@ -22,7 +22,7 @@ import java.util.List;
 
 
 @WebServlet("/import-saved-posts")
-@MultipartConfig(maxFileSize = 10 * 1024 * 1024) // 10MB max
+@MultipartConfig(maxFileSize = 50 * 1024 * 1024) // 50MB max
 public class ImportSavedPostsServlet extends HttpServlet {
     private PostDAO postDAO;
     private ObjectMapper objectMapper;

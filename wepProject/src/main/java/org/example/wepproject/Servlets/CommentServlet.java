@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.wepproject.DAOs.CommentDAO;
+import org.example.wepproject.DAOs.UserDAO;
 import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.CommentDTO;
 import org.example.wepproject.Models.Comment;
@@ -167,7 +168,9 @@ public class CommentServlet extends HttpServlet {
         if (username != null && req.getSession().getAttribute("userId").equals(userId)) {
             return username;
         }
-        return "User" + userId;
+
+        return new UserDAO().findById(userId).getUsername();
+
     }
 
 }
