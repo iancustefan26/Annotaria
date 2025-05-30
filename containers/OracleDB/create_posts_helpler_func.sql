@@ -165,6 +165,4 @@ EXCEPTION
 END get_saved_posts_by_user_id;
 /
 
-select GET_SAVED_POSTS_BY_USER_ID(11) from dual;
 
-select * from saved_posts;
