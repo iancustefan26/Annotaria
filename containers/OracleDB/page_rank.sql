@@ -26,7 +26,8 @@ as
     FUNCTION generate(
         p_user_id IN NUMBER,
         p_best_friends_number IN NUMBER,
-        p_random_friends_number IN NUMBER
+        p_random_friends_number IN NUMBER,
+        p_category_id IN NUMBER
     ) RETURN graph;
 END graph_generator;
 
@@ -38,7 +39,8 @@ AS
     FUNCTION generate(
         p_user_id NUMBER,
         p_best_friends_number IN NUMBER,
-        p_random_friends_number IN NUMBER
+        p_random_friends_number IN NUMBER,
+        p_category_id IN NUMBER
     ) RETURN graph
     AS
         v_post_ids number_array; --:= number_array(p_best_friends_number + p_random_friends_number);
@@ -49,7 +51,7 @@ AS
         v_row float_array;
     BEGIN
         SELECT p.id BULK COLLECT INTO v_post_ids FROM POST p 
-        WHERE p.author_id IN (
+        WHERE (p.author_id IN (
             SELECT * FROM (SELECT user2_id FROM FRIENDSHIP WHERE user1_id = p_user_id ORDER BY interest) WHERE ROWNUM < p_best_friends_number   --best friend matching
             )
             OR p.author_id IN (
@@ -60,7 +62,9 @@ AS
             )
             OR p.author_id IN (
                 SELECT author_id FROM POST WHERE ROWNUM <= 20 -- latest posts
-            );
+            ))
+            AND (p_category_id = p.category_id OR NVL(p_category_id, 0) = 0)
+            ;
         v_post_rank_score := float_array();
         FOR i in v_post_ids.first..v_post_ids.last LOOP
             v_post_rank_score.EXTEND;

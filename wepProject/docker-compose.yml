@@ -1,0 +1,73 @@
+version: "3.9"
+
+services:
+  oracle-db:
+    image: gvenzl/oracle-free
+    container_name: oracle-web
+    ports:
+      - "1521:1521"
+    environment:
+      - ORACLE_PASSWORD=api_test
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+      - ../containers/OracleDB:/tmp
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'SELECT 1 FROM DUAL;' | sqlplus sys as sysdba@//localhost:1521/FREE"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    networks:
+      - backend
+
+  oracle-init:
+    image: gvenzl/oracle-free
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+    volumes:
+      - ../containers/OracleDB:/tmp
+    environment:
+      - ORACLE_PASSWORD=api_test
+    command: >
+      /bin/bash -c '
+      until echo "SELECT 1 FROM DUAL;" | sqlplus -S sys/api_test@//oracle-db:1521/FREEPDB1 as sysdba | grep -q "Connected"; do
+        echo "Waiting for Oracle PDB FREEPDB1 to be ready..."
+        sleep 10
+      done
+
+      echo "Running setup scripts..."
+      sqlplus sys/api_test@//oracle-db:1521/FREEPDB1 as sysdba @/tmp/create_user.sql
+      sqlplus api_test/api_test@//oracle-db:1521/FREEPDB1 @/tmp/create_tables.sql
+      sqlplus api_test/api_test@//oracle-db:1521/FREEPDB1 @/tmp/create_seq.sql
+      sqlplus api_test/api_test@//oracle-db:1521/FREEPDB1 @/tmp/create_exceptions.sql
+      sqlplus api_test/api_test@//oracle-db:1521/FREEPDB1 @/tmp/create_post_triggers.sql
+      sqlplus api_test/api_test@//oracle-db:1521/FREEPDB1 @/tmp/create_auth_helper_func.sql
+      sqlplus api_test/api_test@//oracle-db:1521/FREEPDB1 @/tmp/feed_formulas.sql
+      sqlplus api_test/api_test@//oracle-db:1521/FREEPDB1 @/tmp/page_rank.sql
+      sqlplus api_test/api_test@//oracle-db:1521/FREEPDB1 @/tmp/create_graph_wrappers.sql
+      sqlplus api_test/api_test@//oracle-db:1521/FREEPDB1 @/tmp/tables_populate.sql
+      '
+    networks:
+      - backend
+
+
+  tomcat-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tomcat-app
+    depends_on:
+      - oracle-db
+      - oracle-init
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=oracle-db
+    networks:
+      - backend
+
+volumes:
+  oracle-data:
+
+networks:
+  backend:

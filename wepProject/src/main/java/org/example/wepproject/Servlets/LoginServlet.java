@@ -91,9 +91,12 @@ public class LoginServlet extends HttpServlet {
             }
         };
         try {
-            var m = MatrixConvertor.toMatrix(matrix.getMatrixFromFunction(2L, 3, 2));
+            var m = MatrixConvertor.toMatrix(matrix.getMatrixFromFunction(2L, 3, 2, null));
+            var mWithCategoryFilter= MatrixConvertor.toMatrix(matrix.getMatrixFromFunction(2L, 3, 2, 1));
             var alg = new PageRanker(m);
-            System.out.println(Arrays.toString(alg.runAndGetRankedPostIds()));
+            var algCategoryFilter = new PageRanker(mWithCategoryFilter);
+            System.out.println("Without category filter: " + Arrays.toString(alg.runAndGetRankedPostIds()));
+            System.out.println("With category filter: " + Arrays.toString(algCategoryFilter.runAndGetRankedPostIds()));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
