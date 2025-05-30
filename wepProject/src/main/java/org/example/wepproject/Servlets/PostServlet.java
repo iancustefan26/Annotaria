@@ -5,11 +5,13 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.wepproject.DAOs.CategoryDAO;
 import org.example.wepproject.DAOs.PostDAO;
 import org.example.wepproject.DAOs.UserDAO;
 import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.PostDTO;
 import org.example.wepproject.Exceptions.PostNotFoundException;
+import org.example.wepproject.Models.Category;
 import org.example.wepproject.Models.Post;
 import org.example.wepproject.Models.User;
 
@@ -23,11 +25,13 @@ public class PostServlet extends HttpServlet {
     private PostDAO postDAO;
     private ObjectMapper objectMapper;
     private UserDAO userDAO;
+    private CategoryDAO categoryDAO;
     @Override
     public void init() throws ServletException {
         postDAO = new PostDAO();
         objectMapper = new ObjectMapper();
         userDAO = new UserDAO();
+        categoryDAO = new CategoryDAO();
     }
 
     @Override
@@ -104,9 +108,11 @@ public class PostServlet extends HttpServlet {
             User author = userDAO.findById(postAuthorId);
             PostDTO postDTO = PostDTO.PostToPostDTO(post, userId, author.getUsername());
             boolean isOwnProfile = postAuthorId.equals(userId);
+            Category category = categoryDAO.findById(post.getCategoryId());
 
             req.setAttribute("post", postDTO);
             req.setAttribute("isOwnProfile", isOwnProfile);
+            req.setAttribute("categoryName", category.getName());
             req.getRequestDispatcher("/post.jsp").forward(req, resp);
         } catch (NumberFormatException e) {
             System.err.println("Invalid post ID format: " + e.getMessage());

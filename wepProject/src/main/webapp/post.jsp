@@ -101,7 +101,7 @@
               · Created in ${post.creationYear}
             </c:if>
             <c:if test="${not empty post.categoryId}">
-              · Category ID: ${post.categoryId}
+              · Category name: ${categoryName}
             </c:if>
           </div>
 

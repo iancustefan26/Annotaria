@@ -10,10 +10,13 @@ import org.example.wepproject.DAOs.PostDAO;
 import org.example.wepproject.DAOs.UserDAO;
 import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.PostDTO;
+import org.example.wepproject.Models.Category;
 import org.example.wepproject.Models.Post;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @WebServlet("/feed")
@@ -21,11 +24,18 @@ public class FeedServlet extends HttpServlet {
     private ObjectMapper objectMapper = new ObjectMapper();
     private PostDAO postDAO;
     private CategoryDAO categoryDAO;
-
+    private static Map<Long,String> categoryNames;
+    private Map<String, Object> responseData;
     @Override
     public void init() throws ServletException {
         postDAO = new PostDAO();
         categoryDAO = new CategoryDAO();
+        categoryNames = new HashMap<>();
+        List<Category> categories = categoryDAO.findAll();
+        for (Category category : categories) {
+            categoryNames.put(category.getId(), category.getName());
+        }
+        responseData = new HashMap<>();
     }
 
     @Override
@@ -46,7 +56,9 @@ public class FeedServlet extends HttpServlet {
             List<PostDTO> postDTOs = posts.stream()
                     .map(post -> PostDTO.PostToPostDTO(post, userId, getUsernameFromSessionOrDB(req, post.getAuthorId())))
                     .collect(Collectors.toList());
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Posts retrieved successfully", postDTOs));
+            responseData.put("posts", postDTOs);
+            responseData.put("categoryMap", categoryNames);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Posts retrieved successfully", responseData));
         } else {
             // Handle HTML request
             List<Post> posts = postDAO.findAll();
