@@ -42,7 +42,7 @@ function toggleLike(postId, container) {
 
 function updateSaveUI(postId, saved, container) {
     const postDiv = container.find(`[data-post-id="${postId}"]`);
-    const saveIcon = postDiv.find('#saveIcon');
+    const saveIcon = postDiv.find('.saveButton i'); // Use class-based selector
     if (saved) {
         saveIcon.removeClass('far').addClass('fas');
     } else {
@@ -52,7 +52,7 @@ function updateSaveUI(postId, saved, container) {
 
 function toggleSave(postId, container) {
     const postDiv = container.find(`[data-post-id="${postId}"]`);
-    const saveIcon = postDiv.find('#saveIcon');
+    const saveIcon = postDiv.find('.saveButton i');
     const isSaved = saveIcon.hasClass('fas');
     const requestBody = {
         postId: postId.toString(),
@@ -69,6 +69,7 @@ function toggleSave(postId, container) {
             console.log('Save response:', response);
             if (response.status === 'success') {
                 updateSaveUI(postId, !isSaved, container);
+                // Remove alert to prevent pop-ups
             } else {
                 alert(response.message || 'Error processing save');
             }

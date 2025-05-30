@@ -309,7 +309,7 @@ public class PostDAO extends AbstractDAO<Post,Long> {
     }
 
     public boolean existsById(Long postId) throws SQLException {
-        String query = "SELECT COUNT(*) AS count FROM posts WHERE id = ?";
+        String query = "SELECT COUNT(*) AS count FROM post WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setLong(1, postId);

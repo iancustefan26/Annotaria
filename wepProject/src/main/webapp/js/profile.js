@@ -15,6 +15,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const exportJsonBtn = document.getElementById("exportJsonBtn");
     const exportXmlBtn = document.getElementById("exportXmlBtn");
     const exportCloseBtn = exportModal?.querySelector(".close-modal");
+    const importBtn = document.getElementById("importBtn");
+    const importModal = document.getElementById("importModal");
+    const importForm = document.getElementById("importForm");
+    const importFileInput = document.getElementById("importFile");
+    const importMessageDiv = document.getElementById("importMessage");
+    const importCloseBtn = importModal?.querySelector(".close-modal");
 
     // Saved Posts Button
     if (savedPostsBtn) {
@@ -25,6 +31,81 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     } else {
         console.error("Saved Posts button not found in DOM");
+    }
+
+    // Import Modal Handling
+    if (importBtn) {
+        importBtn.onclick = () => {
+            console.log("Opening import modal");
+            importModal.style.display = "flex";
+            importMessageDiv.innerHTML = "";
+            importForm.reset();
+        };
+    }
+
+    if (importCloseBtn) {
+        importCloseBtn.onclick = () => {
+            console.log("Closing import modal");
+            importModal.style.display = "none";
+        };
+    }
+
+    // Import Form Submission
+    if (importForm) {
+        importForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const submitButton = importForm.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.innerText;
+            submitButton.innerText = "Importing...";
+            submitButton.disabled = true;
+            importMessageDiv.innerHTML = '<p class="text-blue-500">Importing posts...</p>';
+
+            const formData = new FormData(importForm);
+            const file = importFileInput.files[0];
+            if (file) {
+                console.log("Submitting import file:", file.name, file.size, file.type);
+                if (!file.name.endsWith('.json') && !file.name.endsWith('.xml')) {
+                    importMessageDiv.innerHTML = '<p class="text-red-500">Please select a .json or .xml file</p>';
+                    submitButton.innerText = originalButtonText;
+                    submitButton.disabled = false;
+                    return;
+                }
+                if (file.size > 10 * 1024 * 1024) {
+                    importMessageDiv.innerHTML = '<p class="text-red-500">File is too large (max 10MB)</p>';
+                    submitButton.innerText = originalButtonText;
+                    submitButton.disabled = false;
+                    return;
+                }
+            } else {
+                importMessageDiv.innerHTML = '<p class="text-red-500">Please select a file</p>';
+                submitButton.innerText = originalButtonText;
+                submitButton.disabled = false;
+                return;
+            }
+
+            try {
+                const response = await fetch("/wepProject_war_exploded/import-saved-posts", {
+                    method: "POST",
+                    body: formData
+                });
+                const result = await response.json();
+                console.log("Import response:", result);
+                importMessageDiv.innerHTML = `<p class="${result.status === 'success' ? 'text-green-500' : 'text-red-500'}">${result.message}</p>`;
+                if (result.status === "success") {
+                    setTimeout(() => {
+                        window.location.href = "/wepProject_war_exploded/profile?saved=1";
+                    }, 1500);
+                } else {
+                    submitButton.innerText = originalButtonText;
+                    submitButton.disabled = false;
+                }
+            } catch (error) {
+                console.error("Import error:", error);
+                importMessageDiv.innerHTML = `<p class="text-red-500">Network error: ${error.message}</p>`;
+                submitButton.innerText = originalButtonText;
+                submitButton.disabled = false;
+            }
+        };
     }
 
     // Export Modal Handling
@@ -47,6 +128,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target === exportModal) {
             console.log("Closing export modal via background click");
             exportModal.style.display = "none";
+        }
+        if (event.target === importModal) {
+            console.log("Closing import modal via background click");
+            importModal.style.display = "none";
         }
         if (event.target === postModal) {
             console.log("Closing post modal via background click");
@@ -91,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 url: '/wepProject_war_exploded/export-saved-posts',
                 type: 'GET',
                 data: { format: 'xml' },
-                dataType: 'text', // Force text response to avoid XML parsing
+                dataType: 'text',
                 success: function(response) {
                     const blob = new Blob([response], { type: 'application/xml' });
                     const url = window.URL.createObjectURL(blob);
