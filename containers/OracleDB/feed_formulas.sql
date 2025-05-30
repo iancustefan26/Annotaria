@@ -2,11 +2,6 @@ CREATE OR REPLACE PACKAGE feed_formulas
 AS
     -- variables used in functions
 
-    -- number of graph nodes
-    v_best_friend_nodes FLOAT := 0;  -- number of most relevant chosen users for the graph
-    v_random_friend_nodes FLOAT := 0;  -- number of random chosen users for the graph
-    ------------------------
-
     -- alpha + beta + gamma = 1
     v_alpha FLOAT := 0.6;  -- social_affinity importance index
     v_beta FLOAT := 0.1;   -- post_impact importance index
@@ -161,7 +156,7 @@ exit;
 DECLARE
     v_graph graph;
 BEGIN
-    v_graph := graph_generator.generate(2, 5, 2, 2);
+    v_graph := graph_generator.generate(2, 5, 2, NULL, NULL, 1);
      FOR i in v_graph.first..v_graph.last LOOP
         FOR j in v_graph(i).first..v_graph(i).last LOOP
             DBMS_OUTPUT.PUT(v_graph(i)(j)|| ' ');

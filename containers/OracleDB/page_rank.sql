@@ -27,7 +27,9 @@ as
         p_user_id IN NUMBER,
         p_best_friends_number IN NUMBER,
         p_random_friends_number IN NUMBER,
-        p_category_id IN NUMBER
+        p_category_id IN NUMBER,
+        p_creation_year IN NUMBER,
+        p_tag_id IN NUMBER
     ) RETURN graph;
 END graph_generator;
 
@@ -37,10 +39,12 @@ CREATE OR REPLACE PACKAGE BODY graph_generator
 AS
 
     FUNCTION generate(
-        p_user_id NUMBER,
+        p_user_id IN NUMBER,
         p_best_friends_number IN NUMBER,
         p_random_friends_number IN NUMBER,
-        p_category_id IN NUMBER
+        p_category_id IN NUMBER,
+        p_creation_year IN NUMBER,
+        p_tag_id IN NUMBER
     ) RETURN graph
     AS
         v_post_ids number_array; --:= number_array(p_best_friends_number + p_random_friends_number);
@@ -63,9 +67,14 @@ AS
             OR p.author_id IN (
                 SELECT author_id FROM POST WHERE ROWNUM <= 20 -- latest posts
             ))
-            AND (p_category_id = p.category_id OR NVL(p_category_id, 0) = 0)
+            AND (p_category_id is NULL OR p_category_id = p.category_id )
+            AND (p_creation_year is NULL OR p_creation_year = p.creation_year)
+            AND (p_tag_id is NULL OR p_tag_id IN (SELECT DISTINCT named_tag_id FROM NAMED_TAG_FRAMES WHERE post_id = p.id AND named_tag_id = p_tag_id))
             ;
         v_post_rank_score := float_array();
+        IF v_post_ids.COUNT = 0 THEN
+            RAISE_APPLICATION_ERROR(-20010, 'Feed algorithm failed because there is no such post that satisifies your filters');
+        END IF;
         FOR i in v_post_ids.first..v_post_ids.last LOOP
             v_post_rank_score.EXTEND;
             v_post_rank_score(v_post_rank_score.COUNT) := feed_formulas.score(p_user_id, v_post_ids(i));
@@ -109,3 +118,5 @@ END graph_generator;
 /
 
 exit;
+
+select * from user_source;

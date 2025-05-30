@@ -19,6 +19,9 @@ BEGIN
         SELECT COLUMN_VALUE AS val
         FROM TABLE(p_array); -- unnest the array for cursor use
     RETURN v_cursor;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE;
 END;
 
 /
@@ -27,7 +30,9 @@ CREATE OR REPLACE FUNCTION graph_to_cursor (
     p_user_id IN NUMBER,
     p_best_friends_number IN NUMBER,
     p_random_friends_number IN NUMBER,
-    p_category_id IN NUMBER DEFAULT NULL
+    p_category_id IN NUMBER DEFAULT NULL,
+    p_creation_year IN POST.creation_year%TYPE DEFAULT NULL,
+    p_tag_id IN NAMED_TAG_FRAMES.named_tag_id%TYPE DEFAULT NULL
 ) RETURN SYS_REFCURSOR
 AS
     v_graph graph;
@@ -35,7 +40,14 @@ AS
     v_row float_array;
     v_cursor SYS_REFCURSOR;
 BEGIN
-    v_graph := graph_generator.generate(p_user_id, p_best_friends_number, p_random_friends_number, p_category_id);
+    v_graph := graph_generator.generate(
+        p_user_id, 
+        p_best_friends_number,
+        p_random_friends_number,
+        p_category_id,
+        p_creation_year,
+        p_tag_id
+        );
 
     FOR i IN v_graph.FIRST .. v_graph.LAST LOOP
         v_row := v_graph(i);
@@ -49,6 +61,9 @@ BEGIN
         SELECT * FROM TABLE(v_matrix);
 
     RETURN v_cursor;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE;
 END;
 
 /
@@ -78,5 +93,9 @@ BEGIN
     END LOOP;
 
     CLOSE v_rows;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE;
 END;
 /

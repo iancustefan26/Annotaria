@@ -91,8 +91,15 @@ public class LoginServlet extends HttpServlet {
             }
         };
         try {
-            var m = MatrixConvertor.toMatrix(matrix.getMatrixFromFunction(2L, 3, 2, null));
-            var mWithCategoryFilter= MatrixConvertor.toMatrix(matrix.getMatrixFromFunction(2L, 3, 2, 1));
+            var m = MatrixConvertor.toMatrix(matrix.getMatrixFromFunction(
+                    2L, // user_id
+                    3, // best_friends
+                    2, // random_friends
+                    null, // category_id
+                    null, // creation year
+                    null // named_tag_id
+                    ));
+            var mWithCategoryFilter= MatrixConvertor.toMatrix(matrix.getMatrixFromFunction(2L, 3, 2, 1, null, null));
             var alg = new PageRanker(m);
             var algCategoryFilter = new PageRanker(mWithCategoryFilter);
             System.out.println("Without category filter: " + Arrays.toString(alg.runAndGetRankedPostIds()));
