@@ -70,13 +70,28 @@
     </c:if>
   </c:if>
 
-  <!-- Import/Export Buttons for Saved Posts -->
+  <!-- Import/Export Buttons and Modals -->
   <c:if test="${isOwnProfile && saved}">
     <div class="mb-6">
       <button id="importBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Import</button>
     </div>
     <div class="mb-6 flex space-x-4">
       <button id="exportBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Export</button>
+    </div>
+    <!-- Import Modal -->
+    <div id="importModal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">×</span>
+        <h2 class="text-xl font-bold mb-4">Import Saved Posts</h2>
+        <div id="importMessage" class="mb-4"></div>
+        <form id="importForm" enctype="multipart/form-data">
+          <div class="mb-4">
+            <label for="importFile" class="block text-sm font-medium">Select JSON or XML File</label>
+            <input type="file" id="importFile" name="importFile" accept=".json,.xml" required class="mt-1 block w-full border rounded p-2">
+          </div>
+          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Import</button>
+        </form>
+      </div>
     </div>
     <!-- Export Modal -->
     <div id="exportModal" class="modal">
