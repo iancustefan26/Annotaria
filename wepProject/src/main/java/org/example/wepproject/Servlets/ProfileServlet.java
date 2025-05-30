@@ -129,7 +129,6 @@ public class ProfileServlet extends HttpServlet {
                     .map(post -> PostDTO.PostToPostDTO(post, loggedInUserId, author.getUsername()))
                     .collect(Collectors.toList()) : List.of();
 
-            System.out.println(categoryDAOs.size());
             req.setAttribute("posts", postDTOs);
             req.setAttribute("postCount", postCount);
             req.setAttribute("isOwnProfile", isOwnProfile);

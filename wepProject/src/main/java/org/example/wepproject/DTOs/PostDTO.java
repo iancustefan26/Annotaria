@@ -1,8 +1,7 @@
 package org.example.wepproject.DTOs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import org.example.wepproject.DAOs.PostDAO;
 import org.example.wepproject.Models.Post;
 
@@ -28,6 +27,7 @@ import java.util.Base64;
 
 @Data
 @Builder
+@NoArgsConstructor
 public class PostDTO {
     @JsonProperty("id")
     private Long id;
