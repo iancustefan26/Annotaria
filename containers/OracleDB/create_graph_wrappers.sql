@@ -26,7 +26,8 @@ END;
 CREATE OR REPLACE FUNCTION graph_to_cursor (
     p_user_id IN NUMBER,
     p_best_friends_number IN NUMBER,
-    p_random_friends_number IN NUMBER
+    p_random_friends_number IN NUMBER,
+    p_category_id IN NUMBER DEFAULT NULL
 ) RETURN SYS_REFCURSOR
 AS
     v_graph graph;
@@ -34,7 +35,7 @@ AS
     v_row float_array;
     v_cursor SYS_REFCURSOR;
 BEGIN
-    v_graph := graph_generator.generate(p_user_id, p_best_friends_number, p_random_friends_number);
+    v_graph := graph_generator.generate(p_user_id, p_best_friends_number, p_random_friends_number, p_category_id);
 
     FOR i IN v_graph.FIRST .. v_graph.LAST LOOP
         v_row := v_graph(i);
@@ -61,7 +62,7 @@ DECLARE
     v_value FLOAT;
 BEGIN
     -- Call the function
-    v_rows := graph_to_cursor(2, 10, 2);
+    v_rows := graph_to_cursor(2, 10, 2, NULL);
     
     -- Fetch and print rows
     LOOP
