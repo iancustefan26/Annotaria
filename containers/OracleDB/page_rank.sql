@@ -56,10 +56,10 @@ AS
     BEGIN
         SELECT p.id BULK COLLECT INTO v_post_ids FROM POST p 
         WHERE (p.author_id IN (
-            SELECT * FROM (SELECT user2_id FROM FRIENDSHIP WHERE user1_id = p_user_id ORDER BY interest) WHERE ROWNUM < p_best_friends_number   --best friend matching
+            SELECT * FROM (SELECT user2_id FROM FRIENDSHIP WHERE user1_id = p_user_id and user1_id <> user2_id ORDER BY interest) WHERE ROWNUM < p_best_friends_number   --best friend matching
             )
             OR p.author_id IN (
-                SELECT * FROM (SELECT user2_id FROM FRIENDSHIP WHERE user1_id = p_user_id ORDER BY DBMS_RANDOM.RANDOM) WHERE ROWNUM < p_random_friends_number   -- random friend matching
+                SELECT * FROM (SELECT user2_id FROM FRIENDSHIP WHERE user1_id = p_user_id and user1_id <> user2_id  ORDER BY DBMS_RANDOM.RANDOM) WHERE ROWNUM < p_random_friends_number   -- random friend matching
             )
             OR p.category_id IN (
                 SELECT * FROM (SELECT category_id FROM CATEGORY_INTEREST WHERE user_id = p_user_id ORDER BY interest) WHERE ROWNUM < p_best_friends_number  -- best category matching
@@ -119,4 +119,4 @@ END graph_generator;
 
 exit;
 
-select * from user_source;
+

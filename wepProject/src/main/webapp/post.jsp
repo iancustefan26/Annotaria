@@ -17,6 +17,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="/wepProject_war_exploded/css/feed.css">
 </head>
 <body class="bg-gray-100">
 <div class="container mx-auto px-4 py-8">
@@ -53,10 +54,30 @@
         <div class="post-media relative">
           <c:choose>
             <c:when test="${not empty post.mediaBlobBase64}">
-              <img src="${post.mediaBlobBase64}" alt="Post" class="w-full object-cover" />
+              <c:choose>
+                <c:when test="${post.mediaType == 'video'}">
+                  <video controls class="w-full object-cover max-h-[400px]">
+                    <source src="${post.mediaBlobBase64}" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                </c:when>
+                <c:otherwise>
+                  <img src="${post.mediaBlobBase64}" alt="Post" class="w-full object-cover" />
+                </c:otherwise>
+              </c:choose>
             </c:when>
             <c:when test="${not empty post.externalMediaUrl}">
-              <img src="${post.externalMediaUrl}" alt="Post" class="w-full object-cover" />
+              <c:choose>
+                <c:when test="${post.mediaType == 'video'}">
+                  <video controls class="w-full object-cover max-h-[400px]">
+                    <source src="${post.externalMediaUrl}" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                </c:when>
+                <c:otherwise>
+                  <img src="${post.externalMediaUrl}" alt="Post" class="w-full object-cover" />
+                </c:otherwise>
+              </c:choose>
             </c:when>
             <c:otherwise>
               <div class="bg-gray-200 h-[400px] flex items-center justify-center">
