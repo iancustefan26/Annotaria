@@ -145,45 +145,43 @@
     </taglib:if>
   </div>
 
+
   <!-- Post Creation Modal -->
   <taglib:if test="${isOwnProfile}">
-    <div id="postModal" class="modal">
-      <div class="modal-content">
-        <span class="close-modal">×</span>
+    <div id="postModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div class="modal-content bg-white p-6 rounded-lg w-full max-w-md">
+        <span class="close-modal text-2xl cursor-pointer">&times;</span>
         <h2 class="text-xl font-bold mb-4">Create Post</h2>
         <div id="postMessage" class="mb-4"></div>
         <form id="postForm" action="/wepProject_war_exploded/import" enctype="multipart/form-data" method="post">
           <div class="mb-4">
-            <label for="contentFile" class="block text-sm font-medium">Image</label>
-            <input type="file" id="contentFile" name="contentFile" accept="image/*" required class="mt-1 block w-full border rounded p-2">
+            <label for="contentFile" class="block text-sm font-medium text-gray-700">Image or Video</label>
+            <input type="file" id="contentFile" name="contentFile" accept="image/*,video/mp4,video/quicktime" required class="mt-1 block w-full border border-gray-300 rounded p-2">
           </div>
           <div class="mb-4">
             <img id="previewImage" alt="Preview" class="hidden max-w-full h-auto"/>
+            <video id="previewVideo" controls class="hidden max-w-full h-auto"></video>
+          </div>
+         <div class="mb-4">
+           <label for="categoryId" class="block text-sm font-medium">Category</label>
+           <select id="categoryId" name="categoryId" required class="mt-1 block w-full border rounded p-2">
+          <option value="" disabled selected>Select a category</option>
+          <taglib:forEach var="category" items="${categories}">
+          <option value="${category.id}"><taglib:out value="${category.name}"/></option>
+          </taglib:forEach>
+          </select>
+         </div>
+          <div class="mb-4">
+            <label for="namedTagIds" class="block text-sm font-medium text-gray-700">Named Tags</label>
+            <select id="namedTagIds" name="namedTagIds[]" multiple class="mt-1 block w-full border border-gray-300 rounded p-2"></select>
           </div>
           <div class="mb-4">
-            <label for="categoryId" class="block text-sm font-medium">Category</label>
-            <select id="categoryId" name="categoryId" required class="mt-1 block w-full border rounded p-2">
-              <option value="" disabled selected>Select a category</option>
-              <taglib:forEach var="category" items="${categories}">
-                <option value="${category.id}"><taglib:out value="${category.name}"/></option>
-              </taglib:forEach>
-            </select>
+            <label for="userTaggedIds" class="block text-sm font-medium text-gray-700">Tag Users</label>
+            <select id="userTaggedIds" name="userTaggedIds[]" multiple class="mt-1 block w-full border border-gray-300 rounded p-2"></select>
           </div>
           <div class="mb-4">
-            <label for="namedTagIds" class="block text-sm font-medium">Named Tags</label>
-            <select id="namedTagIds" name="namedTagIds[]" multiple class="mt-1 block w-full border rounded p-2">
-              <!-- Populated dynamically by profile.js -->
-            </select>
-          </div>
-          <div class="mb-4">
-            <label for="userTaggedIds" class="block text-sm font-medium">Tag Users</label>
-            <select id="userTaggedIds" name="userTaggedIds[]" multiple class="mt-1 block w-full border rounded p-2">
-              <!-- Populated dynamically by profile.js -->
-            </select>
-          </div>
-          <div class="mb-4">
-            <label for="description" class="block text-sm font-medium">Description</label>
-            <textarea id="description" name="description" rows="4" class="mt-1 block w-full border rounded p-2"></textarea>
+            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea id="description" name="description" rows="4" class="mt-1 block w-full border border-gray-300 rounded p-2"></textarea>
           </div>
           <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Post</button>
         </form>
