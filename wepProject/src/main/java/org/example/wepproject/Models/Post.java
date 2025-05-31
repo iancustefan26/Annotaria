@@ -24,5 +24,5 @@ public class Post {
     private String description;
     private int likesCount;
     private int commentsCount;
-
+    private String mediaType;
 }

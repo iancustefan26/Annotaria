@@ -15,7 +15,7 @@ BEGIN
   
   OPEN l_cursor FOR
     SELECT id, author_id, category_id, media_blob, external_media_url, 
-           creation_year, date_posted, description, likes_count, comments_count
+           creation_year, date_posted, description, likes_count, comments_count,media_type
     FROM POST
     WHERE id = p_id;
     
@@ -74,7 +74,7 @@ BEGIN
   
   OPEN l_cursor FOR
     SELECT id, author_id, category_id, media_blob, external_media_url, 
-           creation_year, date_posted, description, likes_count, comments_count
+           creation_year, date_posted, description, likes_count, comments_count, media_type
     FROM POST
     WHERE category_id = p_category_id;
     
@@ -105,7 +105,7 @@ BEGIN
   
   OPEN l_cursor FOR
     SELECT id, author_id, category_id, media_blob, external_media_url, 
-           creation_year, date_posted, description, likes_count, comments_count
+           creation_year, date_posted, description, likes_count, comments_count, media_type
     FROM POST
     WHERE author_id = p_user_id order by date_posted;
     
@@ -146,7 +146,8 @@ BEGIN
       p.date_posted, 
       p.description, 
       p.likes_count, 
-      p.comments_count
+      p.comments_count,
+      p.media_type
     FROM 
       POST p
     JOIN 

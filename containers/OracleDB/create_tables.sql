@@ -21,6 +21,7 @@ CREATE TABLE NAMED_TAGS (
   name            VARCHAR2(100)  NOT NULL UNIQUE
 );
 
+
 -- 4. POST
 CREATE TABLE POST (
   id               NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -28,6 +29,7 @@ CREATE TABLE POST (
   category_id      NUMBER                        REFERENCES CATEGORY(id)   ON DELETE CASCADE,
   media_blob       BLOB,
   external_media_url VARCHAR2(512),
+  media_type VARCHAR2(10) DEFAULT 'image' NOT NULL,
   creation_year    NUMBER(4),
   date_posted      TIMESTAMP DEFAULT SYSTIMESTAMP,
   description      VARCHAR2(2000),

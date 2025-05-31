@@ -55,6 +55,7 @@ public class ImportServlet extends HttpServlet {
             String categoryIdStr = req.getParameter("categoryId");
             String[] namedTagIds = req.getParameterValues("namedTagIds[]");
             String[] userTaggedIds = req.getParameterValues("userTaggedIds[]");
+            String mediaType = req.getParameter("mediaType");
 
             Long categoryId;
             try {
@@ -67,6 +68,12 @@ public class ImportServlet extends HttpServlet {
 
             Blob mediaBlob = null;
             if (filePart != null && filePart.getSize() > 0) {
+                String fileType = filePart.getContentType();
+                if (!fileType.startsWith("image/") && !fileType.equals("video/mp4") && !fileType.equals("video/quicktime")) {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid file type. Only images and MP4/MOV videos are supported"));
+                    return;
+                }
                 try (InputStream input = filePart.getInputStream()) {
                     byte[] bytes = input.readAllBytes();
                     if (bytes.length > 0) {
@@ -93,6 +100,7 @@ public class ImportServlet extends HttpServlet {
                     .authorId(userId)
                     .description(description)
                     .mediaBlob(mediaBlob)
+                    .mediaType(mediaType)
                     .datePosted(new Timestamp(System.currentTimeMillis()))
                     .likesCount(0)
                     .categoryId(categoryId)

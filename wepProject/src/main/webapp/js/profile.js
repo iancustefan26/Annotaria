@@ -5,6 +5,7 @@ $(document).ready(function() {
     const postCloseBtn = $("#postModal .close-modal");
     const fileInput = $("#contentFile");
     const previewImage = $("#previewImage");
+    const previewVideo = $("#previewVideo");
     const postForm = $("#postForm");
     const postMessageDiv = $("#postMessage");
     const postsContainer = $(".post-grid");
@@ -48,7 +49,7 @@ $(document).ready(function() {
                     $.each(response.data.namedTagMap, function(id, name) {
                         namedTagSelect.append(`<option value="${id}">${name}</option>`);
                     });
-                    namedTagSelect.trigger('change'); // Update Select2
+                    namedTagSelect.trigger('change');
                 }
             },
             error: function(xhr) {
@@ -70,7 +71,7 @@ $(document).ready(function() {
                     $.each(response.data.userMap, function(id, username) {
                         userTaggedSelect.append(`<option value="${id}">${username}</option>`);
                     });
-                    userTaggedSelect.trigger('change'); // Update Select2
+                    userTaggedSelect.trigger('change');
                 }
             },
             error: function(xhr) {
@@ -312,35 +313,58 @@ $(document).ready(function() {
     function closePostModal() {
         postModal.css("display", "none");
         postForm[0].reset();
-        previewImage.css("display", "none");
+        previewImage.addClass("hidden").removeAttr("src");
+        previewVideo.addClass("hidden").removeAttr("src");
         postMessageDiv.empty();
         namedTagSelect.val(null).trigger('change');
         userTaggedSelect.val(null).trigger('change');
     }
 
-    // Image Preview
+    // Image/Video Preview
     if (fileInput.length) {
         fileInput.on("change", function() {
             const file = fileInput[0].files[0];
+            previewImage.addClass("hidden").removeAttr("src");
+            previewVideo.addClass("hidden").removeAttr("src");
+            postMessageDiv.empty();
+
             if (file) {
                 console.log("File selected:", file.name, file.size, file.type);
-                if (!file.type.startsWith('image/')) {
-                    postMessageDiv.html('<p class="text-red-500">Please select an image file</p>');
+                const isImage = file.type.startsWith('image/');
+                const isVideo = file.type.startsWith('video/');
+                const validVideoTypes = ['video/mp4', 'video/quicktime'];
+
+                if (!isImage && !isVideo) {
+                    postMessageDiv.html('<p class="text-red-500">Please select an image or video file</p>');
                     fileInput.val('');
                     return;
                 }
-                if (file.size > 10 * 1024 * 1024) {
-                    postMessageDiv.html('<p class="text-yellow-500">Warning: Large image files may take longer to upload</p>');
+
+                if (isVideo && !validVideoTypes.includes(file.type)) {
+                    postMessageDiv.html('<p class="text-red-500">Only MP4 and MOV videos are supported</p>');
+                    fileInput.val('');
+                    return;
                 }
+
+                if (file.size > 50 * 1024 * 1024) {
+                    postMessageDiv.html('<p class="text-red-500">File is too large (max 50MB)</p>');
+                    fileInput.val('');
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    previewImage.attr("src", e.target.result).css("display", "block");
-                    console.log("Preview image loaded");
+                    if (isImage) {
+                        previewImage.attr("src", e.target.result).removeClass("hidden");
+                        console.log("Preview image loaded");
+                    } else if (isVideo) {
+                        previewVideo.attr("src", e.target.result).removeClass("hidden");
+                        console.log("Preview video loaded");
+                    }
                 };
                 reader.readAsDataURL(file);
             } else {
                 console.log("No file selected");
-                previewImage.css("display", "none");
             }
         });
     }
@@ -363,8 +387,14 @@ $(document).ready(function() {
             userTaggedSelect.find("option:selected").each(function() {
                 formData.append("userTaggedIds[]", $(this).val());
             });
+            // Append media type
+            const file = fileInput[0].files[0];
+            if (file) {
+                formData.append("mediaType", file.type.startsWith('image/') ? 'image' : 'video');
+            }
 
             console.log("Submitting form with file:", formData.get("contentFile")?.name,
+                "mediaType:", formData.get("mediaType"),
                 "description:", formData.get("description"),
                 "namedTagIds:", formData.getAll("namedTagIds[]"),
                 "userTaggedIds:", formData.getAll("userTaggedIds[]"));

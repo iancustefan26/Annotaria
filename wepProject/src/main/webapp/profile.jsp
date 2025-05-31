@@ -130,11 +130,13 @@
       <div>
         <a href="/wepProject_war_exploded/post?id=${post.id}">
           <taglib:choose>
-            <taglib:when test="${not empty post.mediaBlobBase64}">
-              <img src="${post.mediaBlobBase64}" alt="Post image" />
+            <taglib:when test="${post.mediaType == 'video'}">
+              <video class="w-full h-[150px] object-cover">
+                <source src="${post.mediaBlobBase64}" type="video/mp4">
+              </video>
             </taglib:when>
             <taglib:otherwise>
-              <div class="bg-gray-200 h-[150px] flex items-center justify-center">No Media</div>
+              <img src="${post.mediaBlobBase64}" alt="Post image" />
             </taglib:otherwise>
           </taglib:choose>
         </a>

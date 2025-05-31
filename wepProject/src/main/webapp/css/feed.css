@@ -1,11 +1,10 @@
 /* Post Media Styling */
-.post-media img {
+.post-media img,
+.post-media video {
     max-height: 400px;
     object-fit: cover;
     width: 100%;
-}
-
-.container {
+}.container {
     max-width: 1200px;
 }
 

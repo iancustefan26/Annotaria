@@ -53,7 +53,7 @@ $(document).ready(function() {
                     for (const [id, name] of Object.entries(response.data.namedTagMap)) {
                         tagSelect.append(`<option value="${id}">${name}</option>`);
                     }
-                    tagSelect.trigger('change'); // Update Select2
+                    tagSelect.trigger('change');
                 }
             },
             error: function(xhr) {
@@ -97,6 +97,7 @@ $(document).ready(function() {
                     posts.forEach(post => {
                         console.log('Rendering post:', post.id);
                         const categoryName = post.categoryId ? categoryMap[post.categoryId] || 'Unknown category' : null;
+                        const isVideo = post.mediaType && post.mediaType.startsWith('video');
                         const postHtml = `
               <div class="bg-white rounded-lg shadow-md max-w-xl mx-auto mb-8" data-post-id="${post.id}">
                 <div class="flex items-center p-4 border-b">
@@ -120,15 +121,33 @@ $(document).ready(function() {
                   `}
                 </div>
                 <div class="post-media relative">
-                  ${post.mediaBlobBase64 ? `
-                    <a href="/wepProject_war_exploded/post?id=${post.id}">
-                      <img src="${post.mediaBlobBase64}" alt="Post" class="w-full object-cover" />
-                    </a>
-                  ` : post.externalMediaUrl ? `
-                    <a href="/wepProject_war_exploded/post?id=${post.id}">
-                      <img src="${post.externalMediaUrl}" alt="Post" class="w-full object-cover" />
-                    </a>
-                  ` : `
+                  ${post.mediaBlobBase64 ? (
+                            isVideo ? `
+                      <a href="/wepProject_war_exploded/post?id=${post.id}">
+                        <video controls class="w-full object-cover max-h-[400px]">
+                          <source src="${post.mediaBlobBase64}" type="${post.mediaType}">
+                          Your browser does not support the video tag.
+                        </video>
+                      </a>
+                    ` : `
+                      <a href="/wepProject_war_exploded/post?id=${post.id}">
+                        <img src="${post.mediaBlobBase64}" alt="Post" class="w-full object-cover" />
+                      </a>
+                    `
+                        ) : post.externalMediaUrl ? (
+                            isVideo ? `
+                      <a href="/wepProject_war_exploded/post?id=${post.id}">
+                        <video controls class="w-full object-cover max-h-[400px]">
+                          <source src="${post.externalMediaUrl}" type="${post.mediaType}">
+                          Your browser does not support the video tag.
+                        </video>
+                      </a>
+                    ` : `
+                      <a href="/wepProject_war_exploded/post?id=${post.id}">
+                        <img src="${post.externalMediaUrl}" alt="Post" class="w-full object-cover" />
+                      </a>
+                    `
+                        ) : `
                     <div class="bg-gray-200 h-[400px] flex items-center justify-center">
                       <span class="text-gray-500">No Media</span>
                     </div>
