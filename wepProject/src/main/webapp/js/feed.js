@@ -1,4 +1,11 @@
 $(document).ready(function() {
+    // Initialize Select2 for tag filter
+    $('#tagFilter').select2({
+        placeholder: "Select a tag",
+        allowClear: true,
+        width: '100%'
+    });
+
     // Populate category dropdown
     function loadCategories() {
         $.ajax({
@@ -32,14 +39,41 @@ $(document).ready(function() {
         }
     }
 
+    // Populate tag dropdown
+    function loadTags() {
+        $.ajax({
+            url: '/wepProject_war_exploded/namedTags',
+            type: 'GET',
+            headers: { 'Accept': 'application/json' },
+            success: function(response) {
+                if (response.status === 'success') {
+                    const tagSelect = $('#tagFilter');
+                    tagSelect.empty();
+                    tagSelect.append('<option value="">All Tags</option>');
+                    for (const [id, name] of Object.entries(response.data.namedTagMap)) {
+                        tagSelect.append(`<option value="${id}">${name}</option>`);
+                    }
+                    tagSelect.trigger('change'); // Update Select2
+                }
+            },
+            error: function(xhr) {
+                console.error('Failed to load tags:', xhr.responseJSON?.message || 'Server error');
+            }
+        });
+    }
+
     function loadPosts() {
         const categoryId = $('#categoryFilter').val();
         const creationYear = $('#yearFilter').val();
-        const url = '/wepProject_war_exploded/feed' +
-            (categoryId || creationYear ? '?' : '') +
-            (categoryId ? `categoryId=${categoryId}` : '') +
-            (categoryId && creationYear ? '&' : '') +
-            (creationYear ? `creationYear=${creationYear}` : '');
+        const namedTagId = $('#tagFilter').val();
+        let queryParams = [];
+        if (categoryId) queryParams.push(`categoryId=${categoryId}`);
+        if (creationYear) queryParams.push(`creationYear=${creationYear}`);
+        if (namedTagId) queryParams.push(`namedTagId=${namedTagId}`);
+        const queryString = queryParams.length ? '?' + queryParams.join('&') : '';
+        const url = '/wepProject_war_exploded/feed' + queryString;
+
+        console.log('Loading posts with URL:', url);
 
         $.ajax({
             url: url,
@@ -244,9 +278,10 @@ $(document).ready(function() {
 
     loadCategories();
     loadYears();
+    loadTags();
     loadPosts();
 
-    $('#categoryFilter, #yearFilter').on('change', function() {
+    $('#categoryFilter, #yearFilter, #tagFilter').on('change', function() {
         loadPosts();
     });
 });

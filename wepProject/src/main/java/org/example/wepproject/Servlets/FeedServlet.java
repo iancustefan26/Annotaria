@@ -59,42 +59,45 @@ public class FeedServlet extends HttpServlet {
             // Read query parameters
             Integer categoryId = req.getParameter("categoryId") != null ? Integer.parseInt(req.getParameter("categoryId")) : null;
             Integer creationYear = req.getParameter("creationYear") != null ? Integer.parseInt(req.getParameter("creationYear")) : null;
+            Integer namedTagId = req.getParameter("namedTagId") != null ? Integer.parseInt(req.getParameter("namedTagId")) : null;
 
             var m = MatrixConvertor.toMatrix(matrixDAO.getMatrixFromFunction(
                     userId, // Use actual user ID
                     3, // best_friends
                     2, // random_friends
                     categoryId, // category id
-                    creationYear,// creation year
-                    null // named_tag_id
+                    creationYear, // creation year
+                    namedTagId // named tag id
             ));
             var alg = new PageRanker(m);
             List<Long> postIds = Arrays.stream(alg.runAndGetRankedPostIds()).mapToLong(i -> i).boxed().toList();
             System.out.println("FeedServlet: postIds = " + postIds);
             posts = postIds.stream()
                     .map(id -> postDAO.findById(id))
+                    .filter(Objects::nonNull)
                     .toList();
         } catch (SQLException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Database error: " + e.getMessage()));
+            return;
         } catch (NumberFormatException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid categoryId or creationYear format"));
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid categoryId, creationYear, or namedTagId format"));
+            return;
         }
+
         String acceptHeader = req.getHeader("Accept");
         if (acceptHeader != null && acceptHeader.contains("application/json")) {
             // Handle AJAX request
             resp.setContentType("application/json");
             List<PostDTO> postDTOs = posts.stream()
-                        .map(post -> PostDTO.PostToPostDTO(post, userId, getUsernameFromSessionOrDB(req, post.getAuthorId())))
-                        .collect(Collectors.toList());
-                responseData.put("posts", postDTOs);
-                responseData.put("categoryMap", categoryNames);
-                objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Posts retrieved successfully", responseData));
+                    .map(post -> PostDTO.PostToPostDTO(post, userId, getUsernameFromSessionOrDB(req, post.getAuthorId())))
+                    .collect(Collectors.toList());
+            responseData.put("posts", postDTOs);
+            responseData.put("categoryMap", categoryNames);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Posts retrieved successfully", responseData));
         } else {
             // Handle HTML request
-            posts = postDAO.findAll();
-            System.out.println("Posts found: " + posts.size());
             req.setAttribute("posts", posts != null ? posts : List.of());
             req.getRequestDispatcher("/feed.jsp").forward(req, resp);
         }

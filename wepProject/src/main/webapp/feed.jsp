@@ -6,7 +6,7 @@
   To change this template use File | Settings | File Templates.
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,6 +16,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <link rel="stylesheet" href="/wepProject_war_exploded/css/feed.css">
 </head>
 <body class="bg-gray-100">
@@ -32,13 +34,17 @@
     </div>
 
     <!-- Filter Controls -->
-    <div class="mb-6 flex space-x-4 justify-center">
+    <div class="mb-6 flex space-x-4 justify-center items-center">
         <select id="categoryFilter" class="border border-gray-300 rounded p-2">
             <option value="">All Categories</option>
             <!-- Populated dynamically by feed.js -->
         </select>
         <select id="yearFilter" class="border border-gray-300 rounded p-2">
             <option value="">All Years</option>
+            <!-- Populated dynamically by feed.js -->
+        </select>
+        <select id="tagFilter" class="border border-gray-300 rounded p-2 w-64">
+            <option value="">All Tags</option>
             <!-- Populated dynamically by feed.js -->
         </select>
     </div>
