@@ -37,14 +37,14 @@ AS
   l_count NUMBER;
 BEGIN
   SELECT COUNT(*) INTO l_count 
-  FROM POST 
+  FROM POSTS_VIEW
   WHERE id = p_id;
   
   IF l_count = 0 THEN
     RAISE post_exceptions.no_such_post;
   END IF;
   
-  DELETE FROM POST
+  DELETE FROM POSTS_VIEW
   WHERE id = p_id;
   
 EXCEPTION
@@ -54,6 +54,7 @@ EXCEPTION
     RAISE_APPLICATION_ERROR(-20103, 'Error deleting post by ID: ' || SQLERRM);
 END delete_post_by_id;
 /
+
 
 
 -- Get posts by category

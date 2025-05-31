@@ -13,6 +13,7 @@ docker cp create_logs.sql oracle-web:/tmp/
 docker cp create_post_triggers.sql oracle-web:/tmp/
 docker cp create_exceptions.sql oracle-web:/tmp/
 docker cp create_auth_helper_func.sql oracle-web:/tmp/
+docker cp create_posts_helper_func.sql oracle-web:/tmp/
 docker cp feed_formulas.sql oracle-web:/tmp/
 docker cp page_rank.sql oracle-web:/tmp/
 docker cp create_graph_wrappers.sql oracle-web:/tmp/
@@ -32,7 +33,6 @@ docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_tables.sql
 
 docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_seq.sql
 
-
 docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_exceptions.sql
 
 docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_post_triggers.sql
@@ -46,6 +46,8 @@ docker exec -it oracle-web sqlplus api_test/api_test @/tmp/page_rank.sql
 docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_graph_wrappers.sql
 
 docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_prevent_mutating_table.sql
+
+docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_posts_helper_func.sql
 
 docker exec -it oracle-web sqlplus api_test/api_test @/tmp/tables_populate.sql
 
