@@ -15,12 +15,12 @@ import org.example.wepproject.Helpers.PageRank.MatrixConvertor;
 import org.example.wepproject.Helpers.PageRank.PageRanker;
 import org.example.wepproject.Models.Category;
 import org.example.wepproject.Models.Post;
+import org.example.wepproject.Models.User;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
-
 @WebServlet("/feed")
 public class FeedServlet extends HttpServlet {
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -46,7 +46,6 @@ public class FeedServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Long userId = (Long) req.getSession().getAttribute("userId");
-        System.out.println("FeedServlet: Session userId = " + userId);
 
         if (userId == null) {
             resp.sendRedirect("login.jsp");
@@ -61,6 +60,7 @@ public class FeedServlet extends HttpServlet {
             Integer creationYear = req.getParameter("creationYear") != null ? Integer.parseInt(req.getParameter("creationYear")) : null;
             Integer namedTagId = req.getParameter("namedTagId") != null ? Integer.parseInt(req.getParameter("namedTagId")) : null;
 
+
             var m = MatrixConvertor.toMatrix(matrixDAO.getMatrixFromFunction(
                     userId, // Use actual user ID
                     3, // best_friends
@@ -71,16 +71,25 @@ public class FeedServlet extends HttpServlet {
             ));
             var alg = new PageRanker(m);
             List<Long> postIds = Arrays.stream(alg.runAndGetRankedPostIds()).mapToLong(i -> i).boxed().toList();
-            System.out.println("FeedServlet: postIds = " + postIds);
+            System.out.println("FeedServlet: Retrieved postIds = " + postIds);
             posts = postIds.stream()
-                    .map(id -> postDAO.findById(id))
+                    .map(id -> {
+                        Post post = postDAO.findById(id);
+                        if (post != null) {
+                        } else {
+                        }
+                        return post;
+                    })
                     .filter(Objects::nonNull)
                     .toList();
+
         } catch (SQLException e) {
+            System.err.println("FeedServlet: SQL error: " + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Database error: " + e.getMessage()));
             return;
         } catch (NumberFormatException e) {
+            System.err.println("FeedServlet: Invalid parameter format: " + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid categoryId, creationYear, or namedTagId format"));
             return;
@@ -91,7 +100,10 @@ public class FeedServlet extends HttpServlet {
             // Handle AJAX request
             resp.setContentType("application/json");
             List<PostDTO> postDTOs = posts.stream()
-                    .map(post -> PostDTO.PostToPostDTO(post, userId, getUsernameFromSessionOrDB(req, post.getAuthorId())))
+                    .map(post -> {
+                        PostDTO dto = PostDTO.PostToPostDTO(post, userId, getUsernameFromSessionOrDB(req, post.getAuthorId()));
+                        return dto;
+                    })
                     .collect(Collectors.toList());
             responseData.put("posts", postDTOs);
             responseData.put("categoryMap", categoryNames);
@@ -108,6 +120,7 @@ public class FeedServlet extends HttpServlet {
         if (username != null && req.getSession().getAttribute("userId").equals(userId)) {
             return username;
         }
-        return new UserDAO().findById(userId).getUsername();
+        User user = new UserDAO().findById(userId);
+        return user != null ? user.getUsername() : "Unknown";
     }
 }

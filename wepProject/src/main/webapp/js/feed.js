@@ -95,9 +95,14 @@ $(document).ready(function() {
                     }
 
                     posts.forEach(post => {
-                        console.log('Rendering post:', post.id);
+                        console.log('Rendering post:', {
+                            id: post.id,
+                            mediaType: post.mediaType,
+                            hasMediaBlob: !!post.mediaBlobBase64,
+                            hasExternalUrl: !!post.externalMediaUrl
+                        });
                         const categoryName = post.categoryId ? categoryMap[post.categoryId] || 'Unknown category' : null;
-                        const isVideo = post.mediaType && post.mediaType.startsWith('video');
+                        const isVideo = post.mediaType && post.mediaType === 'video';
                         const postHtml = `
               <div class="bg-white rounded-lg shadow-md max-w-xl mx-auto mb-8" data-post-id="${post.id}">
                 <div class="flex items-center p-4 border-b">
@@ -125,7 +130,7 @@ $(document).ready(function() {
                             isVideo ? `
                       <a href="/wepProject_war_exploded/post?id=${post.id}">
                         <video controls class="w-full object-cover max-h-[400px]">
-                          <source src="${post.mediaBlobBase64}" type="${post.mediaType}">
+                          <source src="${post.mediaBlobBase64}" type="video/mp4">
                           Your browser does not support the video tag.
                         </video>
                       </a>
@@ -138,7 +143,7 @@ $(document).ready(function() {
                             isVideo ? `
                       <a href="/wepProject_war_exploded/post?id=${post.id}">
                         <video controls class="w-full object-cover max-h-[400px]">
-                          <source src="${post.externalMediaUrl}" type="${post.mediaType}">
+                          <source src="${post.externalMediaUrl}" type="video/mp4">
                           Your browser does not support the video tag.
                         </video>
                       </a>
@@ -286,10 +291,11 @@ $(document).ready(function() {
                     // Setup comment deletion
                     setupCommentDeletion(postsContainer);
                 } else {
-                    $('#postsContainer').html('<p class="text-red-500 text-center">' + response.message + '</p>');
+                    $('#postsContainer').html('<p class="text-red-500 text-center">' + (response.message || 'Failed to load posts') + '</p>');
                 }
             },
             error: function(xhr) {
+                console.error('AJAX error:', xhr);
                 $('#postsContainer').html('<p class="text-red-500 text-center">Failed to load posts: ' + (xhr.responseJSON?.message || 'Server error') + '</p>');
             }
         });
@@ -301,6 +307,11 @@ $(document).ready(function() {
     loadPosts();
 
     $('#categoryFilter, #yearFilter, #tagFilter').on('change', function() {
+        console.log('Filter changed:', {
+            categoryId: $('#categoryFilter').val(),
+            creationYear: $('#yearFilter').val(),
+            namedTagId: $('#tagFilter').val()
+        });
         loadPosts();
     });
 });
