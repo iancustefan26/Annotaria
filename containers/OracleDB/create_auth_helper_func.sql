@@ -90,14 +90,14 @@ AS
     l_count NUMBER;
 BEGIN
     SELECT COUNT(*) INTO l_count
-    FROM USERS
+    FROM USERS_VIEW
     WHERE id = p_id;
 
     IF l_count = 0 THEN
         RAISE auth_exceptions.user_not_found;
     END IF;
 
-    DELETE FROM USERS
+    DELETE FROM USERS_VIEW
     WHERE id = p_id;
 
 EXCEPTION

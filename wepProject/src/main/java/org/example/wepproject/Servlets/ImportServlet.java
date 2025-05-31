@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.wepproject.DAOs.PostDAO;
+import org.example.wepproject.DAOs.UserDAO;
 import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.Models.Post;
 
@@ -42,11 +43,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ImportServlet extends HttpServlet {
     private PostDAO postDAO;
     private ObjectMapper objectMapper;
+    private UserDAO userDAO;
 
     @Override
     public void init() throws ServletException {
         postDAO = new PostDAO();
         objectMapper = new ObjectMapper();
+        userDAO = new UserDAO();
     }
 
     @Override

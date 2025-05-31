@@ -8,9 +8,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -32,6 +29,18 @@
         <a href="/wepProject_war_exploded/profile" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
             Go to Profile
         </a>
+    </div>
+
+    <!-- Filter Controls -->
+    <div class="mb-6 flex space-x-4 justify-center">
+        <select id="categoryFilter" class="border border-gray-300 rounded p-2">
+            <option value="">All Categories</option>
+            <!-- Populated dynamically by feed.js -->
+        </select>
+        <select id="yearFilter" class="border border-gray-300 rounded p-2">
+            <option value="">All Years</option>
+            <!-- Populated dynamically by feed.js -->
+        </select>
     </div>
 
     <!-- Posts Container -->
