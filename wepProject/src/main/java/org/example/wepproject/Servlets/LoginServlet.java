@@ -34,62 +34,7 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        MatrixDAO matrix = new MatrixDAO() {
-            @Override
-            protected String getTableName() {
-                return "";
-            }
-
-            @Override
-            protected String getInsertQuery() {
-                return "";
-            }
-
-            @Override
-            protected String getUpdateQuery() {
-                return "";
-            }
-
-            @Override
-            protected Object[] getInsertParams(MatrixCell entity) {
-                return new Object[0];
-            }
-
-            @Override
-            protected Object[] getUpdateParams(MatrixCell entity) {
-                return new Object[0];
-            }
-
-            @Override
-            protected void setId(MatrixCell entity, Long aLong) {
-
-            }
-
-            @Override
-            public MatrixCell findById(Long aLong) {
-                return null;
-            }
-
-            @Override
-            public List<MatrixCell> findAll() {
-                return List.of();
-            }
-
-            @Override
-            public MatrixCell save(MatrixCell entity) {
-                return null;
-            }
-
-            @Override
-            public void update(MatrixCell entity) {
-
-            }
-
-            @Override
-            public void deleteById(Long aLong) {
-
-            }
-        };
+        MatrixDAO matrix = new MatrixDAO();
         try {
             var m = MatrixConvertor.toMatrix(matrix.getMatrixFromFunction(
                     2L, // user_id

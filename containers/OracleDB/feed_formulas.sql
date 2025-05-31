@@ -156,7 +156,7 @@ exit;
 DECLARE
     v_graph graph;
 BEGIN
-    v_graph := graph_generator.generate(2, 5, 2, NULL, NULL, 1);
+    v_graph := graph_generator.generate(21, 5, 2, NULL, NULL, 1);
      FOR i in v_graph.first..v_graph.last LOOP
         FOR j in v_graph(i).first..v_graph(i).last LOOP
             DBMS_OUTPUT.PUT(v_graph(i)(j)|| ' ');
