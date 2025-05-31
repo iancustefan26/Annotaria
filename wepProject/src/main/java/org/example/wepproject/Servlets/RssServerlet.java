@@ -12,7 +12,7 @@ import java.io.*;
 
 
 @WebServlet("/rss")
-public class RssServlet extends HttpServlet {
+public class RssServerlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
