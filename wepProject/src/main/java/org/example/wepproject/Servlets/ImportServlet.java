@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.wepproject.DAOs.NamedTagDAO;
 import org.example.wepproject.DAOs.PostDAO;
 import org.example.wepproject.DAOs.UserDAO;
 import org.example.wepproject.DTOs.ApiDTO;
@@ -15,28 +16,11 @@ import org.example.wepproject.Models.Post;
 
 import java.io.IOException;
 import java.io.InputStream;
-import oracle.sql.BLOB;
 
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import javax.sql.rowset.serial.SerialBlob;
-
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.annotation.MultipartConfig;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.Part;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Blob;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import jakarta.servlet.http.HttpSession;
-import javax.sql.rowset.serial.SerialBlob;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebServlet("/import")
 @MultipartConfig(maxFileSize = 1024 * 1024 * 50) // 50MB limit
@@ -44,12 +28,14 @@ public class ImportServlet extends HttpServlet {
     private PostDAO postDAO;
     private ObjectMapper objectMapper;
     private UserDAO userDAO;
+    private NamedTagDAO namedTagDAO;
 
     @Override
     public void init() throws ServletException {
         postDAO = new PostDAO();
         objectMapper = new ObjectMapper();
         userDAO = new UserDAO();
+        namedTagDAO = new NamedTagDAO();
     }
 
     @Override
@@ -67,8 +53,11 @@ public class ImportServlet extends HttpServlet {
             Part filePart = req.getPart("contentFile");
             String description = req.getParameter("description");
             String categoryIdStr = req.getParameter("categoryId");
-            Long categoryId;
+            String[] namedTagIds = req.getParameterValues("namedTagIds[]");
+            String[] userTaggedIds = req.getParameterValues("userTaggedIds[]");
+            String mediaType = req.getParameter("mediaType");
 
+            Long categoryId;
             try {
                 categoryId = Long.parseLong(categoryIdStr);
             } catch (NumberFormatException e) {
@@ -79,6 +68,12 @@ public class ImportServlet extends HttpServlet {
 
             Blob mediaBlob = null;
             if (filePart != null && filePart.getSize() > 0) {
+                String fileType = filePart.getContentType();
+                if (!fileType.startsWith("image/") && !fileType.equals("video/mp4") && !fileType.equals("video/quicktime")) {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid file type. Only images and MP4/MOV videos are supported"));
+                    return;
+                }
                 try (InputStream input = filePart.getInputStream()) {
                     byte[] bytes = input.readAllBytes();
                     if (bytes.length > 0) {
@@ -105,12 +100,41 @@ public class ImportServlet extends HttpServlet {
                     .authorId(userId)
                     .description(description)
                     .mediaBlob(mediaBlob)
+                    .mediaType(mediaType)
                     .datePosted(new Timestamp(System.currentTimeMillis()))
                     .likesCount(0)
                     .categoryId(categoryId)
                     .commentsCount(0)
                     .build();
-            postDAO.save(post);
+            post = postDAO.save(post); // Save post and get generated ID
+
+            // Add named tag frames
+            if (namedTagIds != null) {
+                for (String tagIdStr : namedTagIds) {
+                    try {
+                        Long tagId = Long.parseLong(tagIdStr);
+                        namedTagDAO.addNamedTagFrame(tagId, post.getId());
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid namedTagId: " + tagIdStr);
+                    } catch (SQLException e) {
+                        System.err.println("Failed to add named tag frame for tagId " + tagIdStr + ": " + e.getMessage());
+                    }
+                }
+            }
+
+            // Add user tag frames
+            if (userTaggedIds != null) {
+                for (String taggedIdStr : userTaggedIds) {
+                    try {
+                        Long taggedId = Long.parseLong(taggedIdStr);
+                        namedTagDAO.addUserTagFrame(post.getId(), userId, taggedId);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid userTaggedId: " + taggedIdStr);
+                    } catch (SQLException e) {
+                        System.err.println("Failed to add user tag frame for userId " + taggedIdStr + ": " + e.getMessage());
+                    }
+                }
+            }
 
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Post uploaded successfully"));
         } catch (SQLException e) {

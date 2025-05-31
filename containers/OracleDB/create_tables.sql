@@ -21,6 +21,7 @@ CREATE TABLE NAMED_TAGS (
   name            VARCHAR2(100)  NOT NULL UNIQUE
 );
 
+
 -- 4. POST
 CREATE TABLE POST (
   id               NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -28,6 +29,7 @@ CREATE TABLE POST (
   category_id      NUMBER                        REFERENCES CATEGORY(id)   ON DELETE CASCADE,
   media_blob       BLOB,
   external_media_url VARCHAR2(512),
+  media_type VARCHAR2(10) DEFAULT 'image' NOT NULL,
   creation_year    NUMBER(4),
   date_posted      TIMESTAMP DEFAULT SYSTIMESTAMP,
   description      VARCHAR2(2000),
@@ -75,6 +77,7 @@ CREATE TABLE USER_TAG_FRAMES (
   CONSTRAINT pk_user_tag_frames PRIMARY KEY(post_id, user_author_id, user_tagged_id)
 );
 
+
 -- 10. FRIENDSHIP
 -- relatia de interes/prietenie intre useri
 
@@ -112,4 +115,3 @@ CREATE INDEX idx_comments_post ON COMMENTS(post_id);
 COMMIT;
 exit;
 
-select * from category;

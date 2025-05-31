@@ -1,4 +1,11 @@
 $(document).ready(function() {
+    // Initialize Select2 for tag filter
+    $('#tagFilter').select2({
+        placeholder: "Select a tag",
+        allowClear: true,
+        width: '100%'
+    });
+
     // Populate category dropdown
     function loadCategories() {
         $.ajax({
@@ -32,14 +39,41 @@ $(document).ready(function() {
         }
     }
 
+    // Populate tag dropdown
+    function loadTags() {
+        $.ajax({
+            url: '/wepProject_war_exploded/namedTags',
+            type: 'GET',
+            headers: { 'Accept': 'application/json' },
+            success: function(response) {
+                if (response.status === 'success') {
+                    const tagSelect = $('#tagFilter');
+                    tagSelect.empty();
+                    tagSelect.append('<option value="">All Tags</option>');
+                    for (const [id, name] of Object.entries(response.data.namedTagMap)) {
+                        tagSelect.append(`<option value="${id}">${name}</option>`);
+                    }
+                    tagSelect.trigger('change');
+                }
+            },
+            error: function(xhr) {
+                console.error('Failed to load tags:', xhr.responseJSON?.message || 'Server error');
+            }
+        });
+    }
+
     function loadPosts() {
         const categoryId = $('#categoryFilter').val();
         const creationYear = $('#yearFilter').val();
-        const url = '/wepProject_war_exploded/feed' +
-            (categoryId || creationYear ? '?' : '') +
-            (categoryId ? `categoryId=${categoryId}` : '') +
-            (categoryId && creationYear ? '&' : '') +
-            (creationYear ? `creationYear=${creationYear}` : '');
+        const namedTagId = $('#tagFilter').val();
+        let queryParams = [];
+        if (categoryId) queryParams.push(`categoryId=${categoryId}`);
+        if (creationYear) queryParams.push(`creationYear=${creationYear}`);
+        if (namedTagId) queryParams.push(`namedTagId=${namedTagId}`);
+        const queryString = queryParams.length ? '?' + queryParams.join('&') : '';
+        const url = '/wepProject_war_exploded/feed' + queryString;
+
+        console.log('Loading posts with URL:', url);
 
         $.ajax({
             url: url,
@@ -61,8 +95,14 @@ $(document).ready(function() {
                     }
 
                     posts.forEach(post => {
-                        console.log('Rendering post:', post.id);
+                        console.log('Rendering post:', {
+                            id: post.id,
+                            mediaType: post.mediaType,
+                            hasMediaBlob: !!post.mediaBlobBase64,
+                            hasExternalUrl: !!post.externalMediaUrl
+                        });
                         const categoryName = post.categoryId ? categoryMap[post.categoryId] || 'Unknown category' : null;
+                        const isVideo = post.mediaType && post.mediaType === 'video';
                         const postHtml = `
               <div class="bg-white rounded-lg shadow-md max-w-xl mx-auto mb-8" data-post-id="${post.id}">
                 <div class="flex items-center p-4 border-b">
@@ -86,15 +126,33 @@ $(document).ready(function() {
                   `}
                 </div>
                 <div class="post-media relative">
-                  ${post.mediaBlobBase64 ? `
-                    <a href="/wepProject_war_exploded/post?id=${post.id}">
-                      <img src="${post.mediaBlobBase64}" alt="Post" class="w-full object-cover" />
-                    </a>
-                  ` : post.externalMediaUrl ? `
-                    <a href="/wepProject_war_exploded/post?id=${post.id}">
-                      <img src="${post.externalMediaUrl}" alt="Post" class="w-full object-cover" />
-                    </a>
-                  ` : `
+                  ${post.mediaBlobBase64 ? (
+                            isVideo ? `
+                      <a href="/wepProject_war_exploded/post?id=${post.id}">
+                        <video controls class="w-full object-cover max-h-[400px]">
+                          <source src="${post.mediaBlobBase64}" type="video/mp4">
+                          Your browser does not support the video tag.
+                        </video>
+                      </a>
+                    ` : `
+                      <a href="/wepProject_war_exploded/post?id=${post.id}">
+                        <img src="${post.mediaBlobBase64}" alt="Post" class="w-full object-cover" />
+                      </a>
+                    `
+                        ) : post.externalMediaUrl ? (
+                            isVideo ? `
+                      <a href="/wepProject_war_exploded/post?id=${post.id}">
+                        <video controls class="w-full object-cover max-h-[400px]">
+                          <source src="${post.externalMediaUrl}" type="video/mp4">
+                          Your browser does not support the video tag.
+                        </video>
+                      </a>
+                    ` : `
+                      <a href="/wepProject_war_exploded/post?id=${post.id}">
+                        <img src="${post.externalMediaUrl}" alt="Post" class="w-full object-cover" />
+                      </a>
+                    `
+                        ) : `
                     <div class="bg-gray-200 h-[400px] flex items-center justify-center">
                       <span class="text-gray-500">No Media</span>
                     </div>
@@ -233,10 +291,11 @@ $(document).ready(function() {
                     // Setup comment deletion
                     setupCommentDeletion(postsContainer);
                 } else {
-                    $('#postsContainer').html('<p class="text-red-500 text-center">' + response.message + '</p>');
+                    $('#postsContainer').html('<p class="text-red-500 text-center">' + (response.message || 'Failed to load posts') + '</p>');
                 }
             },
             error: function(xhr) {
+                console.error('AJAX error:', xhr);
                 $('#postsContainer').html('<p class="text-red-500 text-center">Failed to load posts: ' + (xhr.responseJSON?.message || 'Server error') + '</p>');
             }
         });
@@ -244,9 +303,15 @@ $(document).ready(function() {
 
     loadCategories();
     loadYears();
+    loadTags();
     loadPosts();
 
-    $('#categoryFilter, #yearFilter').on('change', function() {
+    $('#categoryFilter, #yearFilter, #tagFilter').on('change', function() {
+        console.log('Filter changed:', {
+            categoryId: $('#categoryFilter').val(),
+            creationYear: $('#yearFilter').val(),
+            namedTagId: $('#tagFilter').val()
+        });
         loadPosts();
     });
 });
