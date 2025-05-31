@@ -26,30 +26,29 @@
     return;
 } %>
 <div class="container mx-auto px-4 py-8">
-    <!-- Navigation -->
-    <div class="flex justify-center mb-6">
-        <a href="/wepProject_war_exploded/profile" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-            Go to Profile
-        </a>
+    <div class="fixed-filter-container fixed top-0 left-0 right-0 bg-gray-100 z-10 pt-4 pb-2 shadow-md">
+        <div class="flex flex-col space-y-2 max-w-4xl mx-auto px-4">
+            <div class="flex justify-center">
+                <a href="/wepProject_war_exploded/profile" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Go to Profile
+                </a>
+            </div>
+            <div class="flex space-x-4 justify-center items-center">
+                <select id="categoryFilter" class="border border-gray-300 rounded p-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Categories</option>
+                </select>
+                <select id="yearFilter" class="border border-gray-300 rounded p-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Years</option>
+                </select>
+                <select id="tagFilter" class="border border-gray-300 rounded p-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Tags</option>
+                </select>
+            </div>
+        </div>
     </div>
 
-    <!-- Filter Controls -->
-    <div class="mb-6 flex space-x-4 justify-center items-center">
-        <select id="categoryFilter" class="border border-gray-300 rounded p-2">
-            <option value="">All Categories</option>
-            <!-- Populated dynamically by feed.js -->
-        </select>
-        <select id="yearFilter" class="border border-gray-300 rounded p-2">
-            <option value="">All Years</option>
-            <!-- Populated dynamically by feed.js -->
-        </select>
-        <select id="tagFilter" class="border border-gray-300 rounded p-2 w-64">
-            <option value="">All Tags</option>
-            <!-- Populated dynamically by feed.js -->
-        </select>
-    </div>
+    <div class="h-24"></div>
 
-    <!-- Posts Container -->
     <div id="postsContainer" class="space-y-6">
         <c:if test="${empty posts}">
             <p class="text-gray-500 text-center">No posts available.</p>
