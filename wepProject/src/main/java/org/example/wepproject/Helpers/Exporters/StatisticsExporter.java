@@ -16,12 +16,9 @@ public class StatisticsExporter {
     public static void export(StatisticsExportFormat format, List<StatisticRecord> records) {
         String fileName = "statistics_export." + format.name().toLowerCase();
         String filePath = exportDir + fileName;
-        Path currentRelativePath = Paths.get("");
-        String s = currentRelativePath.toAbsolutePath().toString();
-        System.out.println("Current absolute path is: " + s);
         File directory = new File(StatisticsExporter.exportDir);
         if (!directory.exists()) {
-            directory.mkdirs(); // create directories if needed
+            directory.mkdirs();
         }
         try (FileWriter writer = new FileWriter(filePath)) {
             switch (format) {
@@ -54,5 +51,6 @@ public class StatisticsExporter {
         } catch (IOException e) {
             throw new RuntimeException("Failed to export statistics to " + filePath, e);
         }
+        System.out.println("Exported statistics to " + filePath);
     }
 }

@@ -1,18 +1,11 @@
 package org.example.wepproject.Listeners;
-import com.rometools.rome.feed.synd.*;
-import com.rometools.rome.io.SyndFeedOutput;
+
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebListener;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.example.wepproject.DAOs.StatisticsDAO;
-import org.example.wepproject.Helpers.Exporters.StatisticsExporter;
-import org.example.wepproject.Models.StatisticRecord;
-import org.example.wepproject.Models.StatisticsExportFormat;
+import org.example.wepproject.DAOs.RssDAO;
+import org.example.wepproject.Helpers.Exporters.RssExporter;
+import org.example.wepproject.Models.RssRecord;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -21,13 +14,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @WebListener
-public class SchedulerStatisticsListener implements ServletContextListener {
-
+public class SchedulerRSSListener implements ServletContextListener {
     private ScheduledExecutorService scheduler;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        StatisticsDAO statisticsDAO = new StatisticsDAO() {
+        RssDAO rssDAO = new RssDAO() {
             @Override
             protected String getTableName() {
                 return "";
@@ -44,37 +36,37 @@ public class SchedulerStatisticsListener implements ServletContextListener {
             }
 
             @Override
-            protected Object[] getInsertParams(StatisticRecord entity) {
+            protected Object[] getInsertParams(RssRecord entity) {
                 return new Object[0];
             }
 
             @Override
-            protected Object[] getUpdateParams(StatisticRecord entity) {
+            protected Object[] getUpdateParams(RssRecord entity) {
                 return new Object[0];
             }
 
             @Override
-            protected void setId(StatisticRecord entity, Long aLong) {
+            protected void setId(RssRecord entity, Long aLong) {
 
             }
 
             @Override
-            public StatisticRecord findById(Long aLong) {
+            public RssRecord findById(Long aLong) {
                 return null;
             }
 
             @Override
-            public List<StatisticRecord> findAll() {
+            public List<RssRecord> findAll() {
                 return List.of();
             }
 
             @Override
-            public StatisticRecord save(StatisticRecord entity) {
+            public RssRecord save(RssRecord entity) {
                 return null;
             }
 
             @Override
-            public void update(StatisticRecord entity) {
+            public void update(RssRecord entity) {
 
             }
 
@@ -85,11 +77,10 @@ public class SchedulerStatisticsListener implements ServletContextListener {
         };
         scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(() -> {
-            System.out.println("Statistics Scheduler is running");
+            System.out.println("Rss Scheduler is running");
             try {
-                List<StatisticRecord> records = statisticsDAO.exportFromFunction(null);
-                StatisticsExporter.export(StatisticsExportFormat.CSV, records);
-                StatisticsExporter.export(StatisticsExportFormat.SVG, records);
+                List<RssRecord> records = rssDAO.exportFromFunction();
+                RssExporter.exportRss(records);
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
                 throw new RuntimeException(e);

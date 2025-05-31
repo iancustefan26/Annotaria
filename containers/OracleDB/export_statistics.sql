@@ -19,30 +19,28 @@ AS
     v_post_id NUMBER;
 BEGIN
     IF latest IS NULL THEN
-        SELECT MAX(likes_count), id INTO v_max, v_post_id
-        FROM POST WHERE ROWNUM <= 1 GROUP BY id;
-        SELECT username INTO v_author_name FROM USERS WHERE id = (SELECT author_id FROM POST WHERE id = v_post_id)
-        AND ROWNUM = 1;
+        SELECT * INTO v_max, v_author_id
+        FROM (SELECT likes_count, author_id FROM POST order by likes_count desc ) where rownum = 1;
+        SELECT username INTO v_author_name FROM USERS WHERE id = v_author_id;
         v_table.EXTEND;
         v_table(v_table.COUNT) := statistics_record(
             'Most liked post of all time',
             v_author_name,
             v_max
             );
-        SELECT MAX(comments_count), id INTO v_max, v_post_id
-        FROM POST WHERE ROWNUM <= 1 GROUP BY id;
-        SELECT username INTO v_author_name FROM USERS WHERE id = (SELECT author_id FROM POST WHERE id = v_post_id)
-        AND ROWNUM = 1;
+        SELECT * INTO v_max, v_author_id
+        FROM (SELECT COMMENTS_COUNT, author_id FROM POST order by comments_count desc ) where rownum = 1;
+        SELECT username INTO v_author_name FROM USERS WHERE id = v_author_id;
         v_table.EXTEND;
         v_table(v_table.COUNT) := statistics_record(
             'Most commented post of all time',
             v_author_name,
             v_max
             );
-        SELECT MAX(likes_count + comments_count), author_id INTO v_max, v_author_id
-        FROM POST WHERE ROWNUM <= 1 GROUP BY author_id;
-        SELECT username INTO v_author_name FROM USERS WHERE id = (SELECT author_id FROM POST WHERE id = v_post_id)
-        AND ROWNUM = 1;
+        SELECT popularity, author_id INTO v_max, v_author_id
+        FROM (SELECT SUM(likes_count + comments_count) as popularity, author_id FROM POST group by author_id ORDER BY popularity DESC)
+        WHERE ROWNUM = 1;
+        SELECT username INTO v_author_name FROM USERS WHERE id = v_author_id;
         v_table.EXTEND;
         v_table(v_table.COUNT) := statistics_record(
             'Most popular user of all time',
@@ -58,8 +56,11 @@ EXCEPTION
     WHEN OTHERS THEN
         RAISE;
 END;
-
 /
+
+commit;
+exit;
+
 
 DECLARE
     c SYS_REFCURSOR;
@@ -78,3 +79,5 @@ BEGIN
     CLOSE c;
 END;
 /
+
+commit;

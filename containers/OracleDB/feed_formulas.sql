@@ -77,7 +77,8 @@ BEGIN
     ));
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
-        raise post_exceptions.no_such_post;
+        --RETURN 1.0;
+        RAISE_APPLICATION_ERROR(-20010, 'No such post error encountered when trying to extract recency from post id: '|| p_post_id);
     WHEN OTHERS THEN
         DBMS_OUTPUT.PUT_LINE('Error Code    : ' || SQLCODE);
         DBMS_OUTPUT.PUT_LINE('Error Message : ' || SQLERRM);
@@ -152,6 +153,7 @@ END feed_formulas;
 
 exit;
 
+select * from users;
 
 DECLARE
     v_graph graph;

@@ -1,18 +1,14 @@
 package org.example.wepproject.Servlets;
 
-import com.rometools.rome.feed.synd.*;
-import com.rometools.rome.io.SyndFeedOutput;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.wepproject.Helpers.Exporters.RssExporter;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.io.*;
 
 
 @WebServlet("/rss")
@@ -22,40 +18,26 @@ public class RssServerlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        File rssFile = new File(RssExporter.exportPath);
+
+        if (!rssFile.exists()) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "RSS feed not available.");
+            return;
+        }
+
         response.setContentType("application/rss+xml");
         response.setCharacterEncoding("UTF-8");
 
-        try {
-            SyndFeed feed = new SyndFeedImpl();
-            feed.setFeedType("rss_2.0");
-            feed.setTitle("Annatoria RSS Feed");
-            feed.setLink("https://annatoria.com");
-            feed.setDescription("RSS Feed Latest News");
-            feed.setPublishedDate(new Date());
+        try (BufferedReader reader = new BufferedReader(new FileReader(rssFile));
+             PrintWriter writer = response.getWriter()) {
 
-            List<SyndEntry> entries = new ArrayList<>();
-
-            // Example item
-            SyndEntry entry = new SyndEntryImpl();
-            entry.setTitle("First Blog Post");
-            entry.setLink("https://yourwebsite.com/blog/first-post");
-            entry.setPublishedDate(new Date());
-
-            SyndContent description = new SyndContentImpl();
-            description.setType("text/plain");
-            description.setValue("This is the summary of the first blog post.");
-            entry.setDescription(description);
-
-            entries.add(entry);
-            feed.setEntries(entries);
-
-            // Output to HTTP response
-            SyndFeedOutput output = new SyndFeedOutput();
-            output.output(feed, new OutputStreamWriter(response.getOutputStream()));
-
-        } catch (Exception e) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                writer.println(line);
+            }
+        } catch (IOException e) {
             e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to generate RSS");
+            response.sendError(500, "Failed to serve RSS feed.");
         }
     }
 }

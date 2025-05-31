@@ -1,7 +1,8 @@
 package org.example.wepproject.Models;
 
-
 import lombok.*;
+
+import java.sql.Timestamp;
 
 @Getter
 @Setter
@@ -9,8 +10,10 @@ import lombok.*;
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
-public class StatisticRecord {
+public class RssRecord {
     private String title;
-    private String ownerName;
-    private Integer score;
+    private String link;
+    private String description;
+    private Timestamp pubDate;
+    private Integer guid;
 }

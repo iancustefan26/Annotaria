@@ -168,3 +168,6 @@ END get_saved_posts_by_user_id;
 /
 
 
+commit;
+
+exit;

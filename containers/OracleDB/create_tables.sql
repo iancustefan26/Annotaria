@@ -109,6 +109,7 @@ CREATE TABLE SAVED_POSTS (
 
 -- INDECSI
 CREATE INDEX idx_post_date     ON POST(date_posted);
+CREATE INDEX idx_comment_date     ON COMMENTS(date_posted);
 CREATE INDEX idx_comments_post ON COMMENTS(post_id);
 
 -- COMMIT
