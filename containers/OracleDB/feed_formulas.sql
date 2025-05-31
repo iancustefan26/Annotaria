@@ -57,7 +57,7 @@ IS
     BEGIN
         RETURN 
         v_alpha * social_affinity(p_user_id, p_post_id) +
-        v_beta * post_impact(p_user_id) +
+        v_beta * post_impact(p_post_id) +
         v_gamma * category_relevance(p_user_id, p_post_id);
     EXCEPTION
         WHEN OTHERS THEN
@@ -158,7 +158,7 @@ select * from users;
 DECLARE
     v_graph graph;
 BEGIN
-    v_graph := graph_generator.generate(21, NULL, NULL, NULL, NULL, 1);
+    v_graph := graph_generator.generate(22, NULL, NULL, NULL, NULL, 1);
      FOR i in v_graph.first..v_graph.last LOOP
         FOR j in v_graph(i).first..v_graph(i).last LOOP
             DBMS_OUTPUT.PUT(v_graph(i)(j)|| ' ');
@@ -168,3 +168,4 @@ BEGIN
 END;
 
 
+select * from user_source;
