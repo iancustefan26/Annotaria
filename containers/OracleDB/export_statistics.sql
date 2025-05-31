@@ -58,17 +58,9 @@ EXCEPTION
 END;
 /
 
-SELECT * 
-        FROM (SELECT COMMENTS_COUNT, author_id FROM POST order by comments_count desc ) where rownum = 1;
-        SELECT username INTO v_author_name FROM USERS WHERE id = v_author_id;
-
-select * from users;
-
 commit;
-
 exit;
 
-delete from users_view where id = 12;
 
 DECLARE
     c SYS_REFCURSOR;

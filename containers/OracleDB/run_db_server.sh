@@ -19,6 +19,7 @@ docker cp page_rank.sql oracle-web:/tmp/
 docker cp create_graph_wrappers.sql oracle-web:/tmp/
 docker cp create_prevent_mutating_table.sql oracle-web:/tmp/
 docker cp export_statistics.sql oracle-web:/tmp/
+docker cp export_rss.sql oracle-web:/tmp/
 
 
 echo "Waiting for Oracle to be ready..."
@@ -51,6 +52,8 @@ docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_posts_helper_f
 docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_auth_helper_func.sql
 
 docker exec -it oracle-web sqlplus api_test/api_test @/tmp/export_statistics.sql
+
+docker exec -it oracle-web sqlplus api_test/api_test @/tmp/export_rss.sql
 
 docker exec -it oracle-web sqlplus api_test/api_test @/tmp/tables_populate.sql
 
