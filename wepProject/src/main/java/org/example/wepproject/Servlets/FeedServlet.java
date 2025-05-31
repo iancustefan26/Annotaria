@@ -64,8 +64,8 @@ public class FeedServlet extends HttpServlet {
                     userId, // Use actual user ID
                     3, // best_friends
                     2, // random_friends
-                    null, // From query parameter
-                    null, // From query parameter
+                    categoryId, // category id
+                    creationYear,// creation year
                     null // named_tag_id
             ));
             var alg = new PageRanker(m);
