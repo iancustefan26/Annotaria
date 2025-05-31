@@ -7,6 +7,13 @@ AS
 END tag_exceptions;
 /
 
+CREATE OR REPLACE PACKAGE statistics_exceptions
+AS
+    invalid_date_sorting EXCEPTION;
+    PRAGMA EXCEPTION_INIT(invalid_date_sorting, -200030);
+END statistics_exceptions;
+/
+
 
 CREATE OR REPLACE PACKAGE post_exceptions
 AS
