@@ -59,7 +59,9 @@ public class ExportSavedPostsServlet extends HttpServlet {
                     .map(post -> {
                         try {
                             User author = userDAO.findById(post.getAuthorId());
-                            return PostDTO.PostToPostDTO(post, userId, author.getUsername());
+                            PostDTO dto = PostDTO.PostToPostDTO(post, userId, author.getUsername());
+                            System.out.println("Exporting post ID=" + dto.getId() + ", mediaType=" + dto.getMediaType());
+                            return dto;
                         } catch (UserNotFoundException e) {
                             throw new RuntimeException("Error converting post to DTO: " + post.getId(), e);
                         }
@@ -78,10 +80,12 @@ public class ExportSavedPostsServlet extends HttpServlet {
                 resp.getWriter().write(xml);
             }
         } catch (SQLException e) {
+            System.err.println("Export error: " + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             resp.setContentType("application/json");
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Database error: " + e.getMessage()));
         } catch (Exception e) {
+            System.err.println("Export error: " + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             resp.setContentType("application/json");
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Unexpected error: " + e.getMessage()));
@@ -119,6 +123,7 @@ public class ExportSavedPostsServlet extends HttpServlet {
             writeElement(writer, "isOwnPost", post.getIsOwnPost().toString());
             writeElement(writer, "isSaved", post.getIsSaved().toString());
             writeElement(writer, "isLiked", post.getIsLiked().toString());
+            writeElement(writer, "mediaType", post.getMediaType());
 
             writer.writeEndElement();
         }
@@ -127,9 +132,7 @@ public class ExportSavedPostsServlet extends HttpServlet {
         writer.writeEndDocument();
         writer.flush();
         writer.close();
-        String xml = stringWriter.toString();
-        System.out.println("Generated XML: " + xml);
-        return xml;
+        return stringWriter.toString();
     }
 
     private void writeElement(XMLStreamWriter writer, String name, String value) throws Exception {
