@@ -90,7 +90,6 @@ public class SchedulerStatisticsListener implements ServletContextListener {
                 List<StatisticRecord> records = statisticsDAO.exportFromFunction(null);
                 StatisticsExporter.export(StatisticsExportFormat.CSV, records);
                 StatisticsExporter.export(StatisticsExportFormat.SVG, records);
-                System.out.println(statisticsDAO.exportFromFunction(null));
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
                 throw new RuntimeException(e);

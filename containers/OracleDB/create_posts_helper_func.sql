@@ -47,6 +47,8 @@ BEGIN
   DELETE FROM POSTS_VIEW
   WHERE id = p_id;
   
+  commit;
+
 EXCEPTION
   WHEN post_exceptions.no_such_post THEN
     RAISE_APPLICATION_ERROR(-20003, 'Post with ID ' || p_id || ' not found');
@@ -166,4 +168,6 @@ EXCEPTION
 END get_saved_posts_by_user_id;
 /
 
+commit;
 
+exit;
