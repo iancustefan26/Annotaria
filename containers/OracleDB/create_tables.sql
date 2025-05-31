@@ -75,6 +75,7 @@ CREATE TABLE USER_TAG_FRAMES (
   CONSTRAINT pk_user_tag_frames PRIMARY KEY(post_id, user_author_id, user_tagged_id)
 );
 
+
 -- 10. FRIENDSHIP
 -- relatia de interes/prietenie intre useri
 
@@ -112,4 +113,3 @@ CREATE INDEX idx_comments_post ON COMMENTS(post_id);
 COMMIT;
 exit;
 
-select * from category;

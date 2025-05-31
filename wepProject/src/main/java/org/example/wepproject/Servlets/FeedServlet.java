@@ -70,6 +70,7 @@ public class FeedServlet extends HttpServlet {
             ));
             var alg = new PageRanker(m);
             List<Long> postIds = Arrays.stream(alg.runAndGetRankedPostIds()).mapToLong(i -> i).boxed().toList();
+            System.out.println("FeedServlet: postIds = " + postIds);
             posts = postIds.stream()
                     .map(id -> postDAO.findById(id))
                     .toList();

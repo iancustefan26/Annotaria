@@ -6,7 +6,7 @@
   To change this template use File | Settings | File Templates.
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib uri="jakarta.tags.core" prefix="c" %>
+<%@ taglib uri="jakarta.tags.core" prefix="taglib" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,6 +15,8 @@
   <title>Profile</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
   <link rel="stylesheet" href="/wepProject_war_exploded/css/profile.css">
 </head>
 <body class="bg-gray-100">
@@ -28,55 +30,55 @@
     <div class="w-24 h-24 bg-gray-300 rounded-full mr-4"></div>
     <div>
       <h1 class="text-2xl font-bold">
-        <c:choose>
-          <c:when test="${profileUser != null}">
-            <c:out value="${profileUser.username}"/>
-          </c:when>
-          <c:otherwise>
-            <c:out value="${sessionScope.username}"/>
-          </c:otherwise>
-        </c:choose>
+        <taglib:choose>
+          <taglib:when test="${profileUser != null}">
+            <taglib:out value="${profileUser.username}"/>
+          </taglib:when>
+          <taglib:otherwise>
+            <taglib:out value="${sessionScope.username}"/>
+          </taglib:otherwise>
+        </taglib:choose>
       </h1>
       <div class="mt-2">
-        <span><strong>${postCount}</strong> posts</span>
+        <span><strong>${posts.size()}</strong> posts</span>
       </div>
       <div class="mt-2">
         <a href="/wepProject_war_exploded/feed" class="text-blue-600 hover:underline">Feed</a> |
-        <c:if test="${isOwnProfile}">
+        <taglib:if test="${isOwnProfile}">
           <a href="/wepProject_war_exploded/logout" class="text-blue-600 hover:underline">Logout</a>
-        </c:if>
-        <c:if test="${!isOwnProfile}">
+        </taglib:if>
+        <taglib:if test="${!isOwnProfile}">
           <a href="/wepProject_war_exploded/profile" class="text-blue-600 hover:underline">My Profile</a>
-        </c:if>
-        <c:if test="${isOwnProfile && saved}">
-          <a href="/wepProject_war_exploded/profile" class="text-blue-600 hover:underline"> | My Profile</a>
-        </c:if>
+        </taglib:if>
+        <taglib:if test="${isOwnProfile && saved}">
+          <a href="/wepProject_war_exploded/profile" class="text-blue-600 hover:underline">My Profile</a>
+        </taglib:if>
       </div>
     </div>
   </div>
 
   <!-- Post Creation and Saved Posts Buttons -->
-  <c:if test="${isOwnProfile && !saved}">
+  <taglib:if test="${isOwnProfile && !saved}">
     <div class="mb-6">
       <button id="newPostBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">New Post</button>
     </div>
     <div class="mb-6 flex space-x-4">
       <button id="deleteProfileBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Delete Profile</button>
     </div>
-    <c:if test="${postCount != 0}">
+    <taglib:if test="${posts.size() > 0}">
       <div class="mb-7 flex space-x-4">
         <button id="savedPostsBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Saved Posts</button>
       </div>
-    </c:if>
-  </c:if>
+    </taglib:if>
+  </taglib:if>
 
   <!-- Import/Export Buttons and Modals -->
-  <c:if test="${isOwnProfile && saved}">
+  <taglib:if test="${isOwnProfile && saved}">
     <div class="mb-6">
       <button id="importBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Import</button>
     </div>
     <div class="mb-6 flex space-x-4">
-      <button id="exportBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Export</button>
+      <button id="exportBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-blue-600">Export</button>
     </div>
     <!-- Import Modal -->
     <div id="importModal" class="modal">
@@ -84,7 +86,7 @@
         <span class="close-modal">×</span>
         <h2 class="text-xl font-bold mb-4">Import Saved Posts</h2>
         <div id="importMessage" class="mb-4"></div>
-        <form id="importForm" enctype="multipart/form-data">
+        <form id="importForm" action="/wepProject_war_exploded/import-saved-posts" enctype="multipart/form-data" method="post">
           <div class="mb-4">
             <label for="importFile" class="block text-sm font-medium">Select JSON or XML File</label>
             <input type="file" id="importFile" name="importFile" accept=".json,.xml" required class="mt-1 block w-full border rounded p-2">
@@ -104,67 +106,79 @@
         </div>
       </div>
     </div>
-  </c:if>
+  </taglib:if>
 
   <!-- Section for displaying posts -->
   <h2 class="text-xl font-bold mb-4">
-    <c:choose>
-      <c:when test="${isOwnProfile}">
-        <c:choose>
-          <c:when test="${saved}">Your saved posts</c:when>
-          <c:otherwise>Your posts</c:otherwise>
-        </c:choose>
-      </c:when>
-      <c:otherwise>
-        <c:out value="${profileUser.username}"/>'s Posts
-      </c:otherwise>
-    </c:choose>
+    <taglib:choose>
+      <taglib:when test="${isOwnProfile}">
+        <taglib:choose>
+          <taglib:when test="${saved}">Your saved posts</taglib:when>
+          <taglib:otherwise>Your posts</taglib:otherwise>
+        </taglib:choose>
+      </taglib:when>
+      <taglib:otherwise>
+        <taglib:out value="${profileUser.username}"/>'s Posts
+      </taglib:otherwise>
+    </taglib:choose>
   </h2>
   <div id="postsContainer" class="posts-container"></div>
 
   <!-- Post Grid (Fallback) -->
   <div class="post-grid mt-6">
-    <c:forEach var="post" items="${posts}">
+    <taglib:forEach var="post" items="${posts}">
       <div>
         <a href="/wepProject_war_exploded/post?id=${post.id}">
-          <c:choose>
-            <c:when test="${not empty post.mediaBlobBase64}">
+          <taglib:choose>
+            <taglib:when test="${not empty post.mediaBlobBase64}">
               <img src="${post.mediaBlobBase64}" alt="Post image" />
-            </c:when>
-            <c:otherwise>
+            </taglib:when>
+            <taglib:otherwise>
               <div class="bg-gray-200 h-[150px] flex items-center justify-center">No Media</div>
-            </c:otherwise>
-          </c:choose>
+            </taglib:otherwise>
+          </taglib:choose>
         </a>
       </div>
-    </c:forEach>
-    <c:if test="${empty posts}">
+    </taglib:forEach>
+    <taglib:if test="${empty posts}">
       <p class="col-span-full text-center text-gray-500">No posts yet.</p>
-    </c:if>
+    </taglib:if>
   </div>
 
   <!-- Post Creation Modal -->
-  <c:if test="${isOwnProfile}">
+  <taglib:if test="${isOwnProfile}">
     <div id="postModal" class="modal">
       <div class="modal-content">
         <span class="close-modal">×</span>
         <h2 class="text-xl font-bold mb-4">Create Post</h2>
         <div id="postMessage" class="mb-4"></div>
-        <form id="postForm" enctype="multipart/form-data" action="/wepProject_war_exploded/import" method="post">
+        <form id="postForm" action="/wepProject_war_exploded/import" enctype="multipart/form-data" method="post">
           <div class="mb-4">
             <label for="contentFile" class="block text-sm font-medium">Image</label>
             <input type="file" id="contentFile" name="contentFile" accept="image/*" required class="mt-1 block w-full border rounded p-2">
           </div>
           <div class="mb-4">
-            <img id="previewImage" alt="Preview" />
+            <img id="previewImage" alt="Preview" class="hidden max-w-full h-auto"/>
           </div>
           <div class="mb-4">
             <label for="categoryId" class="block text-sm font-medium">Category</label>
             <select id="categoryId" name="categoryId" required class="mt-1 block w-full border rounded p-2">
               <option value="" disabled selected>Select a category</option>
-              <c:forEach var="category" items="${categories}">
-                <option value="${category.id}"><c:out value="${category.name}"/></option>
-              </c:forEach>
+              <taglib:forEach var="category" items="${categories}">
+                <option value="${category.id}"><taglib:out value="${category.name}"/></option>
+              </taglib:forEach>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label for="namedTagIds" class="block text-sm font-medium">Named Tags</label>
+            <select id="namedTagIds" name="namedTagIds[]" multiple class="mt-1 block w-full border rounded p-2">
+              <!-- Populated dynamically by profile.js -->
+            </select>
+          </div>
+          <div class="mb-4">
+            <label for="userTaggedIds" class="block text-sm font-medium">Tag Users</label>
+            <select id="userTaggedIds" name="userTaggedIds[]" multiple class="mt-1 block w-full border rounded p-2">
+              <!-- Populated dynamically by profile.js -->
             </select>
           </div>
           <div class="mb-4">
@@ -175,7 +189,7 @@
         </form>
       </div>
     </div>
-  </c:if>
+  </taglib:if>
 </div>
 
 <script src="/wepProject_war_exploded/js/profile.js"></script>
