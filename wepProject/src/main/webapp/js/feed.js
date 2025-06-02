@@ -234,108 +234,11 @@ $(document).ready(function() {
     </div>
 `;
             postsContainer.append(postHtml);
-            loadComments(
-                post.id,
-                postsContainer.find(`[data-post-id="${post.id}"] .commentsContainer`),
-                postsContainer.find(`[data-post-id="${post.id}"] .commentCount`)
-            );
-            handleDoubleTap(
-                post.id,
-                postsContainer,
-                postsContainer.find(`.likeButton[data-post-id="${post.id}"]`)
-            );
           });
 
-          // == Event Handlers ==
-          // Like button
-          postsContainer.find('.likeButton').on('click', function() {
-            const postId = $(this).data('post-id');
-            console.log('Liking post:', postId);
-            toggleLike(postId, postsContainer);
-          });
+          // == Setup Event Handlers AFTER posts are added ==
+          setupEventHandlers(postsContainer);
 
-          // Save button
-          postsContainer.find('.saveButton').on('click', function() {
-            const postId = $(this).data('post-id');
-            console.log('Saving post:', postId);
-            toggleSave(postId, postsContainer);
-          });
-
-          // Comment button
-          postsContainer.find('.commentButton').on('click', function() {
-            const postId = $(this).data('post-id');
-            const commentsContainer = postsContainer.find(`[data-post-id="${postId}"] .commentsContainer`);
-            commentsContainer.toggleClass('hidden');
-            if (!commentsContainer.hasClass('hidden')) {
-              loadComments(
-                  postId,
-                  commentsContainer,
-                  postsContainer.find(`[data-post-id="${postId}"] .commentCount`)
-              );
-              postsContainer.find(`textarea[data-post-id="${postId}"]`).focus();
-            }
-          });
-
-          // Submit comment (click)
-          postsContainer.find('.submitComment').on('click', function() {
-            const postId = $(this).data('post-id');
-            console.log('Submitting comment for postId:', postId);
-            const commentInput = postsContainer.find(`textarea[data-post-id="${postId}"]`);
-            const commentsContainer = postsContainer.find(`[data-post-id="${postId}"] .commentsContainer`);
-            const commentCountElement = postsContainer.find(`[data-post-id="${postId}"] .commentCount`);
-            submitComment(postId, commentInput, commentsContainer, commentCountElement);
-          });
-
-          // Submit comment (Enter key)
-          postsContainer.find('.commentInput').on('keypress', function(e) {
-            if (e.which === 13 && !e.shiftKey) {
-              e.preventDefault();
-              const postId = $(this).data('post-id');
-              console.log('Submitting comment for postId (Enter):', postId);
-              const commentInput = $(this);
-              const commentsContainer = postsContainer.find(`[data-post-id="${postId}"] .commentsContainer`);
-              const commentCountElement = postsContainer.find(`[data-post-id="${postId}"] .commentCount`);
-              submitComment(postId, commentInput, commentsContainer, commentCountElement);
-            }
-          });
-
-          // Auto-resize textarea
-          postsContainer.find('.commentInput').on('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-          });
-
-          // Delete post
-          postsContainer.find('.deleteButton').on('click', function() {
-            const postId = $(this).data('post-id');
-            if (confirm('Are you sure you want to delete this post?')) {
-              $.ajax({
-                url: `/wepProject_war_exploded/post?id=${postId}`,
-                type: 'DELETE',
-                headers: { 'Accept': 'application/json' },
-                success: function(response) {
-                  if (response.status === 'success') {
-                    alert('Post deleted successfully');
-                    loadPosts();
-                  } else {
-                    alert(response.message || 'Failed to delete post');
-                  }
-                },
-                error: function(xhr) {
-                  const response = xhr.responseJSON;
-                  if (xhr.status === 401) {
-                    alert('Please log in to delete this post');
-                    window.location.href = '/wepProject_war_exploded/login.jsp';
-                  } else {
-                    alert(response?.message || 'Error deleting post');
-                  }
-                }
-              });
-            }
-          });
-
-          // Setup comment deletion
-          setupCommentDeletion(postsContainer);
         } else {
           $('#postsContainer').html(
               '<p class="text-red-500 text-center">' + (response.message || 'Failed to load posts') + '</p>'
@@ -351,6 +254,158 @@ $(document).ready(function() {
         );
       }
     });
+  }
+
+  // == Centralized Event Handler Setup ==
+  function setupEventHandlers(container) {
+    console.log('Setting up event handlers for container:', container);
+
+    // Remove existing event handlers to prevent duplicates
+    container.off('click', '.likeButton');
+    container.off('click', '.saveButton');
+    container.off('click', '.commentButton');
+    container.off('click', '.submitComment');
+    container.off('keypress', '.commentInput');
+    container.off('input', '.commentInput');
+    container.off('click', '.deleteButton');
+
+    // Like button handler
+    container.on('click', '.likeButton', function(e) {
+      e.preventDefault();
+      const postId = $(this).data('post-id');
+      console.log('Like button clicked for post:', postId);
+      if (postId) {
+        toggleLike(postId, container);
+      } else {
+        console.error('No post-id found on like button');
+      }
+    });
+
+    // Save button handler
+    container.on('click', '.saveButton', function(e) {
+      e.preventDefault();
+      const postId = $(this).data('post-id');
+      console.log('Save button clicked for post:', postId);
+      if (postId) {
+        toggleSave(postId, container);
+      } else {
+        console.error('No post-id found on save button');
+      }
+    });
+
+    // Comment button handler
+    container.on('click', '.commentButton', function(e) {
+      e.preventDefault();
+      const postId = $(this).data('post-id');
+      console.log('Comment button clicked for post:', postId);
+      if (postId) {
+        const commentsContainer = container.find(`[data-post-id="${postId}"] .commentsContainer`);
+        commentsContainer.toggleClass('hidden');
+        if (!commentsContainer.hasClass('hidden')) {
+          loadComments(
+              postId,
+              commentsContainer,
+              container.find(`[data-post-id="${postId}"] .commentCount`)
+          );
+          container.find(`textarea[data-post-id="${postId}"]`).focus();
+        }
+      } else {
+        console.error('No post-id found on comment button');
+      }
+    });
+
+    // Submit comment (click) handler
+    container.on('click', '.submitComment', function(e) {
+      e.preventDefault();
+      const postId = $(this).data('post-id');
+      console.log('Submit comment clicked for post:', postId);
+      if (postId) {
+        const commentInput = container.find(`textarea[data-post-id="${postId}"]`);
+        const commentsContainer = container.find(`[data-post-id="${postId}"] .commentsContainer`);
+        const commentCountElement = container.find(`[data-post-id="${postId}"] .commentCount`);
+        submitComment(postId, commentInput, commentsContainer, commentCountElement);
+      } else {
+        console.error('No post-id found on submit comment button');
+      }
+    });
+
+    // Submit comment (Enter key) handler
+    container.on('keypress', '.commentInput', function(e) {
+      if (e.which === 13 && !e.shiftKey) {
+        e.preventDefault();
+        const postId = $(this).data('post-id');
+        console.log('Enter pressed for comment on post:', postId);
+        if (postId) {
+          const commentInput = $(this);
+          const commentsContainer = container.find(`[data-post-id="${postId}"] .commentsContainer`);
+          const commentCountElement = container.find(`[data-post-id="${postId}"] .commentCount`);
+          submitComment(postId, commentInput, commentsContainer, commentCountElement);
+        }
+      }
+    });
+
+    // Auto-resize textarea handler
+    container.on('input', '.commentInput', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    // Delete post handler
+    container.on('click', '.deleteButton', function(e) {
+      e.preventDefault();
+      const postId = $(this).data('post-id');
+      if (postId && confirm('Are you sure you want to delete this post?')) {
+        $.ajax({
+          url: `/wepProject_war_exploded/post?id=${postId}`,
+          type: 'DELETE',
+          headers: { 'Accept': 'application/json' },
+          success: function(response) {
+            if (response.status === 'success') {
+              alert('Post deleted successfully');
+              loadPosts();
+            } else {
+              alert(response.message || 'Failed to delete post');
+            }
+          },
+          error: function(xhr) {
+            const response = xhr.responseJSON;
+            if (xhr.status === 401) {
+              alert('Please log in to delete this post');
+              window.location.href = '/wepProject_war_exploded/login.jsp';
+            } else {
+              alert(response?.message || 'Error deleting post');
+            }
+          }
+        });
+      }
+    });
+
+    // Setup comment deletion
+    setupCommentDeletion(container);
+
+    // Setup double tap for each post
+    container.find('[data-post-id]').each(function() {
+      const postId = $(this).data('post-id');
+      const likeButton = $(this).find('.likeButton');
+      handleDoubleTap(postId, container, likeButton);
+    });
+
+    // Load comments for each post
+    container.find('[data-post-id]').each(function() {
+      const postId = $(this).data('post-id');
+      const commentsContainer = $(this).find('.commentsContainer');
+      const commentCountElement = $(this).find('.commentCount');
+      loadComments(postId, commentsContainer, commentCountElement);
+    });
+  }
+
+  // == Setup event handlers for server-side rendered posts ==
+  function setupServerSideEventHandlers() {
+    const postsContainer = $('#postsContainer');
+    if (postsContainer.find('[data-post-id]').length > 0) {
+      console.log('Setting up handlers for server-side rendered posts');
+      setupEventHandlers(postsContainer);
+    }
   }
 
   // == Debounce Utility ==
@@ -409,8 +464,13 @@ $(document).ready(function() {
   loadCategories();
   loadYears();
   loadTags();
+
+  // Setup handlers for server-side rendered posts first
+  setupServerSideEventHandlers();
+
+  // Only call loadPosts if no posts are rendered server-side
   if ($('#postsContainer').children().length === 0) {
-    loadPosts(); // Only call if no posts are rendered server-side
+    loadPosts();
   }
 
   // Filter change handler with debounce
