@@ -451,10 +451,4 @@ $(document).ready(function() {
         });
     }
 
-
-    $('.avatar-placeholder').attr('data-initials', initials);
-    $('#namedTagIds, #userTaggedIds').select2({
-        placeholder: 'Select tags/users',
-        width: '100%'
-    });
 });

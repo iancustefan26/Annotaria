@@ -19,6 +19,7 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <link rel="stylesheet" href="/wepProject_war_exploded/css/feed.css">
+    <link rel="stylesheet" href="/wepProject_war_exploded/css/post.css">
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
 <% if (session.getAttribute("userId") == null) {
