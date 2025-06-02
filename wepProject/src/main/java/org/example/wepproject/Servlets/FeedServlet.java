@@ -53,13 +53,14 @@ public class FeedServlet extends HttpServlet {
         }
 
         List<Post> posts = new ArrayList<>();
-
+        System.out.println("FeedServlet: Request received - Accept: " + req.getHeader("Accept") +
+                ", Query: " + req.getQueryString() +
+                ", SessionID: " + req.getSession().getId());
         try {
             // Read query parameters
             Integer categoryId = req.getParameter("categoryId") != null ? Integer.parseInt(req.getParameter("categoryId")) : null;
             Integer creationYear = req.getParameter("creationYear") != null ? Integer.parseInt(req.getParameter("creationYear")) : null;
             Integer namedTagId = req.getParameter("namedTagId") != null ? Integer.parseInt(req.getParameter("namedTagId")) : null;
-
 
             var m = MatrixConvertor.toMatrix(matrixDAO.getMatrixFromFunction(
                     userId, // Use actual user ID
@@ -75,9 +76,6 @@ public class FeedServlet extends HttpServlet {
             posts = postIds.stream()
                     .map(id -> {
                         Post post = postDAO.findById(id);
-                        if (post != null) {
-                        } else {
-                        }
                         return post;
                     })
                     .filter(Objects::nonNull)
@@ -95,22 +93,22 @@ public class FeedServlet extends HttpServlet {
             return;
         }
 
+        // Convert posts to PostDTOs for both JSON and HTML paths
+        List<PostDTO> postDTOs = posts.stream()
+                .map(post -> PostDTO.PostToPostDTO(post, userId, getUsernameFromSessionOrDB(req, post.getAuthorId())))
+                .collect(Collectors.toList());
+
         String acceptHeader = req.getHeader("Accept");
         if (acceptHeader != null && acceptHeader.contains("application/json")) {
             // Handle AJAX request
             resp.setContentType("application/json");
-            List<PostDTO> postDTOs = posts.stream()
-                    .map(post -> {
-                        PostDTO dto = PostDTO.PostToPostDTO(post, userId, getUsernameFromSessionOrDB(req, post.getAuthorId()));
-                        return dto;
-                    })
-                    .collect(Collectors.toList());
             responseData.put("posts", postDTOs);
             responseData.put("categoryMap", categoryNames);
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Posts retrieved successfully", responseData));
         } else {
             // Handle HTML request
-            req.setAttribute("posts", posts != null ? posts : List.of());
+            req.setAttribute("posts", postDTOs != null ? postDTOs : List.of());
+            req.setAttribute("categoryNames", categoryNames);
             req.getRequestDispatcher("/feed.jsp").forward(req, resp);
         }
     }

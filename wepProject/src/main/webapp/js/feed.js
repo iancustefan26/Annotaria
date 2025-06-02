@@ -35,14 +35,14 @@ $(document).ready(function() {
       cache: true
     }
   })
-    .on('select2:select', function(e) {
-      const userId = e.params.data.id;
-      console.log('Selected user:', userId);
-      window.location.href = `/wepProject_war_exploded/profile?id=${userId}`;
-    })
-    .on('select2:clear', function() {
-      console.log('Search cleared');
-    });
+      .on('select2:select', function(e) {
+        const userId = e.params.data.id;
+        console.log('Selected user:', userId);
+        window.location.href = `/wepProject_war_exploded/profile?id=${userId}`;
+      })
+      .on('select2:clear', function() {
+        console.log('Search cleared');
+      });
 
   // == Filter Population Functions ==
   // Load categories into dropdown
@@ -92,7 +92,6 @@ $(document).ready(function() {
           for (const [id, name] of Object.entries(response.data.namedTagMap)) {
             tagSelect.append(`<option value="${id}">${name}</option>`);
           }
-          tagSelect.trigger('change');
         }
       },
       error: function(xhr) {
@@ -150,100 +149,100 @@ $(document).ready(function() {
             const initials = username.slice(0, 2).toUpperCase();
 
             const postHtml = `
-<div class="bg-white rounded-lg shadow-md max-w-xl mx-auto mb-8" data-post-id="${post.id}">
-    <div class="flex items-center p-4 border-b">
-    <div class="w-8 h-8 rounded-full avatar-placeholder mr-3" data-initials="${initials}"></div>
-<div class="flex-1">
-    <p class="font-semibold">${username}</p>
-</div>
-<div class="flex items-center space-x-2">
-    ${post.isOwnPost ? `
-                      <button class="deleteButton focus:outline-none text-red-500 hover:text-red-700" data-post-id="${post.id}" title="Delete Post">
+    <div class="bg-white rounded-lg shadow-md max-w-xl mx-auto mb-8" data-post-id="${post.id}">
+        <div class="flex items-center p-4 border-b">
+            <div class="w-8 h-8 rounded-full avatar-placeholder mr-3" data-initials="${initials}"></div>
+            <div class="flex-1">
+                <p class="font-semibold">${username}</p>
+            </div>
+            <div class="flex items-center space-x-2">
+                ${post.isOwnPost ? `
+                    <button class="deleteButton focus:outline-none text-red-500 hover:text-red-700" data-post-id="${post.id}" title="Delete Post">
                         <i class="fas fa-trash-alt"></i>
-                      </button>
-                    ` : ''}
-    <div class="text-gray-500">
-        <i class="fas fa-ellipsis-h"></i>
-    </div>
-</div>
-</div>
-<div class="post-media relative">
-    ${post.mediaBlobBase64 ? `
-                    ${isVideo ? `
-                      <video controls class="w-full object-cover max-h-[400px]">
+                    </button>
+                ` : ''}
+                <div class="text-gray-500">
+                    <i class="fas fa-ellipsis-h"></i>
+                </div>
+            </div>
+        </div>
+        <div class="post-media relative">
+            ${post.mediaBlobBase64 ? `
+                ${isVideo ? `
+                    <video controls class="w-full object-cover max-h-[400px]">
                         <source src="${post.mediaBlobBase64}" type="video/mp4">
                         Your browser does not support the video tag.
-                      </video>
-                    ` : `
-                      <img src="${post.mediaBlobBase64}" alt="Post" class="w-full object-cover" />
-                    `}
-                  ` : post.externalMediaUrl ? `
-                    ${isVideo ? `
-                      <video controls class="w-full object-cover max-h-[400px]">
+                    </video>
+                ` : `
+                    <img src="${post.mediaBlobBase64}" alt="Post" class="w-full object-cover" />
+                `}
+            ` : post.externalMediaUrl ? `
+                ${isVideo ? `
+                    <video controls class="w-full object-cover max-h-[400px]">
                         <source src="${post.externalMediaUrl}" type="video/mp4">
                         Your browser does not support the video tag.
-                      </video>
-                    ` : `
-                      <img src="${post.externalMediaUrl}" alt="Post" class="w-full object-cover" />
-                    `}
-                  ` : `
-                    <div class="bg-gray-200 h-[400px] flex items-center justify-center">
-                      <span class="text-gray-500">No Media</span>
-                    </div>
-                  `}
-</div>
-<div class="p-4">
-    <div class="flex space-x-4 mb-2">
-        <button class="likeButton focus:outline-none" data-post-id="${post.id}">
-            <i class="${post.isLiked ? 'fas text-red-500' : 'far'} fa-heart text-2xl"></i>
-        </button>
-        <button class="commentButton focus:outline-none" data-post-id="${post.id}">
-            <i class="far fa-comment text-2xl"></i>
-        </button>
-        <button class="saveButton focus:outline-none" data-post-id="${post.id}">
-            <i class="${post.isSaved ? 'fas' : 'far'} fa-bookmark text-2xl"></i>
-        </button>
-        <div class="flex-grow"></div>
-    </div>
-    <div class="mb-2">
-        <p class="font-semibold"><span class="likesNumber">${post.likeCount}</span> likes</p>
-    </div>
-    <div class="mb-3">
-        <p>
-            <span class="font-semibold">${username}</span>
-            <span>${post.description}</span>
-        </p>
-    </div>
-    <div class="text-gray-500 text-xs mb-3">
-        ${new Date(post.datePosted).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-        ${post.creationYear ? ` · Created in ${post.creationYear}` : ''}
-        ${categoryName ? ` · Category: ${categoryName}` : ''}
-    </div>
-    <p class="text-gray-500 text-sm mb-2">
-        <span class="commentCount">${post.commentCount}</span> comments
-    </p>
-    <div class="commentsContainer max-h-60 overflow-y-auto mb-3 hidden" data-post-id="${post.id}">
-        <!-- Comments loaded here -->
-    </div>
-    <div class="border-t pt-3">
-        <div class="flex">
-            <textarea class="commentInput flex-grow border-none bg-transparent focus:outline-none resize-none" placeholder="Add a comment..." rows="1" data-post-id="${post.id}"></textarea>
-            <button class="submitComment text-blue-500 font-semibold ml-2" data-post-id="${post.id}">Post</button>
+                    </video>
+                ` : `
+                    <img src="${post.externalMediaUrl}" alt="Post" class="w-full object-cover" />
+                `}
+            ` : `
+                <div class="bg-gray-200 h-[400px] flex items-center justify-center">
+                    <span class="text-gray-500">No Media</span>
+                </div>
+            `}
+        </div>
+        <div class="p-4">
+            <div class="flex space-x-4 mb-2">
+                <button class="likeButton focus:outline-none" data-post-id="${post.id}">
+                    <i class="${post.isLiked ? 'fas text-red-500' : 'far'} fa-heart text-2xl"></i>
+                </button>
+                <button class="commentButton focus:outline-none" data-post-id="${post.id}">
+                    <i class="far fa-comment text-2xl"></i>
+                </button>
+                <button class="saveButton focus:outline-none" data-post-id="${post.id}">
+                    <i class="${post.isSaved ? 'fas' : 'far'} fa-bookmark text-2xl"></i>
+                </button>
+                <div class="flex-grow"></div>
+            </div>
+            <div class="mb-2">
+                <p class="font-semibold"><span class="likesNumber">${post.likeCount}</span> likes</p>
+            </div>
+            <div class="mb-3">
+                <p>
+                    <span class="font-semibold">${username}</span>
+                    <span>${post.description}</span>
+                </p>
+            </div>
+            <div class="text-gray-500 text-xs mb-3">
+                ${new Date(post.datePosted).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                ${post.creationYear ? ` · Created in ${post.creationYear}` : ''}
+                ${categoryName ? ` · Category: ${categoryName}` : ''}
+            </div>
+            <p class="text-gray-500 text-sm mb-2">
+                <span class="commentCount">${post.commentCount}</span> comments
+            </p>
+            <div class="commentsContainer max-h-60 overflow-y-auto mb-3 hidden" data-post-id="${post.id}">
+                <!-- Comments loaded here -->
+            </div>
+            <div class="border-t pt-3">
+                <div class="flex">
+                    <textarea class="commentInput flex-grow border-none bg-transparent focus:outline-none resize-none" placeholder="Add a comment..." rows="1" data-post-id="${post.id}"></textarea>
+                    <button class="submitComment text-blue-500 font-semibold ml-2" data-post-id="${post.id}">Post</button>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-</div>
 `;
             postsContainer.append(postHtml);
             loadComments(
-              post.id,
-              postsContainer.find(`[data-post-id="${post.id}"] .commentsContainer`),
-              postsContainer.find(`[data-post-id="${post.id}"] .commentCount`)
+                post.id,
+                postsContainer.find(`[data-post-id="${post.id}"] .commentsContainer`),
+                postsContainer.find(`[data-post-id="${post.id}"] .commentCount`)
             );
             handleDoubleTap(
-              post.id,
-              postsContainer,
-              postsContainer.find(`.likeButton[data-post-id="${post.id}"]`)
+                post.id,
+                postsContainer,
+                postsContainer.find(`.likeButton[data-post-id="${post.id}"]`)
             );
           });
 
@@ -269,9 +268,9 @@ $(document).ready(function() {
             commentsContainer.toggleClass('hidden');
             if (!commentsContainer.hasClass('hidden')) {
               loadComments(
-                postId,
-                commentsContainer,
-                postsContainer.find(`[data-post-id="${postId}"] .commentCount`)
+                  postId,
+                  commentsContainer,
+                  postsContainer.find(`[data-post-id="${postId}"] .commentCount`)
               );
               postsContainer.find(`textarea[data-post-id="${postId}"]`).focus();
             }
@@ -339,19 +338,32 @@ $(document).ready(function() {
           setupCommentDeletion(postsContainer);
         } else {
           $('#postsContainer').html(
-            '<p class="text-red-500 text-center">' + (response.message || 'Failed to load posts') + '</p>'
+              '<p class="text-red-500 text-center">' + (response.message || 'Failed to load posts') + '</p>'
           );
         }
       },
       error: function(xhr) {
         console.error('AJAX error:', xhr);
         $('#postsContainer').html(
-          '<p class="text-red-500 text-center">Failed to load posts: ' +
+            '<p class="text-red-500 text-center">Failed to load posts: ' +
             (xhr.responseJSON?.message || 'Server error') +
             '</p>'
         );
       }
     });
+  }
+
+  // == Debounce Utility ==
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
   }
 
   // == Export Statistics ==
@@ -397,15 +409,18 @@ $(document).ready(function() {
   loadCategories();
   loadYears();
   loadTags();
-  loadPosts();
+  if ($('#postsContainer').children().length === 0) {
+    loadPosts(); // Only call if no posts are rendered server-side
+  }
 
-  // Filter change handler
+  // Filter change handler with debounce
+  const debouncedLoadPosts = debounce(loadPosts, 300);
   $('#categoryFilter, #yearFilter, #tagFilter').on('change', function() {
     console.log('Filter changed:', {
       categoryId: $('#categoryFilter').val(),
       creationYear: $('#yearFilter').val(),
       namedTagId: $('#tagFilter').val()
     });
-    loadPosts();
+    debouncedLoadPosts();
   });
 });
