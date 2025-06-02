@@ -1,5 +1,6 @@
 package org.example.wepproject.Helpers.Exporters;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.List;
@@ -8,12 +9,18 @@ import org.example.wepproject.Models.RssRecord;
 public class RssExporter {
     public static Integer latestPosts = 20;
     public static Integer latestComments = 20;
-    public static String exportPath = "./export/news.rss";
+    public static String exportDir = "./export";
+    public static String exportPath = "news.rss";
 
     public static void exportRss(List<RssRecord> records) {
         System.out.println("Exporting RSS to: " + exportPath);
+        
+        File directory = new File(RssExporter.exportDir);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
 
-        try (PrintWriter writer = new PrintWriter(new FileWriter(exportPath))) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(exportDir + "/" + exportPath))) {
             writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
             writer.println("<rss version=\"2.0\">");
             writer.println("  <channel>");
