@@ -24,6 +24,11 @@ $(document).ready(function() {
     const importCloseBtn = importModal.find(".close-modal");
     const namedTagSelect = $("#namedTagIds");
     const userTaggedSelect = $("#userTaggedIds");
+    const username = $('.profile-info h1').text().trim();
+    const initials = username.slice(0, 2).toUpperCase();
+
+
+    1
 
     // Initialize Select2
     namedTagSelect.select2({
@@ -445,4 +450,5 @@ $(document).ready(function() {
             }
         });
     }
+
 });

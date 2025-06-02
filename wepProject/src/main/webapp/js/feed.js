@@ -1,413 +1,411 @@
 $(document).ready(function() {
-    // Initialize Select2 for tag filter
-    $('#tagFilter').select2({
-        placeholder: "Select a tag",
-        allowClear: true,
-        width: '100%'
+  // == Select2 Initialization ==
+  // Initialize tag filter
+  $('#tagFilter').select2({
+    placeholder: "Select a tag",
+    allowClear: true,
+    width: '100%'
+  });
+
+  // Initialize user search
+  $('#userSearch').select2({
+    placeholder: "",
+    allowClear: true,
+    width: '100%',
+    minimumInputLength: 1,
+    ajax: {
+      url: '/wepProject_war_exploded/users',
+      dataType: 'json',
+      delay: 250,
+      data: function(params) {
+        return { term: params.term || '' };
+      },
+      processResults: function(data) {
+        if (data.status !== 'success' || !data.data.userMap) {
+          console.error('Failed to fetch users:', data.message);
+          return { results: [] };
+        }
+        const results = Object.entries(data.data.userMap).map(([id, username]) => ({
+          id: id,
+          text: username
+        }));
+        console.log('User search results:', results);
+        return { results: results };
+      },
+      cache: true
+    }
+  })
+    .on('select2:select', function(e) {
+      const userId = e.params.data.id;
+      console.log('Selected user:', userId);
+      window.location.href = `/wepProject_war_exploded/profile?id=${userId}`;
+    })
+    .on('select2:clear', function() {
+      console.log('Search cleared');
     });
 
-    // Populate category dropdown
-    function loadCategories() {
-        $.ajax({
-            url: '/wepProject_war_exploded/categories',
-            type: 'GET',
-            headers: { 'Accept': 'application/json' },
-            success: function(response) {
-                if (response.status === 'success') {
-                    const categorySelect = $('#categoryFilter');
-                    categorySelect.empty();
-                    categorySelect.append('<option value="">All Categories</option>');
-                    for (const [id, name] of Object.entries(response.data.categoryMap)) {
-                        categorySelect.append(`<option value="${id}">${name}</option>`);
-                    }
-                }
-            },
-            error: function(xhr) {
-                console.error('Failed to load categories:', xhr.responseJSON?.message || 'Server error');
-            }
-        });
-    }
-
-    // Populate year dropdown (2000 to current year)
-    function loadYears() {
-        const yearSelect = $('#yearFilter');
-        yearSelect.empty();
-        yearSelect.append('<option value="">All Years</option>');
-        const currentYear = new Date().getFullYear();
-        for (let year = currentYear; year >= 2000; year--) {
-            yearSelect.append(`<option value="${year}">${year}</option>`);
+  // == Filter Population Functions ==
+  // Load categories into dropdown
+  function loadCategories() {
+    $.ajax({
+      url: '/wepProject_war_exploded/categories',
+      type: 'GET',
+      headers: { 'Accept': 'application/json' },
+      success: function(response) {
+        if (response.status === 'success') {
+          const categorySelect = $('#categoryFilter');
+          categorySelect.empty();
+          categorySelect.append('<option value="">All Categories</option>');
+          for (const [id, name] of Object.entries(response.data.categoryMap)) {
+            categorySelect.append(`<option value="${id}">${name}</option>`);
+          }
         }
+      },
+      error: function(xhr) {
+        console.error('Failed to load categories:', xhr.responseJSON?.message || 'Server error');
+      }
+    });
+  }
+
+  // Load years into dropdown (2000 to current year)
+  function loadYears() {
+    const yearSelect = $('#yearFilter');
+    yearSelect.empty();
+    yearSelect.append('<option value="">All Years</option>');
+    const currentYear = new Date().getFullYear();
+    for (let year = currentYear; year >= 2000; year--) {
+      yearSelect.append(`<option value="${year}">${year}</option>`);
     }
+  }
 
-    // Populate tag dropdown
-    function loadTags() {
-        $.ajax({
-            url: '/wepProject_war_exploded/namedTags',
-            type: 'GET',
-            headers: { 'Accept': 'application/json' },
-            success: function(response) {
-                if (response.status === 'success') {
-                    const tagSelect = $('#tagFilter');
-                    tagSelect.empty();
-                    tagSelect.append('<option value="">All Tags</option>');
-                    for (const [id, name] of Object.entries(response.data.namedTagMap)) {
-                        tagSelect.append(`<option value="${id}">${name}</option>`);
-                    }
-                    tagSelect.trigger('change');
-                }
-            },
-            error: function(xhr) {
-                console.error('Failed to load tags:', xhr.responseJSON?.message || 'Server error');
-            }
-        });
-    }
+  // Load tags into dropdown
+  function loadTags() {
+    $.ajax({
+      url: '/wepProject_war_exploded/namedTags',
+      type: 'GET',
+      headers: { 'Accept': 'application/json' },
+      success: function(response) {
+        if (response.status === 'success') {
+          const tagSelect = $('#tagFilter');
+          tagSelect.empty();
+          tagSelect.append('<option value="">All Tags</option>');
+          for (const [id, name] of Object.entries(response.data.namedTagMap)) {
+            tagSelect.append(`<option value="${id}">${name}</option>`);
+          }
+          tagSelect.trigger('change');
+        }
+      },
+      error: function(xhr) {
+        console.error('Failed to load tags:', xhr.responseJSON?.message || 'Server error');
+      }
+    });
+  }
 
-    // Load the statistics from the statistics endpoint
-    function loadStatistics() {
-        $.ajax({
-            url: '/wepProject_war_exploded/statistics?format=csv',
-            method: 'GET',
-            dataType: 'text',
-            success: function (csv) {
-                const container = $('#statisticsContent');
-                container.empty();
+  // == Post Loading ==
+  function loadPosts() {
+    // Build query parameters
+    const categoryId = $('#categoryFilter').val();
+    const creationYear = $('#yearFilter').val();
+    const namedTagId = $('#tagFilter').val();
+    let queryParams = [];
+    if (categoryId) queryParams.push(`categoryId=${categoryId}`);
+    if (creationYear) queryParams.push(`creationYear=${creationYear}`);
+    if (namedTagId) queryParams.push(`namedTagId=${namedTagId}`);
+    const queryString = queryParams.length ? '?' + queryParams.join('&') : '';
+    const url = '/wepProject_war_exploded/feed' + queryString;
 
-                const lines = csv.trim().split('\n');
-                if (lines.length === 0) {
-                    container.append('<p>No statistics available.</p>');
-                    return;
-                }
+    console.log('Loading posts with URL:', url);
 
-                // Regular lines except last
-                for (let i = 0; i < lines.length - 1; i++) {
-                    const [title, ownerName, score] = lines[i].split(',');
-                    if (title && ownerName && score != 0) {
-                        container.append(`
-                        <p>
-                            <strong>${title.trim()}:</strong> 
-                            <span class="owner-name">@${ownerName.trim()}</span> - ${score.trim()}
-                        </p>
-                    `);
-                    } else if (title && ownerName) {
-                        container.append(`
-                        <p>
-                            <strong>${title.trim()}:</strong> 
-                            <span class="owner-name">@${ownerName.trim()}</span>
-                        </p>
-                    `);
-                    }
-                }
+    // Fetch posts
+    $.ajax({
+      url: url,
+      type: 'GET',
+      headers: { 'Accept': 'application/json' },
+      success: function(response) {
+        console.log('AJAX response:', response);
+        if (response.status === 'success') {
+          const postsContainer = $('#postsContainer');
+          postsContainer.empty();
+          const posts = response.data?.posts || [];
+          const categoryMap = response.data?.categoryMap || {};
+          console.log('Received posts:', posts.length, posts);
+          console.log('Category map:', categoryMap);
 
-                // Highlight last line
-                const [lastTitle, lastOwnerName, lastScore] = lines[lines.length - 1].split(',');
-                if (lastTitle && lastOwnerName && lastScore) {
-                    container.append(`
-                    <div>
-                        <p class="font-bold text-yellow-600">
-                            👑 <strong>${lastTitle.trim()}:</strong>
-                            <span class="owner-name">@${lastOwnerName.trim()}</span> - ${lastScore.trim()} 👑
-                        </p>
-                    </div>
-                `);
-                }
-            },
-            error: function () {
-                $('#statisticsContent').html('<p class="text-red-500">Failed to load statistics.</p>');
-            }
-        });
-    }
+          if (posts.length === 0) {
+            postsContainer.append('<p class="text-gray-500 text-center">No posts available.</p>');
+            return;
+          }
 
+          // Render posts
+          posts.forEach(post => {
+            console.log('Rendering post:', {
+              id: post.id,
+              mediaType: post.mediaType,
+              hasMediaBlob: !!post.mediaBlobBase64,
+              hasExternalUrl: !!post.externalMediaUrl
+            });
+            const categoryName = post.categoryId ? categoryMap[post.categoryId] || 'Unknown category' : null;
+            const isVideo = post.mediaType && post.mediaType === 'video';
+            const username = post.authorUsername || `User #${post.authorId}`;
+            const initials = username.slice(0, 2).toUpperCase();
 
-    function loadPosts() {
-        const categoryId = $('#categoryFilter').val();
-        const creationYear = $('#yearFilter').val();
-        const namedTagId = $('#tagFilter').val();
-        let queryParams = [];
-        if (categoryId) queryParams.push(`categoryId=${categoryId}`);
-        if (creationYear) queryParams.push(`creationYear=${creationYear}`);
-        if (namedTagId) queryParams.push(`namedTagId=${namedTagId}`);
-        const queryString = queryParams.length ? '?' + queryParams.join('&') : '';
-        const url = '/wepProject_war_exploded/feed' + queryString;
-
-        console.log('Loading posts with URL:', url);
-
-        $.ajax({
-            url: url,
-            type: 'GET',
-            headers: { 'Accept': 'application/json' },
-            success: function(response) {
-                console.log('AJAX response:', response);
-                if (response.status === 'success') {
-                    const postsContainer = $('#postsContainer');
-                    postsContainer.empty();
-                    const posts = response.data?.posts || [];
-                    const categoryMap = response.data?.categoryMap || {};
-                    console.log('Received posts:', posts.length, posts);
-                    console.log('Category map:', categoryMap);
-
-                    if (posts.length === 0) {
-                        postsContainer.append('<p class="text-gray-500 text-center">No posts available.</p>');
-                        return;
-                    }
-
-                    posts.forEach(post => {
-                        console.log('Rendering post:', {
-                            id: post.id,
-                            mediaType: post.mediaType,
-                            hasMediaBlob: !!post.mediaBlobBase64,
-                            hasExternalUrl: !!post.externalMediaUrl
-                        });
-                        const categoryName = post.categoryId ? categoryMap[post.categoryId] || 'Unknown category' : null;
-                        const isVideo = post.mediaType && post.mediaType === 'video';
-                        const postHtml = `
-              <div class="bg-white rounded-lg shadow-md max-w-xl mx-auto mb-8" data-post-id="${post.id}">
-                <div class="flex items-center p-4 border-b">
-                  <div class="w-8 h-8 bg-gray-300 rounded-full mr-3"></div>
-                  <div class="flex-1">
-                    <p class="font-semibold">${post.authorUsername || 'User #' + post.authorId}</p>
-                  </div>
-                  ${post.isOwnPost ? `
-                    <div class="flex items-center space-x-2">
+            const postHtml = `
+<div class="bg-white rounded-lg shadow-md max-w-xl mx-auto mb-8" data-post-id="${post.id}">
+    <div class="flex items-center p-4 border-b">
+    <div class="w-8 h-8 rounded-full avatar-placeholder mr-3" data-initials="${initials}"></div>
+<div class="flex-1">
+    <p class="font-semibold">${username}</p>
+</div>
+<div class="flex items-center space-x-2">
+    ${post.isOwnPost ? `
                       <button class="deleteButton focus:outline-none text-red-500 hover:text-red-700" data-post-id="${post.id}" title="Delete Post">
                         <i class="fas fa-trash-alt"></i>
                       </button>
-                      <div class="text-gray-500">
-                        <i class="fas fa-ellipsis-h"></i>
-                      </div>
-                    </div>
+                    ` : ''}
+    <div class="text-gray-500">
+        <i class="fas fa-ellipsis-h"></i>
+    </div>
+</div>
+</div>
+<div class="post-media relative">
+    ${post.mediaBlobBase64 ? `
+                    ${isVideo ? `
+                      <video controls class="w-full object-cover max-h-[400px]">
+                        <source src="${post.mediaBlobBase64}" type="video/mp4">
+                        Your browser does not support the video tag.
+                      </video>
+                    ` : `
+                      <img src="${post.mediaBlobBase64}" alt="Post" class="w-full object-cover" />
+                    `}
+                  ` : post.externalMediaUrl ? `
+                    ${isVideo ? `
+                      <video controls class="w-full object-cover max-h-[400px]">
+                        <source src="${post.externalMediaUrl}" type="video/mp4">
+                        Your browser does not support the video tag.
+                      </video>
+                    ` : `
+                      <img src="${post.externalMediaUrl}" alt="Post" class="w-full object-cover" />
+                    `}
                   ` : `
-                    <div class="text-gray-500">
-                      <i class="fas fa-ellipsis-h"></i>
-                    </div>
-                  `}
-                </div>
-                <div class="post-media relative">
-                  ${post.mediaBlobBase64 ? (
-                            isVideo ? `
-                      <a href="/wepProject_war_exploded/post?id=${post.id}">
-                        <video controls class="w-full object-cover max-h-[400px]">
-                          <source src="${post.mediaBlobBase64}" type="video/mp4">
-                          Your browser does not support the video tag.
-                        </video>
-                      </a>
-                    ` : `
-                      <a href="/wepProject_war_exploded/post?id=${post.id}">
-                        <img src="${post.mediaBlobBase64}" alt="Post" class="w-full object-cover" />
-                      </a>
-                    `
-                        ) : post.externalMediaUrl ? (
-                            isVideo ? `
-                      <a href="/wepProject_war_exploded/post?id=${post.id}">
-                        <video controls class="w-full object-cover max-h-[400px]">
-                          <source src="${post.externalMediaUrl}" type="video/mp4">
-                          Your browser does not support the video tag.
-                        </video>
-                      </a>
-                    ` : `
-                      <a href="/wepProject_war_exploded/post?id=${post.id}">
-                        <img src="${post.externalMediaUrl}" alt="Post" class="w-full object-cover" />
-                      </a>
-                    `
-                        ) : `
                     <div class="bg-gray-200 h-[400px] flex items-center justify-center">
                       <span class="text-gray-500">No Media</span>
                     </div>
                   `}
-                </div>
-                <div class="p-4">
-                  <div class="flex space-x-4 mb-2">
-                    <button class="likeButton focus:outline-none" data-post-id="${post.id}">
-                      <i class="${post.isLiked ? 'fas text-red-500' : 'far'} fa-heart text-2xl"></i>
-                    </button>
-                    <button class="commentButton focus:outline-none" data-post-id="${post.id}">
-                      <i class="far fa-comment text-2xl"></i>
-                    </button>
-                    <button class="saveButton focus:outline-none" data-post-id="${post.id}">
-                      <i class="${post.isSaved ? 'fas' : 'far'} fa-bookmark text-2xl"></i>
-                    </button>
-                    <div class="flex-grow"></div>
-                  </div>
-                  <div class="mb-2">
-                    <p class="font-semibold"><span class="likesNumber">${post.likeCount}</span> likes</p>
-                  </div>
-                  <div class="mb-3">
-                    <p>
-                      <span class="font-semibold">${post.authorUsername || 'User #' + post.authorId}</span>
-                      <span>${post.description}</span>
-                    </p>
-                  </div>
-                  <div class="text-gray-500 text-xs mb-3">
-                    ${new Date(post.datePosted).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                    ${post.creationYear ? ` · Created in ${post.creationYear}` : ''}
-                    ${categoryName ? ` · Category: ${categoryName}` : ''}
-                  </div>
-                  <p class="text-gray-500 text-sm mb-2">
-                    <span class="commentCount">${post.commentCount}</span> comments
-                  </p>
-                  <div class="commentsContainer max-h-60 overflow-y-auto mb-3 hidden" data-post-id="${post.id}">
-                    <!-- Comments loaded here -->
-                  </div>
-                  <div class="border-t pt-3">
-                    <div class="flex">
-                      <textarea class="commentInput flex-grow border-none bg-transparent focus:outline-none resize-none" placeholder="Add a comment..." rows="1" data-post-id="${post.id}"></textarea>
-                      <button class="submitComment text-blue-500 font-semibold ml-2" data-post-id="${post.id}">Post</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            `;
-                        postsContainer.append(postHtml);
-                        loadComments(post.id, postsContainer.find(`[data-post-id="${post.id}"] .commentsContainer`), postsContainer.find(`[data-post-id="${post.id}"] .commentCount`));
-                        handleDoubleTap(post.id, postsContainer, postsContainer.find(`.likeButton[data-post-id="${post.id}"]`));
-                    });
+</div>
+<div class="p-4">
+    <div class="flex space-x-4 mb-2">
+        <button class="likeButton focus:outline-none" data-post-id="${post.id}">
+            <i class="${post.isLiked ? 'fas text-red-500' : 'far'} fa-heart text-2xl"></i>
+        </button>
+        <button class="commentButton focus:outline-none" data-post-id="${post.id}">
+            <i class="far fa-comment text-2xl"></i>
+        </button>
+        <button class="saveButton focus:outline-none" data-post-id="${post.id}">
+            <i class="${post.isSaved ? 'fas' : 'far'} fa-bookmark text-2xl"></i>
+        </button>
+        <div class="flex-grow"></div>
+    </div>
+    <div class="mb-2">
+        <p class="font-semibold"><span class="likesNumber">${post.likeCount}</span> likes</p>
+    </div>
+    <div class="mb-3">
+        <p>
+            <span class="font-semibold">${username}</span>
+            <span>${post.description}</span>
+        </p>
+    </div>
+    <div class="text-gray-500 text-xs mb-3">
+        ${new Date(post.datePosted).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+        ${post.creationYear ? ` · Created in ${post.creationYear}` : ''}
+        ${categoryName ? ` · Category: ${categoryName}` : ''}
+    </div>
+    <p class="text-gray-500 text-sm mb-2">
+        <span class="commentCount">${post.commentCount}</span> comments
+    </p>
+    <div class="commentsContainer max-h-60 overflow-y-auto mb-3 hidden" data-post-id="${post.id}">
+        <!-- Comments loaded here -->
+    </div>
+    <div class="border-t pt-3">
+        <div class="flex">
+            <textarea class="commentInput flex-grow border-none bg-transparent focus:outline-none resize-none" placeholder="Add a comment..." rows="1" data-post-id="${post.id}"></textarea>
+            <button class="submitComment text-blue-500 font-semibold ml-2" data-post-id="${post.id}">Post</button>
+        </div>
+    </div>
+</div>
+</div>
+`;
+            postsContainer.append(postHtml);
+            loadComments(
+              post.id,
+              postsContainer.find(`[data-post-id="${post.id}"] .commentsContainer`),
+              postsContainer.find(`[data-post-id="${post.id}"] .commentCount`)
+            );
+            handleDoubleTap(
+              post.id,
+              postsContainer,
+              postsContainer.find(`.likeButton[data-post-id="${post.id}"]`)
+            );
+          });
 
-                    // Like button handler
-                    postsContainer.find('.likeButton').on('click', function() {
-                        const postId = $(this).data('post-id');
-                        console.log('Liking post:', postId);
-                        toggleLike(postId, postsContainer);
-                    });
+          // == Event Handlers ==
+          // Like button
+          postsContainer.find('.likeButton').on('click', function() {
+            const postId = $(this).data('post-id');
+            console.log('Liking post:', postId);
+            toggleLike(postId, postsContainer);
+          });
 
-                    // Save button handler
-                    postsContainer.find('.saveButton').on('click', function() {
-                        const postId = $(this).data('post-id');
-                        console.log('Saving post:', postId);
-                        toggleSave(postId, postsContainer);
-                    });
+          // Save button
+          postsContainer.find('.saveButton').on('click', function() {
+            const postId = $(this).data('post-id');
+            console.log('Saving post:', postId);
+            toggleSave(postId, postsContainer);
+          });
 
-                    // Comment button handler
-                    postsContainer.find('.commentButton').on('click', function() {
-                        const postId = $(this).data('post-id');
-                        const commentsContainer = postsContainer.find(`[data-post-id="${postId}"] .commentsContainer`);
-                        commentsContainer.toggleClass('hidden');
-                        if (!commentsContainer.hasClass('hidden')) {
-                            loadComments(postId, commentsContainer, postsContainer.find(`[data-post-id="${postId}"] .commentCount`));
-                            postsContainer.find(`textarea[data-post-id="${postId}"]`).focus();
-                        }
-                    });
-
-                    // Submit comment handler
-                    postsContainer.find('.submitComment').on('click', function() {
-                        const postId = $(this).data('post-id');
-                        console.log('Submitting comment for postId:', postId);
-                        const commentInput = postsContainer.find(`textarea[data-post-id="${postId}"]`);
-                        const commentsContainer = postsContainer.find(`[data-post-id="${postId}"] .commentsContainer`);
-                        const commentCountElement = postsContainer.find(`[data-post-id="${postId}"] .commentCount`);
-                        submitComment(postId, commentInput, commentsContainer, commentCountElement);
-                    });
-
-                    // Submit comment with Enter key
-                    postsContainer.find('.commentInput').on('keypress', function(e) {
-                        if (e.which === 13 && !e.shiftKey) {
-                            e.preventDefault();
-                            const postId = $(this).data('post-id');
-                            console.log('Submitting comment for postId (Enter):', postId);
-                            const commentInput = $(this);
-                            const commentsContainer = postsContainer.find(`[data-post-id="${postId}"] .commentsContainer`);
-                            const commentCountElement = postsContainer.find(`[data-post-id="${postId}"] .commentCount`);
-                            submitComment(postId, commentInput, commentsContainer, commentCountElement);
-                        }
-                    });
-
-                    // Auto-resize textarea
-                    postsContainer.find('.commentInput').on('input', function() {
-                        this.style.height = 'auto';
-                        this.style.height = (this.scrollHeight) + 'px';
-                    });
-
-                    // Delete post handler
-                    postsContainer.find('.deleteButton').on('click', function() {
-                        const postId = $(this).data('post-id');
-                        if (confirm('Are you sure you want to delete this post?')) {
-                            $.ajax({
-                                url: `/wepProject_war_exploded/post?id=${postId}`,
-                                type: 'DELETE',
-                                headers: { 'Accept': 'application/json' },
-                                success: function(response) {
-                                    if (response.status === 'success') {
-                                        alert('Post deleted successfully');
-                                        loadPosts();
-                                    } else {
-                                        alert(response.message || 'Failed to delete post');
-                                    }
-                                },
-                                error: function(xhr) {
-                                    const response = xhr.responseJSON;
-                                    if (xhr.status === 401) {
-                                        alert('Please log in to delete this post');
-                                        window.location.href = '/wepProject_war_exploded/login.jsp';
-                                    } else {
-                                        alert(response?.message || 'Error deleting post');
-                                    }
-                                }
-                            });
-                        }
-                    });
-
-                    // Setup comment deletion
-                    setupCommentDeletion(postsContainer);
-                } else {
-                    $('#postsContainer').html('<p class="text-red-500 text-center">' + (response.message || 'Failed to load posts') + '</p>');
-                }
-            },
-            error: function(xhr) {
-                console.error('AJAX error:', xhr);
-                $('#postsContainer').html('<p class="text-red-500 text-center">Failed to load posts: ' + (xhr.responseJSON?.message || 'Server error') + '</p>');
+          // Comment button
+          postsContainer.find('.commentButton').on('click', function() {
+            const postId = $(this).data('post-id');
+            const commentsContainer = postsContainer.find(`[data-post-id="${postId}"] .commentsContainer`);
+            commentsContainer.toggleClass('hidden');
+            if (!commentsContainer.hasClass('hidden')) {
+              loadComments(
+                postId,
+                commentsContainer,
+                postsContainer.find(`[data-post-id="${postId}"] .commentCount`)
+              );
+              postsContainer.find(`textarea[data-post-id="${postId}"]`).focus();
             }
-        });
-    }
+          });
 
-    // Export statistics handler
-    function triggerDownload(format) {
-        console.log(`Triggering download for format: ${format}`);
-        const url = `/wepProject_war_exploded/statistics?format=${format}`;
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `statistics_export.${format}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
+          // Submit comment (click)
+          postsContainer.find('.submitComment').on('click', function() {
+            const postId = $(this).data('post-id');
+            console.log('Submitting comment for postId:', postId);
+            const commentInput = postsContainer.find(`textarea[data-post-id="${postId}"]`);
+            const commentsContainer = postsContainer.find(`[data-post-id="${postId}"] .commentsContainer`);
+            const commentCountElement = postsContainer.find(`[data-post-id="${postId}"] .commentCount`);
+            submitComment(postId, commentInput, commentsContainer, commentCountElement);
+          });
 
-    // Toggle export dropdown
-    $('#exportStatisticsBtn').on('click', function(e) {
-        e.preventDefault();
-        $('#exportDropdown').toggleClass('hidden');
-    });
+          // Submit comment (Enter key)
+          postsContainer.find('.commentInput').on('keypress', function(e) {
+            if (e.which === 13 && !e.shiftKey) {
+              e.preventDefault();
+              const postId = $(this).data('post-id');
+              console.log('Submitting comment for postId (Enter):', postId);
+              const commentInput = $(this);
+              const commentsContainer = postsContainer.find(`[data-post-id="${postId}"] .commentsContainer`);
+              const commentCountElement = postsContainer.find(`[data-post-id="${postId}"] .commentCount`);
+              submitComment(postId, commentInput, commentsContainer, commentCountElement);
+            }
+          });
 
-    // Export CSV
-    $('#exportCsv').on('click', function(e) {
-        e.preventDefault();
-        triggerDownload('csv');
-        $('#exportDropdown').addClass('hidden');
-    });
+          // Auto-resize textarea
+          postsContainer.find('.commentInput').on('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+          });
 
-    // Export SVG
-    $('#exportSvg').on('click', function(e) {
-        e.preventDefault();
-        triggerDownload('svg');
-        $('#exportDropdown').addClass('hidden');
-    });
+          // Delete post
+          postsContainer.find('.deleteButton').on('click', function() {
+            const postId = $(this).data('post-id');
+            if (confirm('Are you sure you want to delete this post?')) {
+              $.ajax({
+                url: `/wepProject_war_exploded/post?id=${postId}`,
+                type: 'DELETE',
+                headers: { 'Accept': 'application/json' },
+                success: function(response) {
+                  if (response.status === 'success') {
+                    alert('Post deleted successfully');
+                    loadPosts();
+                  } else {
+                    alert(response.message || 'Failed to delete post');
+                  }
+                },
+                error: function(xhr) {
+                  const response = xhr.responseJSON;
+                  if (xhr.status === 401) {
+                    alert('Please log in to delete this post');
+                    window.location.href = '/wepProject_war_exploded/login.jsp';
+                  } else {
+                    alert(response?.message || 'Error deleting post');
+                  }
+                }
+              });
+            }
+          });
 
-    // Close dropdown when clicking outside
-    $(document).on('click', function(e) {
-        if (!$(e.target).closest('#exportStatisticsBtn, #exportDropdown').length) {
-            $('#exportDropdown').addClass('hidden');
+          // Setup comment deletion
+          setupCommentDeletion(postsContainer);
+        } else {
+          $('#postsContainer').html(
+            '<p class="text-red-500 text-center">' + (response.message || 'Failed to load posts') + '</p>'
+          );
         }
+      },
+      error: function(xhr) {
+        console.error('AJAX error:', xhr);
+        $('#postsContainer').html(
+          '<p class="text-red-500 text-center">Failed to load posts: ' +
+            (xhr.responseJSON?.message || 'Server error') +
+            '</p>'
+        );
+      }
     });
+  }
 
-    loadCategories();
-    loadYears();
-    loadTags();
+  // == Export Statistics ==
+  function triggerDownload(format) {
+    console.log(`Triggering download for format: ${format}`);
+    const url = `/wepProject_war_exploded/statistics?format=${format}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `statistics_export.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  // Toggle export dropdown
+  $('#exportStatisticsBtn').on('click', function(e) {
+    e.preventDefault();
+    $('#exportDropdown').toggleClass('hidden');
+  });
+
+  // Export CSV
+  $('#exportCsv').on('click', function(e) {
+    e.preventDefault();
+    triggerDownload('csv');
+    $('#exportDropdown').addClass('hidden');
+  });
+
+  // Export SVG
+  $('#exportSvg').on('click', function(e) {
+    e.preventDefault();
+    triggerDownload('svg');
+    $('#exportDropdown').addClass('hidden');
+  });
+
+  // Close dropdown when clicking outside
+  $(document).on('click', function(e) {
+    if (!$(e.target).closest('#exportStatisticsBtn, #exportDropdown').length) {
+      $('#exportDropdown').addClass('hidden');
+    }
+  });
+
+  // == Initialization ==
+  loadCategories();
+  loadYears();
+  loadTags();
+  loadPosts();
+
+  // Filter change handler
+  $('#categoryFilter, #yearFilter, #tagFilter').on('change', function() {
+    console.log('Filter changed:', {
+      categoryId: $('#categoryFilter').val(),
+      creationYear: $('#yearFilter').val(),
+      namedTagId: $('#tagFilter').val()
+    });
     loadPosts();
-    loadStatistics();
-
-    $('#categoryFilter, #yearFilter, #tagFilter').on('change', function() {
-        console.log('Filter changed:', {
-            categoryId: $('#categoryFilter').val(),
-            creationYear: $('#yearFilter').val(),
-            namedTagId: $('#tagFilter').val()
-        });
-        loadPosts();
-    });
+  });
 });

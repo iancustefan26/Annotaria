@@ -1,6 +1,8 @@
 $(document).ready(function() {
     const postId = new URLSearchParams(window.location.search).get('id');
     const postsContainer = $('#postsContainer');
+    const username = $('.username').text().trim();
+    const initials = username.slice(0, 2).toUpperCase();
 
     if (!postId) {
         postsContainer.html('<p class="text-red-500 text-center">Invalid post ID</p>');
@@ -80,6 +82,7 @@ $(document).ready(function() {
         });
     });
 
+    $('.avatar-placeholder').attr('data-initials', initials);
     setupCommentDeletion(postsContainer);
 
     handleDoubleTap(postId, postsContainer, $('#likeButton'));
