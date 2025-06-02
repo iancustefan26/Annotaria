@@ -55,7 +55,12 @@
             </div>
         </div>
     </div>
-
+    <div id="statisticsContainer" class="mt-6 max-w-4xl mx-auto bg-white rounded-lg shadow p-4">
+        <h2 class="text-xl font-semibold mb-4">Statistics</h2>
+        <div id="statisticsContent" class="space-y-2 text-gray-700">
+            <!-- JS will populate this dynamically -->
+        </div>
+    </div>
     <div class="h-24"></div>
 
     <div id="postsContainer" class="space-y-6">
