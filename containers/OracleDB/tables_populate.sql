@@ -1,122 +1,149 @@
--- USERS
-INSERT INTO USERS (username, password_hash, email) VALUES ('alice', 'hash1', 'alice@example.com');
-INSERT INTO USERS (username, password_hash, email) VALUES ('bob', 'hash2', 'bob@example.com');
-INSERT INTO USERS (username, password_hash, email) VALUES ('carol', 'hash3', 'carol@example.com');
-INSERT INTO USERS (username, password_hash, email) VALUES ('dave', 'hash4', 'dave@example.com');
-INSERT INTO USERS (username, password_hash, email) VALUES ('eve', 'hash5', 'eve@example.com');
-INSERT INTO USERS (username, password_hash, email) VALUES ('frank', 'hash6', 'frank@example.com');
-INSERT INTO USERS (username, password_hash, email) VALUES ('grace', 'hash7', 'grace@example.com');
-INSERT INTO USERS (username, password_hash, email) VALUES ('heidi', 'hash8', 'heidi@example.com');
-INSERT INTO USERS (username, password_hash, email) VALUES ('ivan', 'hash9', 'ivan@example.com');
-INSERT INTO USERS (username, password_hash, email) VALUES ('judy', 'hash10', 'judy@example.com');
+DECLARE
+  -- Variables for BLOB loading
+  l_blob         BLOB;
+  l_bfile        BFILE;
+  l_len          INTEGER;
 
--- CATEGORIES
-INSERT INTO CATEGORY (name) VALUES ('Photography');
-INSERT INTO CATEGORY (name) VALUES ('Travel');
-INSERT INTO CATEGORY (name) VALUES ('Food');
-INSERT INTO CATEGORY (name) VALUES ('Fitness');
-INSERT INTO CATEGORY (name) VALUES ('Technology');
+  -- Constants
+  user_count         CONSTANT INTEGER := 50;
+  named_tag_count    CONSTANT INTEGER := 10;
+  post_count         CONSTANT INTEGER := 100;
+  category_count     CONSTANT INTEGER := 5; -- for example
 
--- NAMED_TAGS
-INSERT INTO NAMED_TAGS (name) VALUES ('Sunset');
-INSERT INTO NAMED_TAGS (name) VALUES ('Mountain');
-INSERT INTO NAMED_TAGS (name) VALUES ('Beach');
-INSERT INTO NAMED_TAGS (name) VALUES ('Coding');
-INSERT INTO NAMED_TAGS (name) VALUES ('Workout');
+  -- Cursor to get users and posts
+  CURSOR users_cur IS SELECT id FROM USERS;
+  CURSOR posts_cur IS SELECT id FROM POST;
 
--- POSTS (author_id, category_id, creation_year, description)
-INSERT INTO POST VALUES (DEFAULT, 1, 1, NULL, NULL, DEFAULT, 2024, DEFAULT, 'Sunset over the hills', DEFAULT, DEFAULT);
-INSERT INTO POST VALUES (DEFAULT, 2, 2, NULL, NULL, DEFAULT, 2023, DEFAULT, 'Exploring the Amazon rainforest', DEFAULT, DEFAULT);
-INSERT INTO POST VALUES (DEFAULT, 3, 3, NULL, NULL, DEFAULT, 2022, DEFAULT, 'Best street food in Bangkok', DEFAULT, DEFAULT);
-INSERT INTO POST VALUES (DEFAULT, 4, 4, NULL, NULL, DEFAULT, 2025, DEFAULT, 'Morning run around the lake', DEFAULT, DEFAULT);
-INSERT INTO POST VALUES (DEFAULT, 5, 5, NULL, NULL, DEFAULT, 2025, DEFAULT, 'Building my first robot', DEFAULT, DEFAULT);
-INSERT INTO POST VALUES (DEFAULT, 6, 1, NULL, NULL, DEFAULT, 2023, DEFAULT, 'City skyline at night', DEFAULT, DEFAULT);
-INSERT INTO POST VALUES (DEFAULT, 7, 2, NULL, NULL, DEFAULT, 2022, DEFAULT, 'Desert adventure', DEFAULT, DEFAULT);
-INSERT INTO POST VALUES (DEFAULT, 8, 3, NULL, NULL, DEFAULT, 2023, DEFAULT, 'Italian pasta secrets', DEFAULT, DEFAULT);
-INSERT INTO POST VALUES (DEFAULT, 9, 4, NULL, NULL, DEFAULT, 2024, DEFAULT, 'Gym gains progress', DEFAULT, DEFAULT);
-INSERT INTO POST VALUES (DEFAULT, 10, 5, NULL, NULL, DEFAULT, 2025, DEFAULT, 'AI is taking over!', DEFAULT, DEFAULT);
-INSERT INTO POST VALUES (DEFAULT, 1, 1, NULL, NULL, DEFAULT, 2025, DEFAULT, 'Foggy forest morning', DEFAULT, DEFAULT);
-INSERT INTO POST VALUES (DEFAULT, 2, 2, NULL, NULL, DEFAULT, 2024, DEFAULT, 'Lost temples of Cambodia', DEFAULT, DEFAULT);
-INSERT INTO POST VALUES (DEFAULT, 3, 3, NULL, NULL, DEFAULT, 2022, DEFAULT, 'Vietnamese Pho bowl', DEFAULT, DEFAULT);
-INSERT INTO POST VALUES (DEFAULT, 4, 4, NULL, NULL, DEFAULT, 2023, DEFAULT, '5K marathon training', DEFAULT, DEFAULT);
-INSERT INTO POST VALUES (DEFAULT, 5, 5, NULL, NULL, DEFAULT, 2024, DEFAULT, 'Hackathon win!', DEFAULT, DEFAULT);
+  -- Procedure to load blob from file
+  PROCEDURE load_blob_from_file(p_dir VARCHAR2, p_filename VARCHAR2, p_blob OUT BLOB) IS
+  BEGIN
+    DBMS_LOB.createtemporary(p_blob, TRUE);
+    l_bfile := BFILENAME(p_dir, p_filename);
+    DBMS_LOB.fileopen(l_bfile, DBMS_LOB.file_readonly);
+    DBMS_LOB.loadfromfile(p_blob, l_bfile, DBMS_LOB.getlength(l_bfile));
+    DBMS_LOB.fileclose(l_bfile);
+  END;
 
--- LIKES
--- Every user likes 3 different posts, no duplicates
-INSERT INTO LIKES (user_id, post_id) VALUES (1, 2);
-INSERT INTO LIKES (user_id, post_id) VALUES (1, 3);
-INSERT INTO LIKES (user_id, post_id) VALUES (1, 5);
-
-INSERT INTO LIKES (user_id, post_id) VALUES (2, 1);
-INSERT INTO LIKES (user_id, post_id) VALUES (2, 4);
-INSERT INTO LIKES (user_id, post_id) VALUES (2, 6);
-
-INSERT INTO LIKES (user_id, post_id) VALUES (3, 2);
-INSERT INTO LIKES (user_id, post_id) VALUES (3, 7);
-INSERT INTO LIKES (user_id, post_id) VALUES (3, 8);
-
-INSERT INTO LIKES (user_id, post_id) VALUES (4, 9);
-INSERT INTO LIKES (user_id, post_id) VALUES (4, 10);
-INSERT INTO LIKES (user_id, post_id) VALUES (4, 3);
-
-INSERT INTO LIKES (user_id, post_id) VALUES (5, 11);
-INSERT INTO LIKES (user_id, post_id) VALUES (5, 12);
-INSERT INTO LIKES (user_id, post_id) VALUES (5, 13);
-
-INSERT INTO LIKES (user_id, post_id) VALUES (6, 1);
-INSERT INTO LIKES (user_id, post_id) VALUES (6, 5);
-INSERT INTO LIKES (user_id, post_id) VALUES (6, 15);
-
-INSERT INTO LIKES (user_id, post_id) VALUES (7, 4);
-INSERT INTO LIKES (user_id, post_id) VALUES (7, 7);
-INSERT INTO LIKES (user_id, post_id) VALUES (7, 8);
-
-INSERT INTO LIKES (user_id, post_id) VALUES (8, 2);
-INSERT INTO LIKES (user_id, post_id) VALUES (8, 10);
-INSERT INTO LIKES (user_id, post_id) VALUES (8, 14);
-
-INSERT INTO LIKES (user_id, post_id) VALUES (9, 9);
-INSERT INTO LIKES (user_id, post_id) VALUES (9, 13);
-INSERT INTO LIKES (user_id, post_id) VALUES (9, 15);
-
-INSERT INTO LIKES (user_id, post_id) VALUES (10, 1);
-INSERT INTO LIKES (user_id, post_id) VALUES (10, 3);
-INSERT INTO LIKES (user_id, post_id) VALUES (10, 12);
-
--- COMMENTS (2 comments per post from different users)
 BEGIN
-  FOR i IN 1..15 LOOP
-    INSERT INTO COMMENTS (post_id, user_id, content) VALUES (i, MOD(i, 10) + 1, 'Nice post ' || i || '!');
-    INSERT INTO COMMENTS (post_id, user_id, content) VALUES (i, MOD(i+3, 10) + 1, 'Love it! #' || i);
+  -- 1. Insert Users
+  FOR i IN 1..user_count LOOP
+    INSERT INTO USERS (username, password_hash, email)
+    VALUES (
+      'user' || i,
+      STANDARD_HASH('password' || i, 'SHA1'),
+      'user' || i || '@example.com'
+    );
   END LOOP;
+
+  COMMIT;
+
+  -- 2. Insert Categories
+  FOR i IN 1..category_count LOOP
+    INSERT INTO CATEGORY (name) VALUES ('Category' || i);
+  END LOOP;
+
+  COMMIT;
+
+  -- 3. Insert Named Tags
+  FOR i IN 1..named_tag_count LOOP
+    INSERT INTO NAMED_TAGS (name) VALUES ('tag' || i);
+  END LOOP;
+
+  COMMIT;
+
+  -- 4. Insert Posts (Photos)
+  FOR i IN 1..50 LOOP
+    load_blob_from_file('PHOTOS_DIR', 'photo' || i || '.jpg', l_blob);
+
+    INSERT INTO POST
+    VALUES (
+      DEFAULT,
+      MOD(i, user_count) + 1,              -- author_id
+      MOD(i, category_count) + 1,          -- category_id
+      l_blob,                              -- media_blob
+      NULL,                                -- external_media_url
+      'image',                             -- media_type
+      2025,                                -- creation_year
+      DEFAULT,                             -- date_posted
+      'Photo post #' || i,                 -- description
+      DEFAULT,                             -- likes_count
+      DEFAULT                              -- comments_count
+    );
+  END LOOP;
+
+  -- 5. Insert Posts (Videos)
+  FOR i IN 1..50 LOOP
+    load_blob_from_file('VIDEOS_DIR', 'video' || i || '.mp4', l_blob);
+
+    INSERT INTO POST
+    VALUES (
+      DEFAULT,
+      MOD(i + 50, user_count) + 1,         -- author_id
+      MOD(i + 1, category_count) + 1,      -- category_id
+      l_blob,                              -- media_blob
+      NULL,                                -- external_media_url
+      'video',                             -- media_type
+      2025,                                -- creation_year
+      DEFAULT,                             -- date_posted
+      'Video post #' || i,                 -- description
+      DEFAULT,                             -- likes_count
+      DEFAULT                              -- comments_count
+    );
+  END LOOP;
+
+  COMMIT;
+
+  -- 6. Insert More Uniform Likes (5–20 likes per post)
+  FOR p IN (SELECT id FROM POST) LOOP
+    FOR i IN 1..TRUNC(DBMS_RANDOM.VALUE(5, 21)) LOOP
+      BEGIN
+        INSERT INTO LIKES (user_id, post_id)
+        VALUES (
+          MOD(p.id + i * 7, user_count) + 1,  -- pseudo-random user_id
+          p.id
+        );
+      EXCEPTION
+        WHEN DUP_VAL_ON_INDEX THEN NULL;
+      END;
+    END LOOP;
+  END LOOP;
+
+  COMMIT;
+
+  -- 7. Insert More Uniform Comments (3–10 comments per post)
+  FOR p IN (SELECT id FROM POST) LOOP
+    FOR i IN 1..TRUNC(DBMS_RANDOM.VALUE(3, 11)) LOOP
+      INSERT INTO COMMENTS (post_id, user_id, content)
+      VALUES (
+        p.id,
+        MOD(p.id + i * 13, user_count) + 1,
+        'Comment ' || i || ' on post #' || p.id
+      );
+    END LOOP;
+  END LOOP;
+
+  COMMIT;
+
+  -- 8. Insert Named Tag Frames (1-3 tags per post)
+  FOR p IN (SELECT id FROM POST) LOOP
+    FOR i IN 1..3 LOOP
+      INSERT INTO NAMED_TAG_FRAMES (named_tag_id, post_id)
+      VALUES (MOD(p.id + i, named_tag_count) + 1, p.id);
+    END LOOP;
+  END LOOP;
+
+  COMMIT;
+
+  -- 9. Insert User Tag Frames
+  FOR p IN (SELECT id, author_id FROM POST) LOOP
+    INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id)
+    VALUES (p.id, p.author_id, MOD(p.author_id, user_count) + 1);
+  END LOOP;
+
+  COMMIT;
+
 END;
 /
--- NAMED_TAG_FRAMES (some tags reused across multiple posts)
-INSERT INTO NAMED_TAG_FRAMES (named_tag_id, post_id) VALUES (1, 1);
-INSERT INTO NAMED_TAG_FRAMES (named_tag_id, post_id) VALUES (1, 6);
-INSERT INTO NAMED_TAG_FRAMES (named_tag_id, post_id) VALUES (2, 2);
-INSERT INTO NAMED_TAG_FRAMES (named_tag_id, post_id) VALUES (2, 11);
-INSERT INTO NAMED_TAG_FRAMES (named_tag_id, post_id) VALUES (3, 3);
-INSERT INTO NAMED_TAG_FRAMES (named_tag_id, post_id) VALUES (3, 7);
-INSERT INTO NAMED_TAG_FRAMES (named_tag_id, post_id) VALUES (4, 5);
-INSERT INTO NAMED_TAG_FRAMES (named_tag_id, post_id) VALUES (4, 10);
-INSERT INTO NAMED_TAG_FRAMES (named_tag_id, post_id) VALUES (5, 4);
-INSERT INTO NAMED_TAG_FRAMES (named_tag_id, post_id) VALUES (5, 9);
-
--- USER_TAG_FRAMES (tag some users in posts by others)
-INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id) VALUES (1, 1, 2);
-INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id) VALUES (2, 2, 3);
-INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id) VALUES (3, 3, 4);
-INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id) VALUES (4, 4, 5);
-INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id) VALUES (5, 5, 6);
-INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id) VALUES (6, 6, 7);
-INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id) VALUES (7, 7, 8);
-INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id) VALUES (8, 8, 9);
-INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id) VALUES (9, 9, 10);
-INSERT INTO USER_TAG_FRAMES (post_id, user_author_id, user_tagged_id) VALUES (10, 10, 1);
-
-
--- COMMIT
-COMMIT;
 
 exit;
+

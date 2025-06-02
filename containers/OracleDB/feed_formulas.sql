@@ -3,9 +3,9 @@ AS
     -- variables used in functions
 
     -- alpha + beta + gamma = 1
-    v_alpha FLOAT := 0.6;  -- social_affinity importance index
-    v_beta FLOAT := 0.1;   -- post_impact importance index
-    v_gamma FLOAT := 0.3;  -- category_relevance importance index
+    v_alpha FLOAT := 0.5;  -- social_affinity importance index
+    v_beta FLOAT := 0.15;   -- post_impact importance index
+    v_gamma FLOAT := 0.35;  -- category_relevance importance index
     --------------
 
     -- used for post_impact function
@@ -166,7 +166,7 @@ select * from users;
 DECLARE
     v_graph graph;
 BEGIN
-    v_graph := graph_generator.generate(1, NULL, NULL, NULL, NULL, NULL);
+    v_graph := graph_generator.generate(51, NULL, NULL, NULL, NULL, NULL);
      FOR i in v_graph.first..v_graph.last LOOP
         FOR j in v_graph(i).first..v_graph(i).last LOOP
             DBMS_OUTPUT.PUT(v_graph(i)(j)|| ' ');
