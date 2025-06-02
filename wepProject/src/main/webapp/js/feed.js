@@ -6,6 +6,43 @@ $(document).ready(function() {
         width: '100%'
     });
 
+    // Initialize Select2 for user search
+    $('#userSearch').select2({
+        placeholder: "Search users...",
+        allowClear: true,
+        width: '100%',
+        minimumInputLength: 1,
+        ajax: {
+            url: '/wepProject_war_exploded/users',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    term: params.term || ''
+                };
+            },
+            processResults: function(data) {
+                if (data.status !== 'success' || !data.data.userMap) {
+                    console.error('Failed to fetch users:', data.message);
+                    return { results: [] };
+                }
+                const results = Object.entries(data.data.userMap).map(([id, username]) => ({
+                    id: id,
+                    text: username
+                }));
+                console.log('User search results:', results);
+                return { results: results };
+            },
+            cache: true
+        }
+    }).on('select2:select', function(e) {
+        const userId = e.params.data.id;
+        console.log('Selected user:', userId);
+        window.location.href = `/wepProject_war_exploded/profile?id=${userId}`;
+    }).on('select2:clear', function() {
+        console.log('Search cleared');
+    });
+
     // Populate category dropdown
     function loadCategories() {
         $.ajax({
