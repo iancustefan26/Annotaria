@@ -62,6 +62,62 @@ $(document).ready(function() {
         });
     }
 
+    // Load the statistics from the statistics endpoint
+    function loadStatistics() {
+        $.ajax({
+            url: '/wepProject_war_exploded/statistics?format=csv',
+            method: 'GET',
+            dataType: 'text',
+            success: function (csv) {
+                const container = $('#statisticsContent');
+                container.empty();
+
+                const lines = csv.trim().split('\n');
+                if (lines.length === 0) {
+                    container.append('<p>No statistics available.</p>');
+                    return;
+                }
+
+                // Regular lines except last
+                for (let i = 0; i < lines.length - 1; i++) {
+                    const [title, ownerName, score] = lines[i].split(',');
+                    if (title && ownerName && score != 0) {
+                        container.append(`
+                        <p>
+                            <strong>${title.trim()}:</strong> 
+                            <span class="owner-name">@${ownerName.trim()}</span> - ${score.trim()}
+                        </p>
+                    `);
+                    } else if (title && ownerName) {
+                        container.append(`
+                        <p>
+                            <strong>${title.trim()}:</strong> 
+                            <span class="owner-name">@${ownerName.trim()}</span>
+                        </p>
+                    `);
+                    }
+                }
+
+                // Highlight last line
+                const [lastTitle, lastOwnerName, lastScore] = lines[lines.length - 1].split(',');
+                if (lastTitle && lastOwnerName && lastScore) {
+                    container.append(`
+                    <div>
+                        <p class="font-bold text-yellow-600">
+                            👑 <strong>${lastTitle.trim()}:</strong>
+                            <span class="owner-name">@${lastOwnerName.trim()}</span> - ${lastScore.trim()} 👑
+                        </p>
+                    </div>
+                `);
+                }
+            },
+            error: function () {
+                $('#statisticsContent').html('<p class="text-red-500">Failed to load statistics.</p>');
+            }
+        });
+    }
+
+
     function loadPosts() {
         const categoryId = $('#categoryFilter').val();
         const creationYear = $('#yearFilter').val();
@@ -344,6 +400,7 @@ $(document).ready(function() {
     loadYears();
     loadTags();
     loadPosts();
+    loadStatistics();
 
     $('#categoryFilter, #yearFilter, #tagFilter').on('change', function() {
         console.log('Filter changed:', {

@@ -20,7 +20,10 @@ docker cp create_graph_wrappers.sql oracle-web:/tmp/
 docker cp create_prevent_mutating_table.sql oracle-web:/tmp/
 docker cp export_statistics.sql oracle-web:/tmp/
 docker cp export_rss.sql oracle-web:/tmp/
-
+docker cp grant_user.sql oracle-web:/tmp/
+docker cp create_dirs.sql oracle-web:/tmp/
+docker cp ../../videos oracle-web:/tmp/videos
+docker cp ../../photos oracle-web:/tmp/photos
 
 echo "Waiting for Oracle to be ready..."
 until docker logs oracle-web 2>&1 | grep -q "DATABASE IS READY TO USE"; do
@@ -30,6 +33,10 @@ echo "Oracle is ready!"
 
 
 docker exec -it oracle-web sqlplus sys/api_test as sysdba @/tmp/create_user.sql
+
+docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_dirs.sql
+
+docker exec -it oracle-web sqlplus sys/api_test as sysdba @/tmp/grant_user.sql
 
 docker exec -it oracle-web sqlplus api_test/api_test @/tmp/create_tables.sql
 

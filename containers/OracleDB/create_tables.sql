@@ -115,4 +115,3 @@ CREATE INDEX idx_comments_post ON COMMENTS(post_id);
 -- COMMIT
 COMMIT;
 exit;
-

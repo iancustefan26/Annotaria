@@ -18,6 +18,13 @@
     max-width: 1200px;
 }
 
+.owner-name {
+    color: #3b82f6;
+    font-weight: bold;
+    font-style: italic;
+}
+
+
 .fixed-filter-container {
     position: fixed;
     top: 0;
