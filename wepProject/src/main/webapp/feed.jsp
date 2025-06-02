@@ -28,10 +28,19 @@
 <div class="container mx-auto px-4 py-8">
     <div class="fixed-filter-container fixed top-0 left-0 right-0 bg-gray-100 z-10 pt-4 pb-2 shadow-md">
         <div class="flex flex-col space-y-2 max-w-4xl mx-auto px-4">
-            <div class="flex justify-center">
+            <div class="flex justify-center space-x-4">
                 <a href="/wepProject_war_exploded/profile" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                     Go to Profile
                 </a>
+                <div class="relative">
+                    <button id="exportStatisticsBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 flex items-center">
+                        <i class="fas fa-download mr-2"></i> Export Statistics
+                    </button>
+                    <div id="exportDropdown" class="hidden absolute top-full mt-2 right-0 bg-white border border-gray-300 rounded shadow-lg z-20">
+                        <a href="#" id="exportCsv" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">CSV</a>
+                        <a href="#" id="exportSvg" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">SVG</a>
+                    </div>
+                </div>
             </div>
             <div class="flex space-x-4 justify-center items-center">
                 <select id="categoryFilter" class="border border-gray-300 rounded p-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">

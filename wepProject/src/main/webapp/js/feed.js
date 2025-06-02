@@ -301,6 +301,45 @@ $(document).ready(function() {
         });
     }
 
+    // Export statistics handler
+    function triggerDownload(format) {
+        console.log(`Triggering download for format: ${format}`);
+        const url = `/wepProject_war_exploded/statistics?format=${format}`;
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `statistics_export.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    // Toggle export dropdown
+    $('#exportStatisticsBtn').on('click', function(e) {
+        e.preventDefault();
+        $('#exportDropdown').toggleClass('hidden');
+    });
+
+    // Export CSV
+    $('#exportCsv').on('click', function(e) {
+        e.preventDefault();
+        triggerDownload('csv');
+        $('#exportDropdown').addClass('hidden');
+    });
+
+    // Export SVG
+    $('#exportSvg').on('click', function(e) {
+        e.preventDefault();
+        triggerDownload('svg');
+        $('#exportDropdown').addClass('hidden');
+    });
+
+    // Close dropdown when clicking outside
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('#exportStatisticsBtn, #exportDropdown').length) {
+            $('#exportDropdown').addClass('hidden');
+        }
+    });
+
     loadCategories();
     loadYears();
     loadTags();
