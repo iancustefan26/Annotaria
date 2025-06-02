@@ -8,7 +8,7 @@ $(document).ready(function() {
 
     // Initialize Select2 for user search
     $('#userSearch').select2({
-        placeholder: "Search users...",
+        placeholder: "",
         allowClear: true,
         width: '100%',
         minimumInputLength: 1,
