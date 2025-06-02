@@ -77,32 +77,14 @@ public abstract class AbstractDAO<T, ID> implements CrudDAO<T, ID> {
     }
 
     protected void executeSqlFunctionNoReturn(String call, Object... params) throws SQLException {
-        Connection conn = null;
-        CallableStatement stmt = null;
-
-        try {
-            conn = getConnection();
-            stmt = conn.prepareCall(call);
+        try (Connection conn = getConnection();
+             CallableStatement stmt = conn.prepareCall(call)) {
 
             for (int i = 0; i < params.length; i++) {
                 stmt.setObject(i + 1, params[i]);
             }
 
             stmt.execute();
-
-        } finally {
-            // close the connection pool
-            try {
-                if (stmt != null) stmt.close();
-            } catch (SQLException e) {
-                System.err.println("Error closing statement: " + e.getMessage());
-            }
-
-            try {
-                if (conn != null) conn.close();
-            } catch (SQLException e) {
-                System.err.println("Error closing connection: " + e.getMessage());
-            }
         }
     }
 

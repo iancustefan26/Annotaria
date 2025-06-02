@@ -83,12 +83,9 @@ public class LikeDAO extends AbstractDAO<Like, Long> {
     }
     public Like findByUserIdAndPostId(Long userId, Long postId) {
         try {
-            PreparedStatement stmt = getConnection().prepareStatement(FIND_BY_USER_AND_POST_QUERY);
-            stmt.setLong(1, userId);
-            stmt.setLong(2, postId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                Like like = mapResultSetToEntity(rs);
+            List<Like> results = executeQuery(FIND_BY_USER_AND_POST_QUERY, userId, postId);
+            if (!results.isEmpty()) {
+                Like like = results.get(0);
                 System.out.println("Found like: id=" + like.getId() + ", userId=" + like.getUserId() + ", postId=" + like.getPostId());
                 return like;
             }
