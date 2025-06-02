@@ -112,6 +112,8 @@ END recency;
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
             RETURN 0.1;
+        WHEN ZERO_DIVIDE THEN
+            RETURN 0.1;
         WHEN OTHERS THEN
             raise post_exceptions.unexpected_post_error;
     END social_affinity;
@@ -129,6 +131,8 @@ END recency;
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
             RETURN 0.1;
+        WHEN ZERO_DIVIDE THEN
+            RETURN 0.1;
         WHEN OTHERS THEN
             raise post_exceptions.unexpected_post_error;
     END category_relevance;
@@ -144,6 +148,8 @@ END recency;
         RETURN v_a_like_importance * v_likes + v_b_comment_importance * v_comments;
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
+            RETURN 0.1;
+        WHEN ZERO_DIVIDE THEN
             RETURN 0.1;
         WHEN OTHERS THEN
             raise post_exceptions.unexpected_post_error;
