@@ -24,174 +24,173 @@
   response.sendRedirect("login.jsp");
   return;
 } %>
-<div class="max-w-4xl mx-auto p-4">
+<div class="max-w-4xl mx-auto p-12">
   <!-- Profile Header -->
-  <div class="flex items-center mb-6">
-    <div class="w-24 h-24 bg-gray-300 rounded-full mr-4"></div>
-    <div>
-      <h1 class="text-2xl font-bold">
-        <taglib:choose>
-          <taglib:when test="${profileUser != null}">
-            <taglib:out value="${profileUser.username}"/>
-          </taglib:when>
-          <taglib:otherwise>
-            <taglib:out value="${sessionScope.username}"/>
-          </taglib:otherwise>
-        </taglib:choose>
-      </h1>
-      <div class="mt-2">
-        <span><strong>${posts.size()}</strong> posts</span>
-      </div>
-      <div class="mt-2">
-        <a href="/wepProject_war_exploded/feed" class="text-blue-600 hover:underline">Feed</a> |
-        <taglib:if test="${isOwnProfile}">
-          <a href="/wepProject_war_exploded/logout" class="text-blue-600 hover:underline">Logout</a>
-        </taglib:if>
-        <taglib:if test="${!isOwnProfile}">
-          <a href="/wepProject_war_exploded/profile" class="text-blue-600 hover:underline">My Profile</a>
-        </taglib:if>
-        <taglib:if test="${isOwnProfile && saved}">
-          <a href="/wepProject_war_exploded/profile" class="text-blue-600 hover:underline">My Profile</a>
-        </taglib:if>
-      </div>
-    </div>
-  </div>
-
-  <!-- Post Creation and Saved Posts Buttons -->
-  <taglib:if test="${isOwnProfile && !saved}">
-    <div class="mb-6">
-      <button id="newPostBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">New Post</button>
-    </div>
-    <div class="mb-6 flex space-x-4">
-      <button id="deleteProfileBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Delete Profile</button>
-    </div>
-    <taglib:if test="${posts.size() > 0}">
-      <div class="mb-7 flex space-x-4">
-        <button id="savedPostsBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Saved Posts</button>
-      </div>
-    </taglib:if>
-  </taglib:if>
-
-  <!-- Import/Export Buttons and Modals -->
-  <taglib:if test="${isOwnProfile && saved}">
-    <div class="mb-6">
-      <button id="importBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Import</button>
-    </div>
-    <div class="mb-6 flex space-x-4">
-      <button id="exportBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-blue-600">Export</button>
-    </div>
-    <!-- Import Modal -->
-    <div id="importModal" class="modal">
-      <div class="modal-content">
-        <span class="close-modal">×</span>
-        <h2 class="text-xl font-bold mb-4">Import Saved Posts</h2>
-        <div id="importMessage" class="mb-4"></div>
-        <form id="importForm" action="/wepProject_war_exploded/import-saved-posts" enctype="multipart/form-data" method="post">
-          <div class="mb-4">
-            <label for="importFile" class="block text-sm font-medium">Select JSON or XML File</label>
-            <input type="file" id="importFile" name="importFile" accept=".json,.xml" required class="mt-1 block w-full border rounded p-2">
-          </div>
-          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Import</button>
-        </form>
-      </div>
-    </div>
-    <!-- Export Modal -->
-    <div id="exportModal" class="modal">
-      <div class="modal-content">
-        <span class="close-modal">×</span>
-        <h2 class="text-xl font-bold mb-4">Choose Export Format</h2>
-        <div class="flex space-x-4 justify-center">
-          <button id="exportJsonBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">JSON</button>
-          <button id="exportXmlBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">XML</button>
+  <div class="profile-wrapper">
+    <div class="flex items-center mb-6 profile-header">
+      <div class="w-24 h-24 avatar-placeholder rounded-full mr-4" data-initials=""></div>
+      <div class="profile-info">
+        <h1 class="text-2xl font-bold">
+          <taglib:choose>
+            <taglib:when test="${profileUser != null}">
+              <taglib:out value="${profileUser.username}"/>
+            </taglib:when>
+            <taglib:otherwise>
+              <taglib:out value="${sessionScope.username}"/>
+            </taglib:otherwise>
+          </taglib:choose>
+        </h1>
+        <div class="mt-2 profile-stats">
+          <span><strong>${post.size()}</strong> Posts</span>
+        </div>
+        <div class="mt-2 profile-links">
+          <a href="/wepProject_war_exploded/feed" class="text-blue-600 hover:underline">Feed</a> |
+          <taglib:if test="${isOwnProfile}">
+            <a href="/wepProject_war_exploded/logout" class="text-blue-600 hover:underline">Logout</a>
+          </taglib:if>
+          <taglib:if test="${!isOwnProfile}">
+            <a href="/wepProject_war_exploded/profile" class="text-blue-600 hover:underline">My Profile</a>
+          </taglib:if>
+          <taglib:if test="${isOwnProfile && saved}">
+            <a href="/wepProject_war_exploded/profile" class="text-blue-600 hover:underline">My Profile</a>
+          </taglib:if>
         </div>
       </div>
     </div>
-  </taglib:if>
-
-  <!-- Section for displaying posts -->
-  <h2 class="text-xl font-bold mb-4">
-    <taglib:choose>
-      <taglib:when test="${isOwnProfile}">
-        <taglib:choose>
-          <taglib:when test="${saved}">Your saved posts</taglib:when>
-          <taglib:otherwise>Your posts</taglib:otherwise>
-        </taglib:choose>
-      </taglib:when>
-      <taglib:otherwise>
-        <taglib:out value="${profileUser.username}"/>'s Posts
-      </taglib:otherwise>
-    </taglib:choose>
-  </h2>
-  <div id="postsContainer" class="posts-container"></div>
-
-  <!-- Post Grid (Fallback) -->
-  <div class="post-grid mt-6">
-    <taglib:forEach var="post" items="${posts}">
-      <div>
-        <a href="/wepProject_war_exploded/post?id=${post.id}">
-          <taglib:choose>
-            <taglib:when test="${post.mediaType == 'video'}">
-              <video class="w-full h-[150px] object-cover">
-                <source src="${post.mediaBlobBase64}" type="video/mp4">
-              </video>
-            </taglib:when>
-            <taglib:otherwise>
-              <img src="${post.mediaBlobBase64}" alt="Post image" />
-            </taglib:otherwise>
-          </taglib:choose>
-        </a>
+    <!-- Post Creation and Saved Posts Buttons -->
+    <taglib:if test="${isOwnProfile && !saved}">
+      <div class="mb-6 btn-group">
+        <button id="newPostBtn" class="action-btn">New Post</button>
       </div>
-    </taglib:forEach>
-    <taglib:if test="${empty posts}">
-      <p class="col-span-full text-center text-gray-500">No posts yet.</p>
+      <div class="mb-6 btn-group">
+        <button id="deleteProfileBtn" class="action-btn delete-btn">Delete Profile</button>
+      </div>
+      <taglib:if test="${posts.size() > 0}">
+        <div class="mb-6 btn-group">
+          <button id="savedPostsBtn" class="action-btn saved-btn">Saved Posts</button>
+        </div>
+      </taglib:if>
+    </taglib:if>
+
+    <!-- Import/Export Buttons and Modals -->
+    <taglib:if test="${isOwnProfile && saved}">
+      <div class="mb-6 btn-group">
+        <button id="importBtn" class="action-btn import-btn">Import</button>
+      </div>
+      <div class="mb-6 btn-group">
+        <button id="exportBtn" class="action-btn export-btn">Export</button>
+      </div>
+      <!-- Import Modal -->
+      <div id="importModal" class="modal">
+        <div class="modal-content">
+          <span class="close-modal">&times;</span>
+          <h2 class="text-xl font-bold mb-4">Import Saved Posts</h2>
+          <div id="importMessage" class="modal-message"></div>
+          <form id="importForm" class="modal-form" action="/wepProject_war_exploded/import-saved-posts" enctype="multipart/form-data" method="post">
+            <div class="form-group">
+              <label for="importFile">Select JSON or XML File</label>
+              <input type="file" id="importFile" name="importFile" accept=".json,.xml" required>
+            </div>
+            <button type="submit" class="form-submit">Import</button>
+          </form>
+        </div>
+      </div>
+      <!-- Export Modal -->
+      <div id="exportModal" class="modal">
+        <div class="modal-content">
+          <span class="close-modal">&times;</span>
+          <h2 class="text-xl font-bold mb-4">Choose Export Format</h2>
+          <div class="btn-group">
+            <button id="exportJsonBtn" class="action-btn">JSON</button>
+            <button id="exportXmlBtn" class="action-btn">XML</button>
+          </div>
+        </div>
+      </div>
+    </taglib:if>
+
+    <!-- Section for displaying posts -->
+    <h2 class="text-xl font-bold mb-4 posts-title">
+      <taglib:choose>
+        <taglib:when test="${isOwnProfile}">
+          <taglib:choose>
+            <taglib:when test="${saved}">Your Saved Posts</taglib:when>
+            <taglib:otherwise>Your Posts</taglib:otherwise>
+          </taglib:choose>
+        </taglib:when>
+        <taglib:otherwise>
+          <taglib:out value="${profileUser.username}"/>'s Posts
+        </taglib:otherwise>
+      </taglib:choose>
+    </h2>
+    <div id="postsContainer" class="posts-container"></div>
+
+    <!-- Post Grid (Fallback) -->
+    <div class="post-grid mt-6">
+      <taglib:forEach var="post" items="${posts}">
+        <div class="post-item">
+          <a href="/wepProject_war_exploded/post?id=${post.id}">
+            <taglib:choose>
+              <taglib:when test="${post.mediaType == 'video'}">
+                <video class="w-full h-[150px] object-cover">
+                  <source src="${post.mediaBlobBase64}" type="video/mp4">
+                </video>
+              </taglib:when>
+              <taglib:otherwise>
+                <img src="${post.mediaBlobBase64}" alt="Post image" />
+              </taglib:otherwise>
+            </taglib:choose>
+          </a>
+        </div>
+      </taglib:forEach>
+      <taglib:if test="${empty posts}">
+        <p class="no-posts">No posts yet.</p>
+      </taglib:if>
+    </div>
+
+    <!-- Post Creation Modal -->
+    <taglib:if test="${isOwnProfile}">
+      <div id="postModal" class="modal">
+        <div class="modal-content">
+          <span class="close-modal">&times;</span>
+          <h2 class="text-xl font-bold mb-4">Create Post</h2>
+          <div id="postMessage" class="modal-message"></div>
+          <form id="postForm" class="modal-form" action="/wepProject_war_exploded/import" enctype="multipart/form-data" method="post">
+            <div class="form-group">
+              <label for="contentFile">Image or Video</label>
+              <input type="file" id="contentFile" name="contentFile" accept="image/*,video/mp4,video/quicktime" required>
+            </div>
+            <div class="form-group">
+              <img id="previewImage" alt="Preview" class="hidden" />
+              <video id="previewVideo" controls class="hidden"></video>
+            </div>
+            <div class="form-group">
+              <label for="categoryId">Category</label>
+              <select id="categoryId" name="categoryId" required>
+                <option value="" disabled selected>Select a category</option>
+                <taglib:forEach var="category" items="${categories}">
+                  <option value="${category.id}"><taglib:out value="${category.name}"/></option>
+                </taglib:forEach>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="namedTagIds">Named Tags</label>
+              <select id="namedTagIds" name="namedTagIds[]" multiple></select>
+            </div>
+            <div class="form-group">
+              <label for="userTaggedIds">Tag Users</label>
+              <select id="userTaggedIds" name="userTaggedIds[]" multiple></select>
+            </div>
+            <div class="form-group">
+              <label for="description">Description</label>
+              <textarea id="description" name="description" rows="4"></textarea>
+            </div>
+            <button type="submit" class="form-submit">Post</button>
+          </form>
+        </div>
+      </div>
     </taglib:if>
   </div>
-
-
-  <!-- Post Creation Modal -->
-  <taglib:if test="${isOwnProfile}">
-    <div id="postModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div class="modal-content bg-white p-6 rounded-lg w-full max-w-md">
-        <span class="close-modal text-2xl cursor-pointer">&times;</span>
-        <h2 class="text-xl font-bold mb-4">Create Post</h2>
-        <div id="postMessage" class="mb-4"></div>
-        <form id="postForm" action="/wepProject_war_exploded/import" enctype="multipart/form-data" method="post">
-          <div class="mb-4">
-            <label for="contentFile" class="block text-sm font-medium text-gray-700">Image or Video</label>
-            <input type="file" id="contentFile" name="contentFile" accept="image/*,video/mp4,video/quicktime" required class="mt-1 block w-full border border-gray-300 rounded p-2">
-          </div>
-          <div class="mb-4">
-            <img id="previewImage" alt="Preview" class="hidden max-w-full h-auto"/>
-            <video id="previewVideo" controls class="hidden max-w-full h-auto"></video>
-          </div>
-         <div class="mb-4">
-           <label for="categoryId" class="block text-sm font-medium">Category</label>
-           <select id="categoryId" name="categoryId" required class="mt-1 block w-full border rounded p-2">
-          <option value="" disabled selected>Select a category</option>
-          <taglib:forEach var="category" items="${categories}">
-          <option value="${category.id}"><taglib:out value="${category.name}"/></option>
-          </taglib:forEach>
-          </select>
-         </div>
-          <div class="mb-4">
-            <label for="namedTagIds" class="block text-sm font-medium text-gray-700">Named Tags</label>
-            <select id="namedTagIds" name="namedTagIds[]" multiple class="mt-1 block w-full border border-gray-300 rounded p-2"></select>
-          </div>
-          <div class="mb-4">
-            <label for="userTaggedIds" class="block text-sm font-medium text-gray-700">Tag Users</label>
-            <select id="userTaggedIds" name="userTaggedIds[]" multiple class="mt-1 block w-full border border-gray-300 rounded p-2"></select>
-          </div>
-          <div class="mb-4">
-            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-            <textarea id="description" name="description" rows="4" class="mt-1 block w-full border border-gray-300 rounded p-2"></textarea>
-          </div>
-          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Post</button>
-        </form>
-      </div>
-    </div>
-  </taglib:if>
 </div>
-
-<script src="/wepProject_war_exploded/js/profile.js"></script>
+  <script src="/wepProject_war_exploded/js/profile.js"></script>
 </body>
 </html>
