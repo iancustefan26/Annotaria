@@ -1,305 +1,104 @@
-/* Post Media Styles */
-.post-media video {
-    width: 100%;
-    max-height: 400px;
-    object-fit: cover;
-    border-radius: 0.5rem;
-}
+<%--
+  Created by IntelliJ IDEA.
+  User: tud
+  Date: 5/18/25
+  Time: 12:47 PM
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link rel="stylesheet" href="/wepProject_war_exploded/css/feed.css">
+    <link rel="stylesheet" href="/wepProject_war_exploded/css/post.css">
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+<% if (session.getAttribute("userId") == null) {
+    response.sendRedirect("login.jsp");
+    return;
+} %>
 
-.post-media img {
-    width: 100%;
-    max-height: 400px;
-    object-fit: cover;
-    border-radius: 0.5rem;
-}
+<div class="container mx-auto px-4 py-8">
+    <div class="fixed-filter-container">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="flex justify-between items-center">
+                <div class="relative">
+                    <button id="exportStatisticsBtn" class="flex items-center gap-2">
+                        <i class="fas fa-download"></i>
+                        <span>Export Stats</span>
+                    </button>
+                    <div id="exportDropdown" class="hidden absolute top-full mt-2 left-0 z-20">
+                        <a href="#" id="exportCsv" class="block">
+                            <i class="fas fa-file-csv mr-2"></i>CSV
+                        </a>
+                        <a href="#" id="exportSvg" class="block">
+                            <i class="fas fa-file-image mr-2"></i>SVG
+                        </a>
+                    </div>
+                </div>
 
-.hidden {
-    display: none;
-}
+                <div class="relative flex-1 max-w-sm mx-4">
+                    <input id="userSearch" type="text" placeholder="Search users..." class="w-full">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2"></i>
+                </div>
 
-.container {
-    max-width: 1200px;
-}
+                <a href="/wepProject_war_exploded/profile" class="flex items-center gap-2">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </div>
+        </div>
+    </div>
 
-/* Fixed Header - Much More Compact */
-.fixed-filter-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    backdrop-filter: blur(10px);
-    z-index: 50;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    padding: 0.75rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
+    <!-- Left Sidebar: Filters -->
+    <div class="fixed left-0 w-48">
+        <div class="flex flex-col space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <select id="categoryFilter">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Year</label>
+                <select id="yearFilter">
+                    <option value="">All Years</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+                <select id="tagFilter">
+                    <option value="">All Tags</option>
+                </select>
+            </div>
+        </div>
+    </div>
 
-/* Compact Header Layout */
-.fixed-filter-container .max-w-4xl {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
+    <div class="ml-48 pt-16">
+        <div id="postsContainer" class="space-y-6 min-h-screen">
+            <c:if test="${empty posts}">
+                <div class="text-center py-12">
+                    <div class="bg-white rounded-xl shadow-sm p-8 max-w-md mx-auto">
+                        <i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500 text-lg">No posts available</p>
+                        <p class="text-gray-400 text-sm mt-2">Posts will appear here when they become available</p>
+                    </div>
+                </div>
+            </c:if>
+        </div>
+    </div>
+</div>
 
-/* Top row with export and profile */
-.fixed-filter-container .flex.justify-between {
-    align-items: center;
-    margin-bottom: 0.25rem;
-}
-
-/* Search bar styling */
-#userSearch {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 25px;
-    padding: 0.5rem 1rem 0.5rem 2.5rem;
-    font-size: 0.875rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-#userSearch:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 1);
-}
-
-/* Search icon */
-.fa-search {
-    color: #667eea !important;
-    left: 1rem !important;
-}
-
-/* Button Styles */
-#exportStatisticsBtn,
-.fixed-filter-container a {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-#exportStatisticsBtn:hover,
-.fixed-filter-container a:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-/* Export Dropdown */
-#exportDropdown {
-    background: white;
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-    min-width: 100px;
-}
-
-#exportDropdown a {
-    background: transparent;
-    color: #374151;
-    border: none;
-    border-radius: 0;
-    padding: 0.75rem 1rem;
-    margin: 0;
-    transition: background-color 0.2s ease;
-}
-
-#exportDropdown a:hover {
-    background: #f8fafc;
-    transform: none;
-    box-shadow: none;
-}
-
-/* Sidebar - Modern Glass Effect */
-.fixed.left-0 {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(15px);
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.05);
-    height: calc(100vh - 4rem);
-    overflow-y: auto;
-    top: 4rem;
-    padding: 1.5rem 1rem;
-}
-
-.fixed.left-0 select {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-    color: #374151;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.fixed.left-0 select:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.fixed.left-0 select {
-    background-image: url("data:image/svg+xml;utf8,<svg fill='none' stroke='%23667eea' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'></path></svg>");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1rem;
-    padding-right: 2.5rem;
-    appearance: none;
-}
-
-.ml-48 {
-    margin-left: 12rem;
-}
-
-.pt-16 {
-    padding-top: 4rem;
-}
-
-#postsContainer {
-    background: transparent;
-    padding: 1rem;
-}
-
-
-.select2-container {
-    width: 100% !important;
-}
-
-.select2-selection--single {
-    background: white !important;
-    border: 1px solid #e5e7eb !important;
-    border-radius: 12px !important;
-    height: 42px !important;
-    padding: 0 1rem !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
-    transition: all 0.3s ease !important;
-}
-
-.select2-selection--single:focus,
-.select2-container--default.select2-container--focus .select2-selection--single {
-    border-color: #667eea !important;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
-}
-
-.select2-selection__rendered {
-    color: #374151 !important;
-    line-height: 40px !important;
-    padding: 0 !important;
-}
-
-.select2-selection__arrow {
-    height: 40px !important;
-    right: 1rem !important;
-}
-
-@media (max-width: 768px) {
-    .fixed-filter-container {
-        padding: 0.5rem 0;
-    }
-
-    .fixed-filter-container .max-w-4xl {
-        padding: 0 1rem;
-        gap: 0.5rem;
-    }
-
-    .fixed-filter-container .flex.justify-between {
-        flex-direction: column;
-        gap: 0.5rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .fixed.left-0 {
-        position: static;
-        width: 100%;
-        height: auto;
-        padding: 1rem;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(15px);
-        border-radius: 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-    }
-
-    .fixed.left-0 .flex-col {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-    }
-
-    .fixed.left-0 select {
-        flex: 1;
-        min-width: 120px;
-        padding: 0.5rem 2rem 0.5rem 0.75rem;
-        font-size: 0.8125rem;
-    }
-
-    .ml-48 {
-        margin-left: 0;
-    }
-
-    .pt-16 {
-        padding-top: 8rem;
-    }
-
-    #exportStatisticsBtn,
-    .fixed-filter-container a {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.8125rem;
-    }
-
-    #userSearch {
-        width: 100%;
-        min-width: auto;
-    }
-}
-
-@media (max-width: 640px) {
-    .pt-16 {
-        padding-top: 9rem;
-    }
-
-    .fixed-filter-container .flex.justify-between {
-        align-items: stretch;
-    }
-
-    #exportStatisticsBtn,
-    .fixed-filter-container a {
-        flex: 1;
-        justify-content: center;
-        text-align: center;
-    }
-}
-
-html {
-    scroll-behavior: smooth;
-}
-
-.fixed.left-0::-webkit-scrollbar {
-    width: 4px;
-}
-
-.fixed.left-0::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.fixed.left-0::-webkit-scrollbar-thumb {
-    background: rgba(102, 126, 234, 0.3);
-    border-radius: 2px;
-}
-
-.fixed.left-0::-webkit-scrollbar-thumb:hover {
-    background: rgba(102, 126, 234, 0.5);
-}
+<script src="/wepProject_war_exploded/js/social.js"></script>
+<script src="/wepProject_war_exploded/js/feed.js"></script>
+</body>
+</html>
