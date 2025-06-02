@@ -1,3 +1,4 @@
+/* Reset and Base Styles */
 * {
     margin: 0;
     padding: 0;
@@ -6,7 +7,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f3f4f6;
+    background: #e8e7f5; /* Pale lavender */
     color: #333;
 }
 
@@ -92,9 +93,6 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
 }
 
 .action-btn:hover {
@@ -117,7 +115,7 @@ body {
 
 .btn-group {
     display: flex;
-    gap: 1rem;
+    gap: 0.5rem;
     margin-bottom: 1.5rem;
 }
 
@@ -223,6 +221,7 @@ body {
     font-size: 0.9rem;
 }
 
+/* Form Styles */
 .modal-form {
     display: flex;
     flex-direction: column;
@@ -301,6 +300,7 @@ body {
     padding: 0.25rem 0.5rem;
 }
 
+/* Submit Button */
 .form-submit {
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
@@ -318,6 +318,7 @@ body {
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
+/* Responsive Design */
 @media (max-width: 768px) {
     .profile-header {
         flex-direction: column;
@@ -332,7 +333,7 @@ body {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     }
     .btn-group {
-        flex-direction: column;
+        flex-wrap: wrap;
         gap: 0.5rem;
     }
     .modal-content {
