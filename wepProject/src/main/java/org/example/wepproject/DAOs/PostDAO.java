@@ -300,6 +300,21 @@ public class PostDAO extends AbstractDAO<Post, Long> {
         }
     }
 
+    public int existsSavePostsByUserId(Long userId) {
+        String query = "SELECT COUNT(*) AS count FROM saved_posts WHERE user_id = ?";
+        try(Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(query)){
+            stmt.setLong(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("count");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return 0;
+    }
+
     public void unsavePost(Long userId, Long postId) throws SQLException {
         String query = "DELETE FROM saved_posts WHERE user_id = ? AND post_id = ?";
         try (Connection conn = getConnection();

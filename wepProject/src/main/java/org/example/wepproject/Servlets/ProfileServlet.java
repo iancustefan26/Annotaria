@@ -131,6 +131,7 @@ public class ProfileServlet extends HttpServlet {
 
             req.setAttribute("posts", postDTOs);
             req.setAttribute("postCount", postCount);
+            req.setAttribute("savedPostCount", postDAO.existsSavePostsByUserId(profileUserId) > 0 ? true : false) ;
             req.setAttribute("isOwnProfile", isOwnProfile);
             req.setAttribute("categories", categoryDAOs);
             req.setAttribute("saved", saved == 1 ? true : false);
@@ -153,11 +154,3 @@ public class ProfileServlet extends HttpServlet {
     }
 
 }
-
-/* TODO :
-    1. MAKE THE SAVED PHOTOS BUTTON TO WORK - DONE
-    2. ADD SAVE BUTTON IN EVERY POST AND BUILD A SERVLET THAT HANDLES THE FUNCTIONALITY - DONE
-    3. ADD BUTTON FOR IMPORT AND EXPORT THE SAVED PHOTOS IN JSON AND XML -> DONE
-    4. RESOLVE FOR THE POSTS AND CATEGORY TO APPEAR THE ACTUAL NAMES NOT IDS
-    5. LOOK INTO CSV/SVG FORMATING FOR STATISTICS
-* */

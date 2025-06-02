@@ -52,7 +52,7 @@
             <a href="/wepProject_war_exploded/profile" class="text-blue-600 hover:underline">My Profile</a>
           </c:if>
           <c:if test="${isOwnProfile && saved}">
-            <a href="/wepProject_war_exploded/profile" class="text-blue-600 hover:underline">My Profile</a>
+            <a href="/wepProject_war_exploded/profile" class="text-blue-600 hover:underline"> | My Profile</a>
           </c:if>
         </div>
       </div>
@@ -64,7 +64,7 @@
     <div class="btn-group flex space-x-2 mb-6">
       <button id="newPostBtn" class="action-btn">New Post</button>
       <button id="deleteProfileBtn" class="action-btn delete-btn">Delete Profile</button>
-      <c:if test="${posts.size() > 0}">
+      <c:if test="${savedPostCount}">
         <button id="savedPostsBtn" class="action-btn saved-btn">Saved Posts</button>
       </c:if>
     </div>
