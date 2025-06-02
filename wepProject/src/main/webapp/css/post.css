@@ -1,0 +1,186 @@
+/* Reset and Base Styles */
+/* Post Page Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+/* Post Card Enhancements */
+.bg-white {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Post Media Container */
+.post-media {
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 0 16px;
+}
+
+.post-media img,
+.post-media video {
+    border-radius: 8px;
+    transition: transform 0.2s ease;
+}
+
+.post-media img:hover {
+    transform: scale(1.02);
+}
+
+/* Button Styles */
+.likeButton:hover i,
+.commentButton:hover i,
+.saveButton:hover i {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+.likeButton i.fas {
+    color: #e91e63 !important;
+    animation: heartBeat 0.6s ease-in-out;
+}
+
+@keyframes heartBeat {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.saveButton i.fas {
+    color: #ffc107;
+}
+
+/* Comments Section */
+.commentsContainer {
+    border-radius: 8px;
+    background: rgba(249, 250, 251, 0.8);
+    padding: 12px;
+    margin-top: 12px;
+}
+
+.commentsContainer::-webkit-scrollbar {
+    width: 6px;
+}
+
+.commentsContainer::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.commentsContainer::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+}
+
+.commentsContainer::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Comment Input */
+.commentInput {
+    background: rgba(249, 250, 251, 0.8);
+    border-radius: 20px;
+    padding: 8px 16px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.commentInput:focus {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+/* Submit Comment Button */
+.submitComment {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.submitComment:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Navigation Buttons */
+a {
+    text-decoration: none;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Delete Button */
+#deleteButton {
+    transition: all 0.2s ease;
+    padding: 4px;
+    border-radius: 50%;
+}
+
+#deleteButton:hover {
+    background: rgba(239, 68, 68, 0.1);
+    transform: scale(1.1);
+}
+
+/* Error Messages */
+.text-red-500 {
+    background: rgba(239, 68, 68, 0.1);
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 4px solid #ef4444;
+    margin-bottom: 16px;
+}
+
+/* Like Count Animation */
+.likesNumber {
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.likesNumber.updated {
+    transform: scale(1.2);
+    color: #e91e63;
+}
+
+/* Post Header */
+.border-b {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Media Placeholder */
+.bg-gray-200 {
+    background: linear-gradient(45deg, #f3f4f6, #e5e7eb) !important;
+    border-radius: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    .container {
+        padding: 16px 8px;
+    }
+
+    .max-w-xl {
+        max-width: 100%;
+        margin: 0 8px;
+    }
+
+    .post-media {
+        margin: 0 8px;
+    }
+}
