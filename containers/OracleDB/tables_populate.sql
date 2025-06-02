@@ -63,7 +63,7 @@ BEGIN
       l_blob,                              -- media_blob
       NULL,                                -- external_media_url
       'image',                             -- media_type
-      2025,                                -- creation_year
+      2000 + i / 2,                                -- creation_year
       DEFAULT,                             -- date_posted
       'Photo post #' || i,                 -- description
       DEFAULT,                             -- likes_count
@@ -83,7 +83,7 @@ BEGIN
       l_blob,                              -- media_blob
       NULL,                                -- external_media_url
       'video',                             -- media_type
-      2025,                                -- creation_year
+      2000 + i / 2,                                -- creation_year
       DEFAULT,                             -- date_posted
       'Video post #' || i,                 -- description
       DEFAULT,                             -- likes_count
