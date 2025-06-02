@@ -25,7 +25,7 @@ public class PostDAO extends AbstractDAO<Post, Long> {
     private static final String CALL_GET_BY_ID = "{ ? = call get_post_by_id(?) }";
     private static final String CALL_GET_BY_CATEGORY_ID = "{ ? = call get_post_by_category_id(?) }";
     private static final String CALL_GET_BY_USER_ID = "{ ? = call get_post_by_user_id(?) }";
-    private static final String DELETE_BY_ID_QUERY = "DELETE FROM POST WHERE id = ?";
+    private static final String DELETE_BY_ID_QUERY = "DELETE FROM POSTS_VIEW WHERE id = ?";
     private static final String CALL_GET_SAVED_POSTS_BY_USER_ID = "{ ? = call get_saved_posts_by_user_id(?) }";
     private static final String IS_SAVED_POST_BY_USER_ID = "SELECT COUNT(*) FROM saved_posts WHERE user_id = ? AND post_id = ?";
 

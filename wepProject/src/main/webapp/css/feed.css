@@ -85,3 +85,7 @@ select {
     display: flex;
     align-items: center;
 }
+
+#exportDropdown {
+    min-width: 100px;
+}
