@@ -15,16 +15,45 @@ function handleFormSubmit(formId, url, redirectUrl, includeEmail = false) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
-            const result = await response.json();
 
-            if (result.status === "success") {
-                messageDiv.innerHTML = `<p class="text-green">${result.message}</p>`;
-                window.location.href = redirectUrl;
+            console.log('Response status:', response.status); // Debug log
+
+            // Check if response is OK (200-299)
+            if (response.ok) {
+                const result = await response.json();
+                console.log('Response data:', result); // Debug log
+
+                if (result.status === "success") {
+                    messageDiv.className = "message success-message";
+                    messageDiv.innerHTML = `<i class="fas fa-check-circle"></i><span>${result.message}</span>`;
+                    messageDiv.style.display = 'flex';
+                    window.location.href = redirectUrl;
+                } else {
+                    messageDiv.className = "message error-message";
+                    messageDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>${result.message}</span>`;
+                    messageDiv.style.display = 'flex';
+                }
             } else {
-                messageDiv.innerHTML = `<p class="text-red">${result.message}</p>`;
+                // Handle HTTP error status codes (400, 401, 500, etc.)
+                try {
+                    const errorResult = await response.json();
+                    console.log('Error response:', errorResult); // Debug log
+                    messageDiv.className = "message error-message";
+                    messageDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>${errorResult.message || 'Server error occurred'}</span>`;
+                    messageDiv.style.display = 'flex';
+                } catch (jsonError) {
+                    console.error('Failed to parse error response:', jsonError);
+                    messageDiv.className = "message error-message";
+                    messageDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>Server error (${response.status})</span>`;
+                    messageDiv.style.display = 'flex';
+                }
+                messageDiv.style.display = 'block';
             }
         } catch (error) {
-            messageDiv.innerHTML = `<p class="text-red">Network error, please try again</p>`;
+            console.error('Network error:', error); // Debug log
+            messageDiv.className = "message error-message";
+            messageDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>Network error, please try again</span>`;
+            messageDiv.style.display = 'flex';
         }
     });
 }

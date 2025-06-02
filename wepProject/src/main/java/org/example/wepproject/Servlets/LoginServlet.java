@@ -3,23 +3,15 @@ package org.example.wepproject.Servlets;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-
-
 import jakarta.servlet.ServletException;
-import org.example.wepproject.DAOs.MatrixDAO;
 import org.example.wepproject.DAOs.UserDAO;
 import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.LoginDTO;
-import org.example.wepproject.Helpers.PageRank.MatrixConvertor;
-import org.example.wepproject.Helpers.PageRank.PageRanker;
-import org.example.wepproject.Models.MatrixCell;
 import org.example.wepproject.Models.User;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
 
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
@@ -34,67 +26,93 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        MatrixDAO matrix = new MatrixDAO();
-//        try {
-//            var m = MatrixConvertor.toMatrix(matrix.getMatrixFromFunction(
-//                    2L, // user_id
-//                    3, // best_friends
-//                    2, // random_friends
-//                    null, // category_id
-//                    null, // creation year
-//                    null // named_tag_id
-//                    ));
-//            var mWithCategoryFilter= MatrixConvertor.toMatrix(matrix.getMatrixFromFunction(2L, 3, 2, 1, null, null));
-//            var alg = new PageRanker(m);
-//            var algCategoryFilter = new PageRanker(mWithCategoryFilter);
-//            System.out.println("Without category filter: " + Arrays.toString(alg.runAndGetRankedPostIds()));
-//            System.out.println("With category filter: " + Arrays.toString(algCategoryFilter.runAndGetRankedPostIds()));
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e);
-//        }
         req.getRequestDispatcher("/login.jsp").forward(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
 
-        try{
+        try {
+            // Read and parse the JSON request
             LoginDTO loginDTO = objectMapper.readValue(req.getReader(), LoginDTO.class);
             String username = loginDTO.getUsername();
             String password = loginDTO.getPassword();
 
-            if (username == null || password == null || username.isEmpty() || password.isEmpty()) {
+            System.out.println("Login attempt for username: " + username); // Debug log
+
+            // Validate input
+            if (username == null || password == null || username.trim().isEmpty() || password.trim().isEmpty()) {
+                System.out.println("Invalid input - empty username or password"); // Debug log
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Username and password requiered"));
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Username and password required"));
                 return;
             }
 
-            User user = userDAO.findByUsername(username);
+            // Find user by username
+            User user = null;
+            user = userDAO.findByUsername(username.trim());
+            System.out.println("User found: " + (user != null ? "Yes" : "No")); // Debug log
 
+            // Check credentials
+            if (user != null && user.getPassword() != null) {
+                try {
+                    boolean passwordMatch = BCrypt.checkpw(password, user.getPassword());
+                    System.out.println("Password match: " + passwordMatch); // Debug log
 
-            if (user != null && BCrypt.checkpw(password, user.getPassword())) {
-                // create session
-                HttpSession session = req.getSession(true);
-                session.setAttribute("userId", user.getId());
-                session.setAttribute("username", user.getUsername());
-                // create session cookie
-                Cookie sessionCookie = new Cookie("JSESSIONID", session.getId());
-                sessionCookie.setHttpOnly(true);
-                sessionCookie.setSecure(req.isSecure());
-                sessionCookie.setPath(req.getContextPath());
-                resp.addCookie(sessionCookie);
+                    if (passwordMatch) {
+                        // Create session
+                        HttpSession session = req.getSession(true);
+                        session.setAttribute("userId", user.getId());
+                        session.setAttribute("username", user.getUsername());
 
-                objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Login successful"));
+                        // Create session cookie
+                        Cookie sessionCookie = new Cookie("JSESSIONID", session.getId());
+                        sessionCookie.setHttpOnly(true);
+                        sessionCookie.setSecure(req.isSecure());
+                        sessionCookie.setPath(req.getContextPath());
+                        resp.addCookie(sessionCookie);
 
+                        System.out.println("Login successful for user: " + username); // Debug log
+                        resp.setStatus(HttpServletResponse.SC_OK);
+                        objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Login successful"));
+                    } else {
+                        System.out.println("Invalid password for user: " + username); // Debug log
+                        resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid username or password"));
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error during password verification: " + e.getMessage());
+                    e.printStackTrace();
+                    resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Authentication error occurred"));
+                }
             } else {
+                System.out.println("User not found or password is null for username: " + username); // Debug log
                 resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid username or password"));
             }
-        } catch (Exception e) {
+
+        } catch (com.fasterxml.jackson.core.JsonParseException e) {
+            System.err.println("JSON parsing error: " + e.getMessage());
+            e.printStackTrace();
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid JSON format"));
+        } catch (IOException e) {
+            System.err.println("IO error: " + e.getMessage());
+            e.printStackTrace();
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", e.getMessage()));
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Server error occurred"));
+        } catch (Exception e) {
+            System.err.println("Unexpected error in login: " + e.getMessage());
+            e.printStackTrace();
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            try {
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "An unexpected error occurred"));
+            } catch (IOException ioException) {
+                System.err.println("Failed to write error response: " + ioException.getMessage());
+            }
         }
     }
-
 }
