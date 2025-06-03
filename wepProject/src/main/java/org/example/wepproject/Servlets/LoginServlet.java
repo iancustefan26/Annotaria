@@ -38,66 +38,44 @@ public class LoginServlet extends HttpServlet {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("csrfToken") == null) {
-            resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "CSRF token missing in session"));
-            return;
-        }
-
-        String sessionToken = (String) session.getAttribute("csrfToken");
-
         try {
-            // Read and parse the JSON request
             LoginDTO loginDTO = objectMapper.readValue(req.getReader(), LoginDTO.class);
             String username = loginDTO.getUsername();
             String password = loginDTO.getPassword();
-            String requestToken = loginDTO.getCsrfToken(); // Get CSRF token from JSON body
 
-            // Validate CSRF token
-            if (requestToken == null || !sessionToken.equals(requestToken)) {
-                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid CSRF token"));
-                return;
-            }
+            System.out.println("Login attempt for username: " + username);
 
-            System.out.println("Login attempt for username: " + username); // Debug log
-
-            // Validate input
             if (username == null || password == null || username.trim().isEmpty() || password.trim().isEmpty()) {
-                System.out.println("Invalid input - empty username or password"); // Debug log
+                System.out.println("Invalid input - empty username or password");
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Username and password required"));
                 return;
             }
 
-            // Find user by username
-            User user = null;
-            user = userDAO.findByUsername(username.trim());
-            System.out.println("User found: " + (user != null ? "Yes" : "No")); // Debug log
+            User user = userDAO.findByUsername(username.trim());
+            System.out.println("User found: " + (user != null ? "Yes" : "No"));
 
-            // Check credentials
             if (user != null && user.getPassword() != null) {
                 try {
                     boolean passwordMatch = BCrypt.checkpw(password, user.getPassword());
-                    System.out.println("Password match: " + passwordMatch); // Debug log
+                    System.out.println("Password match: " + passwordMatch);
 
                     if (passwordMatch) {
+                        HttpSession session = req.getSession(true);
                         session.setAttribute("userId", user.getId());
                         session.setAttribute("username", user.getUsername());
 
-                        // Create session cookie
                         Cookie sessionCookie = new Cookie("JSESSIONID", session.getId());
                         sessionCookie.setHttpOnly(true);
                         sessionCookie.setSecure(req.isSecure());
                         sessionCookie.setPath(req.getContextPath());
                         resp.addCookie(sessionCookie);
 
-                        System.out.println("Login successful for user: " + username); // Debug log
+                        System.out.println("Login successful for user: " + username);
                         resp.setStatus(HttpServletResponse.SC_OK);
                         objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Login successful"));
                     } else {
-                        System.out.println("Invalid password for user: " + username); // Debug log
+                        System.out.println("Invalid password for user: " + username);
                         resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                         objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid username or password"));
                     }
@@ -108,21 +86,11 @@ public class LoginServlet extends HttpServlet {
                     objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Authentication error occurred"));
                 }
             } else {
-                System.out.println("User not found or password is null for username: " + username); // Debug log
+                System.out.println("User not found or password is null for username: " + username);
                 resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid username or password"));
             }
 
-        } catch (com.fasterxml.jackson.core.JsonParseException e) {
-            System.err.println("JSON parsing error: " + e.getMessage());
-            e.printStackTrace();
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid JSON format"));
-        } catch (IOException e) {
-            System.err.println("IO error: " + e.getMessage());
-            e.printStackTrace();
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Server error occurred"));
         } catch (Exception e) {
             System.err.println("Unexpected error in login: " + e.getMessage());
             e.printStackTrace();

@@ -26,7 +26,7 @@ public class SignupServlet extends HttpServlet {
         objectMapper = new ObjectMapper();
     }
 
-    @Override
+     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(true);
         String csrfToken = UUID.randomUUID().toString();
@@ -35,40 +35,20 @@ public class SignupServlet extends HttpServlet {
         req.getRequestDispatcher("/signup.jsp").forward(req, resp);
     }
 
-
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
-
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("csrfToken") == null) {
-            resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "CSRF token missing in session"));
-            return;
-        }
-
-        String sessionToken = (String) session.getAttribute("csrfToken");
-
         try{
             SignupDTO signupDTO = objectMapper.readValue(req.getReader(), SignupDTO.class);
             String username = signupDTO.getUsername();
             String password = signupDTO.getPassword();
             String email = signupDTO.getEmail();
-            String requestToken = signupDTO.getCsrfToken();
-
-            if (requestToken == null || !sessionToken.equals(requestToken)) {
-                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid CSRF token"));
-                return;
-            }
-
             if (username == null || password == null || email == null ||
                 username.isEmpty() || password.isEmpty() || email.isEmpty()) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Username and password are required"));
                 return;
             }
-            // check username
             try{
                 userDAO.findByUsername(username);
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
