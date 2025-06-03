@@ -17,7 +17,7 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-  <link rel="stylesheet" href="/wepProject_war_exploded/css/profile.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/profile.css">
 </head>
 <body>
 <% if (session.getAttribute("userId") == null) {
@@ -53,15 +53,15 @@
           </c:otherwise>
         </c:choose>
         <div class="mt-2 profile-links">
-          <a href="/wepProject_war_exploded/feed" class="text-blue-600 hover:underline">Feed</a> |
+          <a href="${pageContext.request.contextPath}/feed" class="text-blue-600 hover:underline">Feed</a> |
           <c:if test="${isOwnProfile}">
-            <a href="/wepProject_war_exploded/logout" class="text-blue-600 hover:underline">Logout</a>
+            <a href="${pageContext.request.contextPath}/logout" class="text-blue-600 hover:underline">Logout</a>
           </c:if>
           <c:if test="${!isOwnProfile}">
-            <a href="/wepProject_war_exploded/profile" class="text-blue-600 hover:underline">My Profile</a>
+            <a href="${pageContext.request.contextPath}/profile" class="text-blue-600 hover:underline">My Profile</a>
           </c:if>
           <c:if test="${isOwnProfile && saved}">
-            <a href="/wepProject_war_exploded/profile" class="text-blue-600 hover:underline"> | My Profile</a>
+            <a href="${pageContext.request.contextPath}/profile" class="text-blue-600 hover:underline"> | My Profile</a>
           </c:if>
         </div>
       </div>
@@ -91,7 +91,7 @@
         <span class="close-modal">×</span>
         <h2 class="text-xl font-bold mb-4">Import Saved Posts</h2>
         <div id="importMessage" class="modal-message"></div>
-        <form id="importForm" class="modal-form" action="/wepProject_war_exploded/import-saved-posts" enctype="multipart/form-data" method="post">
+        <form id="importForm" class="modal-form" action="${pageContext.request.contextPath}/import-saved-posts" enctype="multipart/form-data" method="post">
           <div class="form-group">
             <label for="importFile">Select JSON or XML File</label>
             <input type="file" id="importFile" name="importFile" accept=".json,.xml" required>
@@ -133,7 +133,7 @@
   <div class="post-grid mt-6">
     <c:forEach var="post" items="${posts}">
       <div class="post-item">
-        <a href="/wepProject_war_exploded/post?id=${post.id}">
+        <a href="${pageContext.request.contextPath}/post?id=${post.id}">
           <c:choose>
             <c:when test="${post.mediaType == 'video'}">
               <video class="w-full h-[150px] object-cover">
@@ -159,7 +159,7 @@
         <span class="close-modal">×</span>
         <h2 class="text-xl font-bold mb-4">Create Post</h2>
         <div id="postMessage" class="modal-message"></div>
-        <form id="postForm" class="modal-form" action="/wepProject_war_exploded/post" enctype="multipart/form-data" method="post">
+        <form id="postForm" class="modal-form" action="${pageContext.request.contextPath}/post" enctype="multipart/form-data" method="post">
           <div class="form-group">
             <label for="contentFile">Image or Video</label>
             <input type="file" id="contentFile" name="contentFile" accept="image/*,video/mp4,video/quicktime" required>
@@ -196,7 +196,7 @@
   </c:if>
 </div>
 
-<script src="/wepProject_war_exploded/js/profile.js"></script>
+<script src="${pageContext.request.contextPath}/js/profile.js"></script>
 </body>
 </html>
 

@@ -15,7 +15,7 @@ async function toggleLike(postId, container) {
     };
 
     try {
-        const response = await fetch('/wepProject_war_exploded/like', {
+        const response = await fetch('/like', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -29,7 +29,7 @@ async function toggleLike(postId, container) {
         if (!response.ok) {
             if (response.status === 401) {
                 alert('Please log in to like posts');
-                window.location.href = '/wepProject_war_exploded/login.jsp';
+                window.location.href = '/login.jsp';
                 return;
             }
             throw new Error(data?.message || 'Error processing like');
@@ -65,7 +65,7 @@ async function toggleSave(postId, container) {
     };
 
     try {
-        const response = await fetch('/wepProject_war_exploded/save', {
+        const response = await fetch('/save', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ async function toggleSave(postId, container) {
         if (!response.ok) {
             if (response.status === 401) {
                 alert('Please log in to save posts');
-                window.location.href = '/wepProject_war_exploded/login.jsp';
+                window.location.href = '/login.jsp';
                 return;
             }
             throw new Error(data?.message || 'Error processing save');
@@ -110,7 +110,7 @@ async function submitComment(postId, commentInput, commentsContainer, commentCou
     console.log('Submitting comment:', requestBody);
 
     try {
-        const response = await fetch('/wepProject_war_exploded/comment', {
+        const response = await fetch('/comment', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ async function submitComment(postId, commentInput, commentsContainer, commentCou
         if (!response.ok) {
             if (response.status === 401) {
                 alert('Please log in to comment');
-                window.location.href = '/wepProject_war_exploded/login.jsp';
+                window.location.href = '/login.jsp';
                 return;
             }
             throw new Error(data?.message || 'Error posting comment');
@@ -146,7 +146,7 @@ async function submitComment(postId, commentInput, commentsContainer, commentCou
 
 async function loadComments(postId, commentsContainer, commentCountElement) {
     try {
-        const response = await fetch(`/wepProject_war_exploded/comment?postId=${postId}`, {
+        const response = await fetch(`/comment?postId=${postId}`, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json'
@@ -246,7 +246,7 @@ function setupCommentDeletion(container) {
         }
 
         try {
-            const response = await fetch(`/wepProject_war_exploded/comment?id=${commentId}`, {
+            const response = await fetch(`/comment?id=${commentId}`, {
                 method: 'DELETE',
                 headers: {
                     'Accept': 'application/json'
@@ -258,7 +258,7 @@ function setupCommentDeletion(container) {
             if (!response.ok) {
                 if (response.status === 401) {
                     alert('Please log in to delete this comment');
-                    window.location.href = '/wepProject_war_exploded/login.jsp';
+                    window.location.href = '/login.jsp';
                     return;
                 }
                 throw new Error(data?.message || 'Error deleting comment');

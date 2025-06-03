@@ -41,7 +41,7 @@ $(document).ready(function() {
 
     async function loadNamedTags() {
         try {
-            const response = await fetch('/wepProject_war_exploded/namedTags', {
+            const response = await fetch('/namedTags', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' }
             });
@@ -67,7 +67,7 @@ $(document).ready(function() {
 
     async function loadUsers() {
         try {
-            const response = await fetch('/wepProject_war_exploded/users', {
+            const response = await fetch('/users', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' }
             });
@@ -96,7 +96,7 @@ $(document).ready(function() {
         console.log("Saved Posts button found, attaching event listener");
         savedPostsBtn.on("click", function(event) {
             event.preventDefault();
-            window.location.href = "/wepProject_war_exploded/profile?saved=1";
+            window.location.href = "/profile?saved=1";
         });
     } else {
         console.error("Saved Posts button not found in DOM");
@@ -148,7 +148,7 @@ $(document).ready(function() {
             }
 
             try {
-                const response = await fetch("/wepProject_war_exploded/import-saved-posts", {
+                const response = await fetch("/import-saved-posts", {
                     method: "POST",
                     body: formData
                 });
@@ -160,7 +160,7 @@ $(document).ready(function() {
 
                 if (result.status === "success") {
                     setTimeout(() => {
-                        window.location.href = "/wepProject_war_exploded/profile?saved=1";
+                        window.location.href = "/profile?saved=1";
                     }, 1500);
                 } else {
                     submitButton.text(originalButtonText).prop("disabled", false);
@@ -208,7 +208,7 @@ $(document).ready(function() {
         exportJsonBtn.on("click", async function() {
             console.log("Exporting saved posts as JSON");
             try {
-                const response = await fetch('/wepProject_war_exploded/export-saved-posts?format=json', {
+                const response = await fetch('/export-saved-posts?format=json', {
                     method: 'GET'
                 });
 
@@ -240,7 +240,7 @@ $(document).ready(function() {
         exportXmlBtn.on("click", async function() {
             console.log("Exporting saved posts as XML");
             try {
-                const response = await fetch('/wepProject_war_exploded/export-saved-posts?format=xml', {
+                const response = await fetch('/export-saved-posts?format=xml', {
                     method: 'GET'
                 });
 
@@ -295,7 +295,7 @@ $(document).ready(function() {
             console.log('Confirmed deletion');
 
             try {
-                const response = await fetch('/wepProject_war_exploded/profile', {
+                const response = await fetch('/profile', {
                     method: 'DELETE',
                     headers: { 'Accept': 'application/json' }
                 });
@@ -306,7 +306,7 @@ $(document).ready(function() {
                 if (!response.ok) {
                     if (response.status === 401) {
                         alert('Please log in to delete your profile');
-                        window.location.href = '/wepProject_war_exploded/login.jsp';
+                        window.location.href = '/login.jsp';
                         return;
                     }
                     throw new Error(data?.message || 'Error deleting profile');
@@ -314,7 +314,7 @@ $(document).ready(function() {
 
                 if (data.status === 'success') {
                     alert('Profile deleted successfully.');
-                    window.location.href = '/wepProject_war_exploded/login';
+                    window.location.href = '/login';
                 } else {
                     alert(data.message || 'Error deleting profile');
                 }
@@ -417,7 +417,7 @@ $(document).ready(function() {
                 "userTaggedIds:", formData.getAll("userTaggedIds[]"));
 
             try {
-                const response = await fetch("/wepProject_war_exploded/import", {
+                const response = await fetch("/import", {
                     method: "POST",
                     body: formData
                 });
@@ -430,7 +430,7 @@ $(document).ready(function() {
                 if (result.status === "success") {
                     console.log("Post created successfully, reloading in 1.5s");
                     setTimeout(() => {
-                        window.location.href = "/wepProject_war_exploded/profile";
+                        window.location.href = "/profile";
                     }, 1500);
                 } else {
                     submitButton.text(originalButtonText).prop("disabled", false);
@@ -445,7 +445,7 @@ $(document).ready(function() {
 
     async function loadPosts() {
         try {
-            const response = await fetch("/wepProject_war_exploded/profile", {
+            const response = await fetch("/profile", {
                 method: "GET",
                 headers: { "X-Requested-With": "XMLHttpRequest" }
             });
