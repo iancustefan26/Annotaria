@@ -55,31 +55,40 @@ $(document).ready(function() {
         this.style.height = (this.scrollHeight) + 'px';
     });
 
-    $('#deleteButton').on('click', function() {
+    $('#deleteButton').on('click', async function() {
         if (!confirm('Are you sure you want to delete this post?')) {
             return;
         }
 
-        $.ajax({
-            url: `/wepProject_war_exploded/post?id=${postId}`,
-            type: 'DELETE',
-            headers: { 'Accept': 'application/json' },
-            success: function(response) {
-                if (response.status === 'success') {
-                    alert('Post deleted successfully');
-                    window.location.href = '/wepProject_war_exploded/profile';
+        try {
+            const response = await fetch(`/wepProject_war_exploded/post?id=${postId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json'
                 }
-            },
-            error: function(xhr) {
-                const response = xhr.responseJSON;
-                if (xhr.status === 401) {
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 401) {
                     alert('Please log in to delete this post');
                     window.location.href = '/wepProject_war_exploded/login.jsp';
-                } else {
-                    alert(response?.message || 'Error deleting post');
+                    return;
                 }
+                throw new Error(data?.message || 'Error deleting post');
             }
-        });
+
+            if (data.status === 'success') {
+                alert('Post deleted successfully');
+                window.location.href = '/wepProject_war_exploded/profile';
+            } else {
+                alert(data.message || 'Error deleting post');
+            }
+        } catch (error) {
+            console.error('Delete post error:', error);
+            alert(error.message || 'Error deleting post');
+        }
     });
 
     $('.avatar-placeholder').attr('data-initials', initials);

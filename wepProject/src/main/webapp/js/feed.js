@@ -46,25 +46,26 @@ $(document).ready(function() {
 
   // == Filter Population Functions ==
   // Load categories into dropdown
-  function loadCategories() {
-    $.ajax({
-      url: '/wepProject_war_exploded/categories',
-      type: 'GET',
-      headers: { 'Accept': 'application/json' },
-      success: function(response) {
-        if (response.status === 'success') {
-          const categorySelect = $('#categoryFilter');
-          categorySelect.empty();
-          categorySelect.append('<option value="">All Categories</option>');
-          for (const [id, name] of Object.entries(response.data.categoryMap)) {
-            categorySelect.append(`<option value="${id}">${name}</option>`);
-          }
+  async function loadCategories() {
+    try {
+      const response = await fetch('/wepProject_war_exploded/categories', {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        const categorySelect = $('#categoryFilter');
+        categorySelect.empty();
+        categorySelect.append('<option value="">All Categories</option>');
+        for (const [id, name] of Object.entries(data.data.categoryMap)) {
+          categorySelect.append(`<option value="${id}">${name}</option>`);
         }
-      },
-      error: function(xhr) {
-        console.error('Failed to load categories:', xhr.responseJSON?.message || 'Server error');
       }
-    });
+    } catch (error) {
+      console.error('Failed to load categories:', error.message || 'Server error');
+    }
   }
 
   // Load years into dropdown (2000 to current year)
@@ -79,29 +80,30 @@ $(document).ready(function() {
   }
 
   // Load tags into dropdown
-  function loadTags() {
-    $.ajax({
-      url: '/wepProject_war_exploded/namedTags',
-      type: 'GET',
-      headers: { 'Accept': 'application/json' },
-      success: function(response) {
-        if (response.status === 'success') {
-          const tagSelect = $('#tagFilter');
-          tagSelect.empty();
-          tagSelect.append('<option value="">All Tags</option>');
-          for (const [id, name] of Object.entries(response.data.namedTagMap)) {
-            tagSelect.append(`<option value="${id}">${name}</option>`);
-          }
+  async function loadTags() {
+    try {
+      const response = await fetch('/wepProject_war_exploded/namedTags', {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        const tagSelect = $('#tagFilter');
+        tagSelect.empty();
+        tagSelect.append('<option value="">All Tags</option>');
+        for (const [id, name] of Object.entries(data.data.namedTagMap)) {
+          tagSelect.append(`<option value="${id}">${name}</option>`);
         }
-      },
-      error: function(xhr) {
-        console.error('Failed to load tags:', xhr.responseJSON?.message || 'Server error');
       }
-    });
+    } catch (error) {
+      console.error('Failed to load tags:', error.message || 'Server error');
+    }
   }
 
   // == Post Loading ==
-  function loadPosts() {
+  async function loadPosts() {
     // Build query parameters
     const categoryId = $('#categoryFilter').val();
     const creationYear = $('#yearFilter').val();
@@ -115,40 +117,42 @@ $(document).ready(function() {
 
     console.log('Loading posts with URL:', url);
 
-    // Fetch posts
-    $.ajax({
-      url: url,
-      type: 'GET',
-      headers: { 'Accept': 'application/json' },
-      success: function(response) {
-        console.log('AJAX response:', response);
-        if (response.status === 'success') {
-          const postsContainer = $('#postsContainer');
-          postsContainer.empty();
-          const posts = response.data?.posts || [];
-          const categoryMap = response.data?.categoryMap || {};
-          console.log('Received posts:', posts.length, posts);
-          console.log('Category map:', categoryMap);
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
 
-          if (posts.length === 0) {
-            postsContainer.append('<p class="text-gray-500 text-center">No posts available.</p>');
-            return;
-          }
+      const data = await response.json();
+      console.log('Fetch response:', data);
 
-          // Render posts
-          posts.forEach(post => {
-            console.log('Rendering post:', {
-              id: post.id,
-              mediaType: post.mediaType,
-              hasMediaBlob: !!post.mediaBlobBase64,
-              hasExternalUrl: !!post.externalMediaUrl
-            });
-            const categoryName = post.categoryId ? categoryMap[post.categoryId] || 'Unknown category' : null;
-            const isVideo = post.mediaType && post.mediaType === 'video';
-            const username = post.authorUsername || `User #${post.authorId}`;
-            const initials = username.slice(0, 2).toUpperCase();
+      if (response.ok && data.status === 'success') {
+        const postsContainer = $('#postsContainer');
+        postsContainer.empty();
+        const posts = data.data?.posts || [];
+        const categoryMap = data.data?.categoryMap || {};
+        console.log('Received posts:', posts.length, posts);
+        console.log('Category map:', categoryMap);
 
-            const postHtml = `
+        if (posts.length === 0) {
+          postsContainer.append('<p class="text-gray-500 text-center">No posts available.</p>');
+          return;
+        }
+
+        // Render posts
+        posts.forEach(post => {
+          console.log('Rendering post:', {
+            id: post.id,
+            mediaType: post.mediaType,
+            hasMediaBlob: !!post.mediaBlobBase64,
+            hasExternalUrl: !!post.externalMediaUrl
+          });
+          const categoryName = post.categoryId ? categoryMap[post.categoryId] || 'Unknown category' : null;
+          const isVideo = post.mediaType && post.mediaType === 'video';
+          const username = post.authorUsername || `User #${post.authorId}`;
+          const initials = username.slice(0, 2).toUpperCase();
+
+          const postHtml = `
     <div class="bg-white rounded-lg shadow-md max-w-xl mx-auto mb-8" data-post-id="${post.id}">
         <div class="flex items-center p-4 border-b">
             <div class="w-8 h-8 rounded-full avatar-placeholder mr-3" data-initials="${initials}"></div>
@@ -233,27 +237,23 @@ $(document).ready(function() {
         </div>
     </div>
 `;
-            postsContainer.append(postHtml);
-          });
+          postsContainer.append(postHtml);
+        });
 
-          // == Setup Event Handlers AFTER posts are added ==
-          setupEventHandlers(postsContainer);
+        // == Setup Event Handlers AFTER posts are added ==
+        setupEventHandlers(postsContainer);
 
-        } else {
-          $('#postsContainer').html(
-              '<p class="text-red-500 text-center">' + (response.message || 'Failed to load posts') + '</p>'
-          );
-        }
-      },
-      error: function(xhr) {
-        console.error('AJAX error:', xhr);
+      } else {
         $('#postsContainer').html(
-            '<p class="text-red-500 text-center">Failed to load posts: ' +
-            (xhr.responseJSON?.message || 'Server error') +
-            '</p>'
+            '<p class="text-red-500 text-center">' + (data.message || 'Failed to load posts') + '</p>'
         );
       }
-    });
+    } catch (error) {
+      console.error('Fetch error:', error);
+      $('#postsContainer').html(
+          '<p class="text-red-500 text-center">Failed to load posts: ' + error.message + '</p>'
+      );
+    }
   }
 
   // == Centralized Event Handler Setup ==
@@ -351,32 +351,37 @@ $(document).ready(function() {
     });
 
     // Delete post handler
-    container.on('click', '.deleteButton', function(e) {
+    container.on('click', '.deleteButton', async function(e) {
       e.preventDefault();
       const postId = $(this).data('post-id');
       if (postId && confirm('Are you sure you want to delete this post?')) {
-        $.ajax({
-          url: `/wepProject_war_exploded/post?id=${postId}`,
-          type: 'DELETE',
-          headers: { 'Accept': 'application/json' },
-          success: function(response) {
-            if (response.status === 'success') {
-              alert('Post deleted successfully');
-              loadPosts();
-            } else {
-              alert(response.message || 'Failed to delete post');
-            }
-          },
-          error: function(xhr) {
-            const response = xhr.responseJSON;
-            if (xhr.status === 401) {
+        try {
+          const response = await fetch(`/wepProject_war_exploded/post?id=${postId}`, {
+            method: 'DELETE',
+            headers: { 'Accept': 'application/json' }
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            if (response.status === 401) {
               alert('Please log in to delete this post');
               window.location.href = '/wepProject_war_exploded/login.jsp';
-            } else {
-              alert(response?.message || 'Error deleting post');
+              return;
             }
+            throw new Error(data?.message || 'Error deleting post');
           }
-        });
+
+          if (data.status === 'success') {
+            alert('Post deleted successfully');
+            loadPosts();
+          } else {
+            alert(data.message || 'Failed to delete post');
+          }
+        } catch (error) {
+          console.error('Delete post error:', error);
+          alert(error.message || 'Error deleting post');
+        }
       }
     });
 
