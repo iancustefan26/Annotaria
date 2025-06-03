@@ -22,103 +22,145 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/*
-TODO:
-    - SEARCH BAR TO WORK
-    - LEADERBOARD IN LOW LEFT
-    - PHONE
-    - SQL INJECTION FOR LOGIN
- */
+
+import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/feed")
 public class FeedServlet extends HttpServlet {
-    private ObjectMapper objectMapper = new ObjectMapper();
-    private PostDAO postDAO;
-    private CategoryDAO categoryDAO;
-    private static Map<Long, String> categoryNames;
-    private Map<String, Object> responseData;
-    private MatrixDAO matrixDAO;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private  PostDAO postDAO;
+    private  CategoryDAO categoryDAO;
+    private static final Map<Long, String> categoryNames = new HashMap<>();
+    private  MatrixDAO matrixDAO;
 
     @Override
     public void init() throws ServletException {
         postDAO = new PostDAO();
         categoryDAO = new CategoryDAO();
-        categoryNames = new HashMap<>();
         List<Category> categories = categoryDAO.findAll();
         for (Category category : categories) {
             categoryNames.put(category.getId(), category.getName());
         }
-        responseData = new HashMap<>();
         matrixDAO = new MatrixDAO();
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Long userId = (Long) req.getSession().getAttribute("userId");
+        HttpSession session = req.getSession();
+        Long userId = (Long) session.getAttribute("userId");
 
         if (userId == null) {
             resp.sendRedirect("login.jsp");
             return;
         }
 
+        // Initialize or retrieve fetched post IDs from session
+        @SuppressWarnings("unchecked")
+        Set<Long> fetchedPostIds = (Set<Long>) session.getAttribute("fetchedPostIds");
+        if (fetchedPostIds == null) {
+            fetchedPostIds = new HashSet<>();
+            session.setAttribute("fetchedPostIds", fetchedPostIds);
+        }
+
+        final Set<Long> finalFetchedPostIds = fetchedPostIds;
+
         List<Post> posts = new ArrayList<>();
+        Map<String, Object> responseData = new HashMap<>();
         System.out.println("FeedServlet: Request received - Accept: " + req.getHeader("Accept") +
                 ", Query: " + req.getQueryString() +
-                ", SessionID: " + req.getSession().getId());
+                ", SessionID: " + session.getId());
+
         try {
-            // Read query parameters
             Integer categoryId = req.getParameter("categoryId") != null ? Integer.parseInt(req.getParameter("categoryId")) : null;
             Integer creationYear = req.getParameter("creationYear") != null ? Integer.parseInt(req.getParameter("creationYear")) : null;
             Integer namedTagId = req.getParameter("namedTagId") != null ? Integer.parseInt(req.getParameter("namedTagId")) : null;
+            Integer offset = req.getParameter("offset") != null ? Integer.parseInt(req.getParameter("offset")) : 0;
+            Integer limit = req.getParameter("limit") != null ? Integer.parseInt(req.getParameter("limit")) : 5;
+            boolean reset = req.getParameter("reset") != null && Boolean.parseBoolean(req.getParameter("reset"));
+
+            if (offset < 0 || limit < 1 || limit > 100) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid offset or limit"));
+                return;
+            }
+
+            if (reset) {
+                fetchedPostIds.clear();
+                session.setAttribute("fetchedPostIds", fetchedPostIds);
+            }
 
             var m = MatrixConvertor.toMatrix(matrixDAO.getMatrixFromFunction(
-                    userId, // Use actual user ID
+                    userId,
                     3, // best_friends
                     2, // random_friends
-                    categoryId, // category id
-                    creationYear, // creation year
-                    namedTagId // named tag id
+                    categoryId,
+                    creationYear,
+                    namedTagId
             ));
             var alg = new PageRanker(m);
-            List<Long> postIds = Arrays.stream(alg.runAndGetRankedPostIds()).mapToLong(i -> i).boxed().toList();
+            List<Long> postIds = Arrays.stream(alg.runAndGetRankedPostIds())
+                    .mapToLong(i -> i)
+                    .boxed()
+                    .collect(Collectors.toList());
+
             System.out.println("FeedServlet: Retrieved postIds = " + postIds);
-            posts = postIds.stream()
-                    .map(id -> {
-                        Post post = postDAO.findById(id);
-                        return post;
-                    })
+
+            List<Long> newPostIds = postIds.stream()
+                    .filter(id -> !finalFetchedPostIds.contains(id))
+                    .collect(Collectors.toList());
+
+            // Apply pagination
+            int totalPosts = newPostIds.size();
+            List<Long> paginatedPostIds = newPostIds.stream()
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
+
+            // Update fetched post IDs
+            fetchedPostIds.addAll(paginatedPostIds);
+            session.setAttribute("fetchedPostIds", fetchedPostIds);
+
+            // Fetch posts
+            posts = paginatedPostIds.stream()
+                    .map(id -> postDAO.findById(id))
                     .filter(Objects::nonNull)
-                    .toList();
+                    .collect(Collectors.toList());
+
+            // Convert posts to PostDTOs
+            List<PostDTO> postDTOs = posts.stream()
+                    .map(post -> PostDTO.PostToPostDTO(post, userId, getUsernameFromSessionOrDB(req, post.getAuthorId())))
+                    .collect(Collectors.toList());
+
+            String acceptHeader = req.getHeader("Accept");
+            if (acceptHeader != null && acceptHeader.contains("application/json")) {
+                // Handle AJAX request
+                resp.setContentType("application/json");
+                responseData.put("posts", postDTOs);
+                responseData.put("categoryMap", categoryNames);
+                responseData.put("totalPosts", totalPosts);
+                responseData.put("offset", offset);
+                responseData.put("limit", limit);
+                responseData.put("hasMorePosts", offset + paginatedPostIds.size() < totalPosts);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Posts retrieved successfully", responseData));
+            } else {
+                // Handle HTML request
+                req.setAttribute("posts", postDTOs != null ? postDTOs : List.of());
+                req.setAttribute("categoryNames", categoryNames);
+                req.setAttribute("totalPosts", totalPosts);
+                req.setAttribute("offset", offset);
+                req.setAttribute("limit", limit);
+                req.setAttribute("hasMorePosts", offset + paginatedPostIds.size() < totalPosts);
+                req.getRequestDispatcher("/feed.jsp").forward(req, resp);
+            }
 
         } catch (SQLException e) {
             System.err.println("FeedServlet: SQL error: " + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Database error: " + e.getMessage()));
-            return;
         } catch (NumberFormatException e) {
             System.err.println("FeedServlet: Invalid parameter format: " + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid categoryId, creationYear, or namedTagId format"));
-            return;
-        }
-
-        // Convert posts to PostDTOs for both JSON and HTML paths
-        List<PostDTO> postDTOs = posts.stream()
-                .map(post -> PostDTO.PostToPostDTO(post, userId, getUsernameFromSessionOrDB(req, post.getAuthorId())))
-                .collect(Collectors.toList());
-
-        String acceptHeader = req.getHeader("Accept");
-        if (acceptHeader != null && acceptHeader.contains("application/json")) {
-            // Handle AJAX request
-            resp.setContentType("application/json");
-            responseData.put("posts", postDTOs);
-            responseData.put("categoryMap", categoryNames);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Posts retrieved successfully", responseData));
-        } else {
-            // Handle HTML request
-            req.setAttribute("posts", postDTOs != null ? postDTOs : List.of());
-            req.setAttribute("categoryNames", categoryNames);
-            req.getRequestDispatcher("/feed.jsp").forward(req, resp);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid categoryId, creationYear, namedTagId, offset, or limit format"));
         }
     }
 

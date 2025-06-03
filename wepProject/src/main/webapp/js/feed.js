@@ -1,13 +1,16 @@
 $(document).ready(function() {
-  // == Select2 Initialization ==
-  // Initialize tag filter
+  let isLoading = false;
+  let offset = 0;
+  const limit = 5;
+  let totalPosts = 0;
+  let hasMorePosts = true;
+
   $('#tagFilter').select2({
     placeholder: "Select a tag",
     allowClear: true,
     width: '100%'
   });
 
-  // Initialize user search
   $('#userSearch').select2({
     placeholder: "",
     allowClear: true,
@@ -44,8 +47,6 @@ $(document).ready(function() {
         console.log('Search cleared');
       });
 
-  // == Filter Population Functions ==
-  // Load categories into dropdown
   async function loadCategories() {
     try {
       const response = await fetch('/wepProject_war_exploded/categories', {
@@ -68,8 +69,7 @@ $(document).ready(function() {
     }
   }
 
-  // Load years into dropdown (2000 to current year)
-  function loadYears() {
+  async function loadYears() {
     const yearSelect = $('#yearFilter');
     yearSelect.empty();
     yearSelect.append('<option value="">All Years</option>');
@@ -79,7 +79,6 @@ $(document).ready(function() {
     }
   }
 
-  // Load tags into dropdown
   async function loadTags() {
     try {
       const response = await fetch('/wepProject_war_exploded/namedTags', {
@@ -102,7 +101,6 @@ $(document).ready(function() {
     }
   }
 
-  // == Leaderboard Functions ==
   async function loadLeaderboard() {
     try {
       const response = await fetch('/wepProject_war_exploded/statistics?format=csv', {
@@ -124,16 +122,14 @@ $(document).ready(function() {
 
   function parseCSVToLeaderboard(csvText) {
     const lines = csvText.trim().split('\n').filter(line => line.trim());
-    if (lines.length <= 1) return []; // Need at least header + 1 data row
+    if (lines.length <= 1) return [];
 
     const data = [];
 
-    // Skip the first line (header: Title,Owner Name,Score)
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
 
-      // Split by comma and clean each value
       const parts = line.split(',').map(part => part.trim().replace(/"/g, ''));
 
       if (parts.length >= 2) {
@@ -141,29 +137,26 @@ $(document).ready(function() {
         const username = parts[1];
         const score = parts.length >= 3 ? parseInt(parts[2]) || 0 : 0;
 
-        // Only add entries with valid data
         if (title && username) {
           data.push({
             title: title,
             username: username,
             score: score,
-            isLastEntry: i === lines.length - 1 // Mark if this is the last (crown) entry
+            isLastEntry: i === lines.length - 1
           });
         }
       }
     }
 
-    // Sort by score descending, but keep the last entry special
     const regularEntries = data.slice(0, -1).sort((a, b) => b.score - a.score);
     const lastEntry = data.length > 0 ? data[data.length - 1] : null;
 
-    // Combine regular entries with the special last entry
     const sortedData = [...regularEntries];
     if (lastEntry) {
       sortedData.push(lastEntry);
     }
 
-    return sortedData.slice(0, 10); // Top 10
+    return sortedData.slice(0, 10);
   }
 
   function renderLeaderboard(data) {
@@ -181,7 +174,6 @@ $(document).ready(function() {
       const score = entry.score || 0;
       const title = entry.title || 'Points';
 
-      // Handle the special crown entry (last entry from CSV)
       if (entry.isLastEntry) {
         html += `
         <div class="leaderboard-item flex items-center justify-between p-2 rounded-lg bg-yellow-50 border border-yellow-200 transition-colors">
@@ -198,7 +190,6 @@ $(document).ready(function() {
         </div>
       `;
       } else {
-        // Regular entries
         const rankIcon = index < 3 ?
             ['🥇', '🥈', '🥉'][index] :
             `<span class="text-xs text-gray-500">#${index + 1}</span>`;
@@ -224,8 +215,10 @@ $(document).ready(function() {
     container.html(html);
   }
 
-  // == Post Loading ==
-  async function loadPosts() {
+  async function loadPosts(append = false, reset = false) {
+    if (isLoading || (!append && !hasMorePosts)) return;
+    isLoading = true;
+
     const categoryId = $('#categoryFilter').val();
     const creationYear = $('#yearFilter').val();
     const namedTagId = $('#tagFilter').val();
@@ -233,12 +226,19 @@ $(document).ready(function() {
     if (categoryId) queryParams.push(`categoryId=${categoryId}`);
     if (creationYear) queryParams.push(`creationYear=${creationYear}`);
     if (namedTagId) queryParams.push(`namedTagId=${namedTagId}`);
+    queryParams.push(`offset=${offset}`);
+    queryParams.push(`limit=${limit}`);
+    if (reset) queryParams.push(`reset=true`);
     const queryString = queryParams.length ? '?' + queryParams.join('&') : '';
     const url = '/wepProject_war_exploded/feed' + queryString;
 
     console.log('Loading posts with URL:', url);
 
     try {
+      if (append) {
+        $('#postsContainer').append('<div id="loadingIndicator" class="text-center py-4">Loading more posts...</div>');
+      }
+
       const response = await fetch(url, {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
@@ -249,18 +249,22 @@ $(document).ready(function() {
 
       if (response.ok && data.status === 'success') {
         const postsContainer = $('#postsContainer');
-        postsContainer.empty();
+        if (!append) postsContainer.empty();
         const posts = data.data?.posts || [];
+        totalPosts = data.data?.totalPosts || 0;
+        offset = data.data?.offset + posts.length;
+        hasMorePosts = data.data?.hasMorePosts || false;
         const categoryMap = data.data?.categoryMap || {};
         console.log('Received posts:', posts.length, posts);
         console.log('Category map:', categoryMap);
+        console.log('Pagination info:', { offset, totalPosts, hasMorePosts });
 
-        if (posts.length === 0) {
+        if (posts.length === 0 && !append) {
           postsContainer.append('<p class="text-gray-500 text-center">No posts available.</p>');
+          hasMorePosts = false;
           return;
         }
 
-        // Render posts
         posts.forEach(post => {
           console.log('Rendering post:', {
             id: post.id,
@@ -294,7 +298,7 @@ $(document).ready(function() {
         <div class="post-media relative">
             ${post.mediaBlobBase64 ? `
                 ${isVideo ? `
-                    <video controls class="w-full object-cover max-h-[400px]">
+                    <video controls "w-full object-cover max-h-[400px]">
                         <source src="${post.mediaBlobBase64}" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
@@ -361,27 +365,29 @@ $(document).ready(function() {
           postsContainer.append(postHtml);
         });
 
-        // == Setup Event Handlers AFTER posts are added ==
         setupEventHandlers(postsContainer);
 
       } else {
         $('#postsContainer').html(
             '<p class="text-red-500 text-center">' + (data.message || 'Failed to load posts') + '</p>'
         );
+        hasMorePosts = false;
       }
     } catch (error) {
       console.error('Fetch error:', error);
       $('#postsContainer').html(
           '<p class="text-red-500 text-center">Failed to load posts: ' + error.message + '</p>'
       );
+      hasMorePosts = false;
+    } finally {
+      $('#loadingIndicator').remove();
+      isLoading = false;
     }
   }
 
-  // == Centralized Event Handler Setup ==
   function setupEventHandlers(container) {
     console.log('Setting up event handlers for container:', container);
 
-    // Remove existing event handlers to prevent duplicates
     container.off('click', '.likeButton');
     container.off('click', '.saveButton');
     container.off('click', '.commentButton');
@@ -390,7 +396,6 @@ $(document).ready(function() {
     container.off('input', '.commentInput');
     container.off('click', '.deleteButton');
 
-    // Like button handler
     container.on('click', '.likeButton', function(e) {
       e.preventDefault();
       const postId = $(this).data('post-id');
@@ -402,7 +407,6 @@ $(document).ready(function() {
       }
     });
 
-    // Save button handler
     container.on('click', '.saveButton', function(e) {
       e.preventDefault();
       const postId = $(this).data('post-id');
@@ -414,7 +418,6 @@ $(document).ready(function() {
       }
     });
 
-    // Comment button handler
     container.on('click', '.commentButton', function(e) {
       e.preventDefault();
       const postId = $(this).data('post-id');
@@ -435,7 +438,6 @@ $(document).ready(function() {
       }
     });
 
-    // Submit comment (click) handler
     container.on('click', '.submitComment', function(e) {
       e.preventDefault();
       const postId = $(this).data('post-id');
@@ -450,7 +452,6 @@ $(document).ready(function() {
       }
     });
 
-    // Submit comment (Enter key) handler
     container.on('keypress', '.commentInput', function(e) {
       if (e.which === 13 && !e.shiftKey) {
         e.preventDefault();
@@ -465,13 +466,11 @@ $(document).ready(function() {
       }
     });
 
-    // Auto-resize textarea handler
     container.on('input', '.commentInput', function() {
       this.style.height = 'auto';
       this.style.height = (this.scrollHeight) + 'px';
     });
 
-    // Delete post handler
     container.on('click', '.deleteButton', async function(e) {
       e.preventDefault();
       const postId = $(this).data('post-id');
@@ -495,7 +494,9 @@ $(document).ready(function() {
 
           if (data.status === 'success') {
             alert('Post deleted successfully');
-            loadPosts();
+            offset = 0;
+            hasMorePosts = true;
+            loadPosts(false, true); // Reset on delete
           } else {
             alert(data.message || 'Failed to delete post');
           }
@@ -506,17 +507,14 @@ $(document).ready(function() {
       }
     });
 
-    // Setup comment deletion
     setupCommentDeletion(container);
 
-    // Setup double tap for each post
     container.find('[data-post-id]').each(function() {
       const postId = $(this).data('post-id');
       const likeButton = $(this).find('.likeButton');
       handleDoubleTap(postId, container, likeButton);
     });
 
-    // Load comments for each post
     container.find('[data-post-id]').each(function() {
       const postId = $(this).data('post-id');
       const commentsContainer = $(this).find('.commentsContainer');
@@ -525,14 +523,19 @@ $(document).ready(function() {
     });
   }
 
-  // == Setup event handlers for server-side rendered posts ==
-  function setupServerSideEventHandlers() {
-    const postsContainer = $('#postsContainer');
-    if (postsContainer.find('[data-post-id]').length > 0) {
-      console.log('Setting up handlers for server-side rendered posts');
-      setupEventHandlers(postsContainer);
+  // == Infinite Scroll Handler ==
+  $(window).on('scroll', debounce(function() {
+    if (isLoading || !hasMorePosts) return;
+
+    const scrollPosition = $(window).scrollTop() + $(window).height();
+    const documentHeight = $(document).height();
+    const triggerThreshold = 200;
+
+    if (scrollPosition >= documentHeight - triggerThreshold) {
+      console.log('Near bottom, loading more posts...');
+      loadPosts(true); // Append mode
     }
-  }
+  }, 100));
 
   // == Debounce Utility ==
   function debounce(func, wait) {
@@ -559,49 +562,44 @@ $(document).ready(function() {
     document.body.removeChild(a);
   }
 
-  // Toggle export dropdown
   $('#exportStatisticsBtn').on('click', function(e) {
     e.preventDefault();
     $('#exportDropdown').toggleClass('hidden');
   });
 
-  // Export CSV
   $('#exportCsv').on('click', function(e) {
     e.preventDefault();
     triggerDownload('csv');
     $('#exportDropdown').addClass('hidden');
   });
 
-  // Export SVG
   $('#exportSvg').on('click', function(e) {
     e.preventDefault();
     triggerDownload('svg');
     $('#exportDropdown').addClass('hidden');
   });
 
-  // Close dropdown when clicking outside
   $(document).on('click', function(e) {
     if (!$(e.target).closest('#exportStatisticsBtn, #exportDropdown').length) {
       $('#exportDropdown').addClass('hidden');
     }
   });
 
-  // == Initialization ==
   loadCategories();
   loadYears();
   loadTags();
   loadLeaderboard();
 
-  // Setup handlers for server-side rendered posts first
-  setupServerSideEventHandlers();
-
-  // Only call loadPosts if no posts are rendered server-side
   if ($('#postsContainer').children().length === 0) {
     loadPosts();
   }
 
-  // Filter change handler with debounce
-  const debouncedLoadPosts = debounce(loadPosts, 300);
+  const debouncedLoadPosts = debounce(function() {
+    offset = 0;
+    hasMorePosts = true;
+    loadPosts(false, true); // Reset on filter change
+  }, 300);
+
   $('#categoryFilter, #yearFilter, #tagFilter').on('change', function() {
     console.log('Filter changed:', {
       categoryId: $('#categoryFilter').val(),
@@ -611,6 +609,5 @@ $(document).ready(function() {
     debouncedLoadPosts();
   });
 
-  // Refresh leaderboard periodically (every 5 minutes)
   setInterval(loadLeaderboard, 5 * 60 * 1000);
 });
