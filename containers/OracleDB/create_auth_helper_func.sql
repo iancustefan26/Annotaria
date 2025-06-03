@@ -1,10 +1,15 @@
--- get user by username
+-- Creating function to retrieve user by username with input validation
 CREATE OR REPLACE FUNCTION get_user_by_username(p_username IN VARCHAR2)
 RETURN SYS_REFCURSOR
 AS
     l_cursor SYS_REFCURSOR;
     l_count NUMBER;
 BEGIN
+    -- Validate input length and format
+    IF p_username IS NULL OR LENGTH(TRIM(p_username)) = 0 OR LENGTH(p_username) > 50 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Invalid username length or format');
+    END IF;
+
     SELECT COUNT(*) INTO l_count
     FROM USERS
     WHERE username = p_username;
@@ -28,14 +33,21 @@ EXCEPTION
 END get_user_by_username;
 /
 
--- get user by ID
+-- Creating function to retrieve user by ID with input validation
 CREATE OR REPLACE FUNCTION get_user_by_id(p_id IN NUMBER)
 RETURN SYS_REFCURSOR
 AS
     l_cursor SYS_REFCURSOR;
     l_count NUMBER;
 BEGIN
-    SELECT COUNT(*) INTO l_count FROM USERS WHERE id = p_id;
+    -- Validate input
+    IF p_id IS NULL OR p_id <= 0 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Invalid user ID');
+    END IF;
+
+    SELECT COUNT(*) INTO l_count
+    FROM USERS
+    WHERE id = p_id;
 
     IF l_count = 0 THEN
         RAISE auth_exceptions.user_not_found;
@@ -56,14 +68,21 @@ EXCEPTION
 END get_user_by_id;
 /
 
--- get user by email
+-- Creating function to retrieve user by email with input validation
 CREATE OR REPLACE FUNCTION get_user_by_email(p_email IN VARCHAR2)
 RETURN SYS_REFCURSOR
 AS
     l_cursor SYS_REFCURSOR;
     l_count NUMBER;
 BEGIN
-    SELECT COUNT(*) INTO l_count FROM USERS WHERE email = p_email;
+    -- Validate input length and format
+    IF p_email IS NULL OR LENGTH(TRIM(p_email)) = 0 OR LENGTH(p_email) > 100 OR NOT REGEXP_LIKE(p_email, '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$') THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Invalid email format');
+    END IF;
+
+    SELECT COUNT(*) INTO l_count
+    FROM USERS
+    WHERE email = p_email;
 
     IF l_count = 0 THEN
         RAISE auth_exceptions.user_not_found;
@@ -84,20 +103,25 @@ EXCEPTION
 END get_user_by_email;
 /
 
-
+-- Creating procedure to delete user by ID with input validation
 CREATE OR REPLACE PROCEDURE delete_user_by_id(p_id IN NUMBER)
 AS
     l_count NUMBER;
 BEGIN
+    -- Validate input
+    IF p_id IS NULL OR p_id <= 0 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Invalid user ID');
+    END IF;
+
     SELECT COUNT(*) INTO l_count
-    FROM USERS_VIEW
+    FROM USERS
     WHERE id = p_id;
 
     IF l_count = 0 THEN
         RAISE auth_exceptions.user_not_found;
     END IF;
 
-    DELETE FROM USERS_VIEW
+    DELETE FROM USERS
     WHERE id = p_id;
 
 EXCEPTION
@@ -107,6 +131,5 @@ EXCEPTION
         RAISE_APPLICATION_ERROR(-20003, 'Error deleting user by ID: ' || SQLERRM);
 END delete_user_by_id;
 /
-
 
 exit;

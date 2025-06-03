@@ -226,7 +226,6 @@ $(document).ready(function() {
 
   // == Post Loading ==
   async function loadPosts() {
-    // Build query parameters
     const categoryId = $('#categoryFilter').val();
     const creationYear = $('#yearFilter').val();
     const namedTagId = $('#tagFilter').val();
