@@ -149,17 +149,17 @@
 
     <!-- Navigation -->
     <div class="flex justify-center">
-      <a href="/wepProject_war_exploded/feed" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+      <a href="${pageContext.request.contextPath}/feed" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
         Back to Feed
       </a>
-      <a href="/wepProject_war_exploded/profile" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-3">
+      <a href="${pageContext.request.contextPath}/profile" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-3">
         Go to Profile
       </a>
     </div>
   </c:if>
 </div>
 
-<script src="/wepProject_war_exploded/js/social.js"></script>
-<script src="/wepProject_war_exploded/js/post.js"></script>
+<script src="${pageContext.request.contextPath}/js/social.js"></script>
+<script src="${pageContext.request.contextPath}/js/post.js"></script>
 </body>
 </html>

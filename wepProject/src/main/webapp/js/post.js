@@ -61,7 +61,7 @@ $(document).ready(function() {
         }
 
         try {
-            const response = await fetch(`/wepProject_war_exploded/post?id=${postId}`, {
+            const response = await fetch(`/post?id=${postId}`, {
                 method: 'DELETE',
                 headers: {
                     'Accept': 'application/json'
@@ -73,7 +73,7 @@ $(document).ready(function() {
             if (!response.ok) {
                 if (response.status === 401) {
                     alert('Please log in to delete this post');
-                    window.location.href = '/wepProject_war_exploded/login.jsp';
+                    window.location.href = '/login.jsp';
                     return;
                 }
                 throw new Error(data?.message || 'Error deleting post');
@@ -81,7 +81,7 @@ $(document).ready(function() {
 
             if (data.status === 'success') {
                 alert('Post deleted successfully');
-                window.location.href = '/wepProject_war_exploded/profile';
+                window.location.href = '/profile';
             } else {
                 alert(data.message || 'Error deleting post');
             }

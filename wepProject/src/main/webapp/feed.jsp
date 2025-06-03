@@ -18,9 +18,9 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <link rel="stylesheet" href="/wepProject_war_exploded/css/feed.css">
-    <link rel="stylesheet" href="/wepProject_war_exploded/css/post.css">
-    <link rel="stylesheet" href="/wepProject_war_exploded/css/leaderboard.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/feed.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/post.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/leaderboard.css">
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
 <% if (session.getAttribute("userId") == null) {
@@ -52,7 +52,7 @@
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2"></i>
                 </div>
 
-                <a href="/wepProject_war_exploded/profile" class="flex items-center gap-2">
+                <a href="${pageContext.request.contextPath}/profile" class="flex items-center gap-2">
                     <i class="fas fa-user"></i>
                     <span>Profile</span>
                 </a>
@@ -212,7 +212,7 @@
     </div>
 </div>
 
-<script src="/wepProject_war_exploded/js/social.js"></script>
-<script src="/wepProject_war_exploded/js/feed.js"></script>
+<script src="${pageContext.request.contextPath}/js/social.js"></script>
+<script src="${pageContext.request.contextPath}/js/feed.js"></script>
 </body>
 </html>

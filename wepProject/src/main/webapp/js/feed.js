@@ -17,7 +17,7 @@ $(document).ready(function() {
     width: '100%',
     minimumInputLength: 1,
     ajax: {
-      url: '/wepProject_war_exploded/users',
+      url: '/users',
       dataType: 'json',
       delay: 250,
       data: function(params) {
@@ -41,7 +41,7 @@ $(document).ready(function() {
       .on('select2:select', function(e) {
         const userId = e.params.data.id;
         console.log('Selected user:', userId);
-        window.location.href = `/wepProject_war_exploded/profile?id=${userId}`;
+        window.location.href = `/profile?userId=${userId}`;
       })
       .on('select2:clear', function() {
         console.log('Search cleared');
@@ -49,7 +49,7 @@ $(document).ready(function() {
 
   async function loadCategories() {
     try {
-      const response = await fetch('/wepProject_war_exploded/categories', {
+      const response = await fetch('/categories', {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
       });
@@ -81,7 +81,7 @@ $(document).ready(function() {
 
   async function loadTags() {
     try {
-      const response = await fetch('/wepProject_war_exploded/namedTags', {
+      const response = await fetch('/namedTags', {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
       });
@@ -103,7 +103,7 @@ $(document).ready(function() {
 
   async function loadLeaderboard() {
     try {
-      const response = await fetch('/wepProject_war_exploded/statistics?format=csv', {
+      const response = await fetch('/statistics?format=csv', {
         method: 'GET'
       });
 
@@ -230,7 +230,7 @@ $(document).ready(function() {
     queryParams.push(`limit=${limit}`);
     if (reset) queryParams.push(`reset=true`);
     const queryString = queryParams.length ? '?' + queryParams.join('&') : '';
-    const url = '/wepProject_war_exploded/feed' + queryString;
+    const url = '/feed' + queryString;
 
     console.log('Loading posts with URL:', url);
 
@@ -476,7 +476,7 @@ $(document).ready(function() {
       const postId = $(this).data('post-id');
       if (postId && confirm('Are you sure you want to delete this post?')) {
         try {
-          const response = await fetch(`/wepProject_war_exploded/post?id=${postId}`, {
+          const response = await fetch(`/post?id=${postId}`, {
             method: 'DELETE',
             headers: { 'Accept': 'application/json' }
           });
@@ -486,7 +486,7 @@ $(document).ready(function() {
           if (!response.ok) {
             if (response.status === 401) {
               alert('Please log in to delete this post');
-              window.location.href = '/wepProject_war_exploded/login.jsp';
+              window.location.href = '/login.jsp';
               return;
             }
             throw new Error(data?.message || 'Error deleting post');
@@ -553,7 +553,7 @@ $(document).ready(function() {
   // == Export Statistics ==
   function triggerDownload(format) {
     console.log(`Triggering download for format: ${format}`);
-    const url = `/wepProject_war_exploded/statistics?format=${format}`;
+    const url = `/statistics?format=${format}`;
     const a = document.createElement('a');
     a.href = url;
     a.download = `statistics_export.${format}`;

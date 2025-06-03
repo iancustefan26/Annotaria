@@ -35,13 +35,25 @@ public class UsersServlet extends HttpServlet {
         }
 
         resp.setContentType("application/json");
+
+        String searchTerm = req.getParameter("term");
+        if (searchTerm == null) {
+            searchTerm = "";
+        }
+        searchTerm = searchTerm.toLowerCase().trim();
+
         Map<Long, String> userMap = new HashMap<>();
         List<User> users = userDAO.findAll();
+
         for (User user : users) {
-            if (!user.getId().equals(userId)) { // Exclude current user
-                userMap.put(user.getId(), user.getUsername());
+            if (!user.getId().equals(userId)) {
+                if (searchTerm.isEmpty() ||
+                        user.getUsername().toLowerCase().contains(searchTerm)) {
+                    userMap.put(user.getId(), user.getUsername());
+                }
             }
         }
+
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("userMap", userMap);
         objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Users retrieved successfully", responseData));
