@@ -21,7 +21,7 @@ TODO:
     - specificatie OpenAPI
     - ReadME
     - licenta open-source -> DONE
-    - fisa cerintelor in format ScholarlyHTML disponisibil pe site ul nostru
+    - fisa cerintelor in format ScholarlyHTML disponisibil pe site ul nostru -> DONE
     - filmulet demonstrativ
  */
 
