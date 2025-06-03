@@ -14,6 +14,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/*
+TODO:
+    - validare cod HTML CSS etc. -> DONE
+    - comentare si curatare cod
+    - specificatie OpenAPI
+    - ReadME
+    - licenta open-source
+    - fisa cerintelor in format ScholarlyHTML disponisibil pe site ul nostru
+    - filmulet demonstrativ
+ */
+
 @WebServlet("/users")
 public class UsersServlet extends HttpServlet {
     private ObjectMapper objectMapper = new ObjectMapper();
