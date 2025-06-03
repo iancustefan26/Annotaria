@@ -22,14 +22,6 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/*
-TODO:
-    - SEARCH BAR TO WORK
-    - LEADERBOARD IN LOW LEFT
-    - PHONE
-    - SQL INJECTION FOR LOGIN
- */
-
 @WebServlet("/feed")
 public class FeedServlet extends HttpServlet {
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -65,11 +57,19 @@ public class FeedServlet extends HttpServlet {
         System.out.println("FeedServlet: Request received - Accept: " + req.getHeader("Accept") +
                 ", Query: " + req.getQueryString() +
                 ", SessionID: " + req.getSession().getId());
+
         try {
-            // Read query parameters
             Integer categoryId = req.getParameter("categoryId") != null ? Integer.parseInt(req.getParameter("categoryId")) : null;
             Integer creationYear = req.getParameter("creationYear") != null ? Integer.parseInt(req.getParameter("creationYear")) : null;
             Integer namedTagId = req.getParameter("namedTagId") != null ? Integer.parseInt(req.getParameter("namedTagId")) : null;
+            Integer offset = req.getParameter("offset") != null ? Integer.parseInt(req.getParameter("offset")) : 0;
+            Integer limit = req.getParameter("limit") != null ? Integer.parseInt(req.getParameter("limit")) : 5;
+
+            if (offset < 0 || limit < 1 || limit > 100) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid offset or limit"));
+                return;
+            }
 
             var m = MatrixConvertor.toMatrix(matrixDAO.getMatrixFromFunction(
                     userId, // Use actual user ID
@@ -80,45 +80,58 @@ public class FeedServlet extends HttpServlet {
                     namedTagId // named tag id
             ));
             var alg = new PageRanker(m);
-            List<Long> postIds = Arrays.stream(alg.runAndGetRankedPostIds()).mapToLong(i -> i).boxed().toList();
+            List<Long> postIds = Arrays.stream(alg.runAndGetRankedPostIds())
+                    .mapToLong(i -> i)
+                    .boxed()
+                    .collect(Collectors.toList());
+
             System.out.println("FeedServlet: Retrieved postIds = " + postIds);
-            posts = postIds.stream()
-                    .map(id -> {
-                        Post post = postDAO.findById(id);
-                        return post;
-                    })
+
+            // Apply pagination
+            int totalPosts = postIds.size();
+            List<Long> paginatedPostIds = postIds.stream()
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
+
+            posts = paginatedPostIds.stream()
+                    .map(id -> postDAO.findById(id))
                     .filter(Objects::nonNull)
-                    .toList();
+                    .collect(Collectors.toList());
+
+            // Convert posts to PostDTOs
+            List<PostDTO> postDTOs = posts.stream()
+                    .map(post -> PostDTO.PostToPostDTO(post, userId, getUsernameFromSessionOrDB(req, post.getAuthorId())))
+                    .collect(Collectors.toList());
+
+            String acceptHeader = req.getHeader("Accept");
+            if (acceptHeader != null && acceptHeader.contains("application/json")) {
+                // Handle AJAX request
+                resp.setContentType("application/json");
+                responseData.put("posts", postDTOs);
+                responseData.put("categoryMap", categoryNames);
+                responseData.put("totalPosts", totalPosts);
+                responseData.put("offset", offset);
+                responseData.put("limit", limit);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Posts retrieved successfully", responseData));
+            } else {
+                // Handle HTML request
+                req.setAttribute("posts", postDTOs != null ? postDTOs : List.of());
+                req.setAttribute("categoryNames", categoryNames);
+                req.setAttribute("totalPosts", totalPosts);
+                req.setAttribute("offset", offset);
+                req.setAttribute("limit", limit);
+                req.getRequestDispatcher("/feed.jsp").forward(req, resp);
+            }
 
         } catch (SQLException e) {
             System.err.println("FeedServlet: SQL error: " + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Database error: " + e.getMessage()));
-            return;
         } catch (NumberFormatException e) {
             System.err.println("FeedServlet: Invalid parameter format: " + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid categoryId, creationYear, or namedTagId format"));
-            return;
-        }
-
-        // Convert posts to PostDTOs for both JSON and HTML paths
-        List<PostDTO> postDTOs = posts.stream()
-                .map(post -> PostDTO.PostToPostDTO(post, userId, getUsernameFromSessionOrDB(req, post.getAuthorId())))
-                .collect(Collectors.toList());
-
-        String acceptHeader = req.getHeader("Accept");
-        if (acceptHeader != null && acceptHeader.contains("application/json")) {
-            // Handle AJAX request
-            resp.setContentType("application/json");
-            responseData.put("posts", postDTOs);
-            responseData.put("categoryMap", categoryNames);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("success", "Posts retrieved successfully", responseData));
-        } else {
-            // Handle HTML request
-            req.setAttribute("posts", postDTOs != null ? postDTOs : List.of());
-            req.setAttribute("categoryNames", categoryNames);
-            req.getRequestDispatcher("/feed.jsp").forward(req, resp);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid categoryId, creationYear, namedTagId, offset, or limit format"));
         }
     }
 
