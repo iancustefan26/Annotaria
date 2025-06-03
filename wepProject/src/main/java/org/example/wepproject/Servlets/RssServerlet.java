@@ -18,7 +18,7 @@ public class RssServerlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        File rssFile = new File(RssExporter.exportPath);
+        File rssFile = new File( RssExporter.exportDir + "/" + RssExporter.exportPath );
 
         if (!rssFile.exists()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "RSS feed not available.");

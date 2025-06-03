@@ -1,6 +1,10 @@
 import os
 import requests
 
+# python3 -m venv ~/venvs/yt_memes_env
+# source ~/venvs/yt_memes_env/bin/activate
+
+
 # Your Pexels API key here
 PEXELS_API_KEY = '4ASODLqGfWD7W8loiQMobLZYSHqEBcWD2ZhQyhmnSCnpYxU9lZ7QZLXD'
 

@@ -9,15 +9,20 @@ import org.example.wepproject.Models.RssRecord;
 public class RssExporter {
     public static Integer latestPosts = 20;
     public static Integer latestComments = 20;
-    public static String exportDir = "./export";
+    public static String exportDir = "export";
     public static String exportPath = "news.rss";
 
     public static void exportRss(List<RssRecord> records) {
-        System.out.println("Exporting RSS to: " + exportPath);
+        System.out.println("Exporting RSS to: " + exportDir + "/" + exportPath);
         
         File directory = new File(RssExporter.exportDir);
-        if (!directory.exists()) {
-            directory.mkdirs();
+        try {
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            throw new RuntimeException(e);
         }
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(exportDir + "/" + exportPath))) {

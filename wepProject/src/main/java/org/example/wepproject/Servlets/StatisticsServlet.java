@@ -42,7 +42,7 @@ public class StatisticsServlet extends HttpServlet {
                 return;
         }
 
-        File file = new File(StatisticsExporter.exportDir + fileName);
+        File file = new File(StatisticsExporter.exportDir + "/" + fileName);
         if (!file.exists()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "File not found: " + fileName);
             return;

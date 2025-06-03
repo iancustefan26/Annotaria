@@ -11,14 +11,20 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class StatisticsExporter {
-    public static String exportDir = "./export/";
+    public static String exportDir = "export";
 
     public static void export(StatisticsExportFormat format, List<StatisticRecord> records) {
-        String fileName = "statistics_export." + format.name().toLowerCase();
+        String fileName = "/statistics_export." + format.name().toLowerCase();
         String filePath = exportDir + fileName;
+        System.out.println("CWD: " + System.getProperty("user.dir"));
         File directory = new File(StatisticsExporter.exportDir);
-        if (!directory.exists()) {
-            directory.mkdirs();
+        try {
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            throw new RuntimeException(e);
         }
         try (FileWriter writer = new FileWriter(filePath)) {
             switch (format) {
