@@ -27,9 +27,6 @@ $(document).ready(function() {
     const username = $('.profile-info h1').text().trim();
     const initials = username.slice(0, 2).toUpperCase();
 
-
-    1
-
     // Initialize Select2
     namedTagSelect.select2({
         placeholder: "Select named tags",
@@ -42,48 +39,56 @@ $(document).ready(function() {
         width: '100%'
     });
 
-    // Load Named Tags
-    function loadNamedTags() {
-        $.ajax({
-            url: '/wepProject_war_exploded/namedTags',
-            type: 'GET',
-            headers: { 'Accept': 'application/json' },
-            success: function(response) {
-                if (response.status === 'success' && response.data.namedTagMap) {
-                    namedTagSelect.empty();
-                    $.each(response.data.namedTagMap, function(id, name) {
-                        namedTagSelect.append(`<option value="${id}">${name}</option>`);
-                    });
-                    namedTagSelect.trigger('change');
-                }
-            },
-            error: function(xhr) {
-                console.error('Error loading named tags:', xhr);
-                postMessageDiv.html('<p class="text-red-500">Failed to load tags</p>');
+    async function loadNamedTags() {
+        try {
+            const response = await fetch('/wepProject_war_exploded/namedTags', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data?.message || 'Error loading named tags');
             }
-        });
+
+            if (data.status === 'success' && data.data.namedTagMap) {
+                namedTagSelect.empty();
+                $.each(data.data.namedTagMap, function(id, name) {
+                    namedTagSelect.append(`<option value="${id}">${name}</option>`);
+                });
+                namedTagSelect.trigger('change');
+            }
+        } catch (error) {
+            console.error('Error loading named tags:', error);
+            postMessageDiv.html('<p class="text-red-500">Failed to load tags</p>');
+        }
     }
 
-    // Load Users
-    function loadUsers() {
-        $.ajax({
-            url: '/wepProject_war_exploded/users',
-            type: 'GET',
-            headers: { 'Accept': 'application/json' },
-            success: function(response) {
-                if (response.status === 'success' && response.data.userMap) {
-                    userTaggedSelect.empty();
-                    $.each(response.data.userMap, function(id, username) {
-                        userTaggedSelect.append(`<option value="${id}">${username}</option>`);
-                    });
-                    userTaggedSelect.trigger('change');
-                }
-            },
-            error: function(xhr) {
-                console.error('Error loading users:', xhr);
-                postMessageDiv.html('<p class="text-red-500">Failed to load users</p>');
+    async function loadUsers() {
+        try {
+            const response = await fetch('/wepProject_war_exploded/users', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data?.message || 'Error loading users');
             }
-        });
+
+            if (data.status === 'success' && data.data.userMap) {
+                userTaggedSelect.empty();
+                $.each(data.data.userMap, function(id, username) {
+                    userTaggedSelect.append(`<option value="${id}">${username}</option>`);
+                });
+                userTaggedSelect.trigger('change');
+            }
+        } catch (error) {
+            console.error('Error loading users:', error);
+            postMessageDiv.html('<p class="text-red-500">Failed to load users</p>');
+        }
     }
 
     // Saved Posts Button
@@ -114,9 +119,8 @@ $(document).ready(function() {
         });
     }
 
-    // Import Form Submission
     if (importForm.length) {
-        importForm.on("submit", function(e) {
+        importForm.on("submit", async function(e) {
             e.preventDefault();
             const submitButton = importForm.find('button[type="submit"]');
             const originalButtonText = submitButton.text();
@@ -143,29 +147,29 @@ $(document).ready(function() {
                 return;
             }
 
-            $.ajax({
-                url: "/wepProject_war_exploded/import-saved-posts",
-                type: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(result) {
-                    console.log("Import response:", result);
-                    importMessageDiv.html(`<p class="${result.status === 'success' ? 'text-green-500' : 'text-red-500'}">${result.message}</p>`);
-                    if (result.status === "success") {
-                        setTimeout(() => {
-                            window.location.href = "/wepProject_war_exploded/profile?saved=1";
-                        }, 1500);
-                    } else {
-                        submitButton.text(originalButtonText).prop("disabled", false);
-                    }
-                },
-                error: function(xhr) {
-                    console.error("Import error:", xhr);
-                    importMessageDiv.html(`<p class="text-red-500">Network error: ${xhr.responseJSON?.message || 'Server error'}</p>`);
+            try {
+                const response = await fetch("/wepProject_war_exploded/import-saved-posts", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+                console.log("Import response:", result);
+
+                importMessageDiv.html(`<p class="${result.status === 'success' ? 'text-green-500' : 'text-red-500'}">${result.message}</p>`);
+
+                if (result.status === "success") {
+                    setTimeout(() => {
+                        window.location.href = "/wepProject_war_exploded/profile?saved=1";
+                    }, 1500);
+                } else {
                     submitButton.text(originalButtonText).prop("disabled", false);
                 }
-            });
+            } catch (error) {
+                console.error("Import error:", error);
+                importMessageDiv.html(`<p class="text-red-500">Network error: ${error.message || 'Server error'}</p>`);
+                submitButton.text(originalButtonText).prop("disabled", false);
+            }
         });
     }
 
@@ -200,62 +204,67 @@ $(document).ready(function() {
         }
     });
 
-    // Export JSON
     if (exportJsonBtn.length) {
-        exportJsonBtn.on("click", function() {
+        exportJsonBtn.on("click", async function() {
             console.log("Exporting saved posts as JSON");
-            $.ajax({
-                url: '/wepProject_war_exploded/export-saved-posts',
-                type: 'GET',
-                data: { format: 'json' },
-                success: function(response) {
-                    const blob = new Blob([JSON.stringify(response, null, 2)], { type: 'application/json' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'saved_posts.json';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(url);
-                    exportModal.css("display", "none");
-                },
-                error: function(xhr) {
-                    console.error("Error exporting JSON:", xhr);
-                    alert('Error exporting posts: ' + (xhr.responseJSON?.message || 'Server error'));
-                    exportModal.css("display", "none");
+            try {
+                const response = await fetch('/wepProject_war_exploded/export-saved-posts?format=json', {
+                    method: 'GET'
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData?.message || 'Server error');
                 }
-            });
+
+                const data = await response.json();
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'saved_posts.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                exportModal.css("display", "none");
+            } catch (error) {
+                console.error("Error exporting JSON:", error);
+                alert('Error exporting posts: ' + error.message);
+                exportModal.css("display", "none");
+            }
         });
     }
 
-    // Export XML
     if (exportXmlBtn.length) {
-        exportXmlBtn.on("click", function() {
+        exportXmlBtn.on("click", async function() {
             console.log("Exporting saved posts as XML");
-            $.ajax({
-                url: '/wepProject_war_exploded/export-saved-posts',
-                type: 'GET',
-                data: { format: 'xml' },
-                dataType: 'text',
-                success: function(response) {
-                    const blob = new Blob([response], { type: 'application/xml' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'saved_posts.xml';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(url);
-                    exportModal.css("display", "none");
-                },
-                error: function(xhr) {
-                    console.error("Error exporting XML:", xhr);
-                    alert('Error exporting posts: ' + (xhr.responseText || 'Server error'));
-                    exportModal.css("display", "none");
+            try {
+                const response = await fetch('/wepProject_war_exploded/export-saved-posts?format=xml', {
+                    method: 'GET'
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Server error');
                 }
-            });
+
+                const xmlData = await response.text();
+                const blob = new Blob([xmlData], { type: 'application/xml' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'saved_posts.xml';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                exportModal.css("display", "none");
+            } catch (error) {
+                console.error("Error exporting XML:", error);
+                alert('Error exporting posts: ' + error.message);
+                exportModal.css("display", "none");
+            }
         });
     }
 
@@ -277,38 +286,42 @@ $(document).ready(function() {
         });
     }
 
-    // Delete Profile
     if (deleteProfileBtn.length) {
-        deleteProfileBtn.on("click", function() {
+        deleteProfileBtn.on("click", async function() {
             console.log('Delete button clicked');
             if (!confirm('Are you sure you want to delete your profile? This action cannot be undone.')) {
                 return;
             }
             console.log('Confirmed deletion');
-            $.ajax({
-                url: '/wepProject_war_exploded/profile',
-                type: 'DELETE',
-                headers: { 'Accept': 'application/json' },
-                success: function(response) {
-                    console.log('Success response:', response);
-                    if (response.status === 'success') {
-                        alert('Profile deleted successfully.');
-                        window.location.href = '/wepProject_war_exploded/login';
-                    } else {
-                        alert(response.message || 'Error deleting profile');
-                    }
-                },
-                error: function(xhr) {
-                    console.error('Error response:', xhr);
-                    const response = xhr.responseJSON;
-                    if (xhr.status === 401) {
+
+            try {
+                const response = await fetch('/wepProject_war_exploded/profile', {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                const data = await response.json();
+                console.log('Response:', data);
+
+                if (!response.ok) {
+                    if (response.status === 401) {
                         alert('Please log in to delete your profile');
                         window.location.href = '/wepProject_war_exploded/login.jsp';
-                    } else {
-                        alert(response?.message || 'Error deleting profile');
+                        return;
                     }
+                    throw new Error(data?.message || 'Error deleting profile');
                 }
-            });
+
+                if (data.status === 'success') {
+                    alert('Profile deleted successfully.');
+                    window.location.href = '/wepProject_war_exploded/login';
+                } else {
+                    alert(data.message || 'Error deleting profile');
+                }
+            } catch (error) {
+                console.error('Delete profile error:', error);
+                alert(error.message || 'Error deleting profile');
+            }
         });
     } else {
         console.error('Delete Profile button not found');
@@ -374,9 +387,8 @@ $(document).ready(function() {
         });
     }
 
-    // Form Submission
     if (postForm.length) {
-        postForm.on("submit", function(e) {
+        postForm.on("submit", async function(e) {
             e.preventDefault();
             const submitButton = postForm.find('button[type="submit"]');
             const originalButtonText = submitButton.text();
@@ -404,51 +416,54 @@ $(document).ready(function() {
                 "namedTagIds:", formData.getAll("namedTagIds[]"),
                 "userTaggedIds:", formData.getAll("userTaggedIds[]"));
 
-            $.ajax({
-                url: "/wepProject_war_exploded/import",
-                type: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(result) {
-                    console.log("Fetch response JSON:", result);
-                    postMessageDiv.html(`<p class="${result.status === 'success' ? 'text-green-500' : 'text-red-500'}">${result.message}</p>`);
-                    if (result.status === "success") {
-                        console.log("Post created successfully, reloading in 1.5s");
-                        setTimeout(() => {
-                            window.location.href = "/wepProject_war_exploded/profile";
-                        }, 1500);
-                    } else {
-                        submitButton.text(originalButtonText).prop("disabled", false);
-                    }
-                },
-                error: function(xhr) {
-                    console.error("Network error details:", xhr);
-                    postMessageDiv.html(`<p class="text-red-500">Network error: ${xhr.responseJSON?.message || 'Server error'}</p>`);
+            try {
+                const response = await fetch("/wepProject_war_exploded/import", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+                console.log("Response JSON:", result);
+
+                postMessageDiv.html(`<p class="${result.status === 'success' ? 'text-green-500' : 'text-red-500'}">${result.message}</p>`);
+
+                if (result.status === "success") {
+                    console.log("Post created successfully, reloading in 1.5s");
+                    setTimeout(() => {
+                        window.location.href = "/wepProject_war_exploded/profile";
+                    }, 1500);
+                } else {
                     submitButton.text(originalButtonText).prop("disabled", false);
                 }
-            });
+            } catch (error) {
+                console.error("Network error details:", error);
+                postMessageDiv.html(`<p class="text-red-500">Network error: ${error.message || 'Server error'}</p>`);
+                submitButton.text(originalButtonText).prop("disabled", false);
+            }
         });
     }
 
-    // Load Posts
-    function loadPosts() {
-        $.ajax({
-            url: "/wepProject_war_exploded/profile",
-            type: "GET",
-            headers: { "X-Requested-With": "XMLHttpRequest" },
-            success: function(html) {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = html;
-                const newPostsContainer = tempDiv.querySelector('.post-grid');
-                if (newPostsContainer) {
-                    postsContainer.html(newPostsContainer.innerHTML);
-                }
-            },
-            error: function(xhr) {
-                console.error("Error refreshing posts:", xhr);
+    async function loadPosts() {
+        try {
+            const response = await fetch("/wepProject_war_exploded/profile", {
+                method: "GET",
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load posts');
             }
-        });
+
+            const html = await response.text();
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            const newPostsContainer = tempDiv.querySelector('.post-grid');
+            if (newPostsContainer) {
+                postsContainer.html(newPostsContainer.innerHTML);
+            }
+        } catch (error) {
+            console.error("Error refreshing posts:", error);
+        }
     }
 
 });

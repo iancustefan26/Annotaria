@@ -40,9 +40,18 @@
             </c:otherwise>
           </c:choose>
         </h1>
-        <div class="mt-2 profile-stats">
-          <span><strong>${posts.size()}</strong> Posts</span>
-        </div>
+        <c:choose>
+          <c:when test = "${saved}">
+            <div class="mt-2 profile-stats">
+              <span><strong>${posts.size()}</strong> Saved Posts</span>
+            </div>
+          </c:when>
+          <c:otherwise>
+            <div class="mt-2 profile-stats">
+              <span><strong>${posts.size()}</strong> Posts</span>
+            </div>
+          </c:otherwise>
+        </c:choose>
         <div class="mt-2 profile-links">
           <a href="/wepProject_war_exploded/feed" class="text-blue-600 hover:underline">Feed</a> |
           <c:if test="${isOwnProfile}">
