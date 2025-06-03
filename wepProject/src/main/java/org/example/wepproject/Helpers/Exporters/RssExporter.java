@@ -9,7 +9,7 @@ import org.example.wepproject.Models.RssRecord;
 public class RssExporter {
     public static Integer latestPosts = 20;
     public static Integer latestComments = 20;
-    public static String exportDir = "export";
+    public static String exportDir = System.getProperty("user.home") + "/export";
     public static String exportPath = "news.rss";
 
     public static void exportRss(List<RssRecord> records) {

@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class StatisticsExporter {
-    public static String exportDir = "export";
+    public static String exportDir = System.getProperty("user.home") + "/export";
 
     public static void export(StatisticsExportFormat format, List<StatisticRecord> records) {
         String fileName = "/statistics_export." + format.name().toLowerCase();
