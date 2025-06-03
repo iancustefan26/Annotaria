@@ -41,7 +41,7 @@ $(document).ready(function() {
       .on('select2:select', function(e) {
         const userId = e.params.data.id;
         console.log('Selected user:', userId);
-        window.location.href = `/profile?id=${userId}`;
+        window.location.href = `/profile?userId=${userId}`;
       })
       .on('select2:clear', function() {
         console.log('Search cleared');
