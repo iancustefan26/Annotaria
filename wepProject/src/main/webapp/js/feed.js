@@ -102,9 +102,130 @@ $(document).ready(function() {
     }
   }
 
+  // == Leaderboard Functions ==
+  async function loadLeaderboard() {
+    try {
+      const response = await fetch('/wepProject_war_exploded/statistics?format=csv', {
+        method: 'GET'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load leaderboard data');
+      }
+
+      const csvText = await response.text();
+      const leaderboardData = parseCSVToLeaderboard(csvText);
+      renderLeaderboard(leaderboardData);
+    } catch (error) {
+      console.error('Failed to load leaderboard:', error);
+      $('#leaderboardContainer').html('<p class="text-red-500 text-xs">Failed to load leaderboard</p>');
+    }
+  }
+
+  function parseCSVToLeaderboard(csvText) {
+    const lines = csvText.trim().split('\n').filter(line => line.trim());
+    if (lines.length <= 1) return []; // Need at least header + 1 data row
+
+    const data = [];
+
+    // Skip the first line (header: Title,Owner Name,Score)
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      // Split by comma and clean each value
+      const parts = line.split(',').map(part => part.trim().replace(/"/g, ''));
+
+      if (parts.length >= 2) {
+        const title = parts[0];
+        const username = parts[1];
+        const score = parts.length >= 3 ? parseInt(parts[2]) || 0 : 0;
+
+        // Only add entries with valid data
+        if (title && username) {
+          data.push({
+            title: title,
+            username: username,
+            score: score,
+            isLastEntry: i === lines.length - 1 // Mark if this is the last (crown) entry
+          });
+        }
+      }
+    }
+
+    // Sort by score descending, but keep the last entry special
+    const regularEntries = data.slice(0, -1).sort((a, b) => b.score - a.score);
+    const lastEntry = data.length > 0 ? data[data.length - 1] : null;
+
+    // Combine regular entries with the special last entry
+    const sortedData = [...regularEntries];
+    if (lastEntry) {
+      sortedData.push(lastEntry);
+    }
+
+    return sortedData.slice(0, 10); // Top 10
+  }
+
+  function renderLeaderboard(data) {
+    const container = $('#leaderboardContainer');
+
+    if (!data || data.length === 0) {
+      container.html('<p class="text-gray-500 text-xs">No leaderboard data available</p>');
+      return;
+    }
+
+    let html = '<div class="space-y-1">';
+
+    data.forEach((entry, index) => {
+      const username = entry.username || `User ${index + 1}`;
+      const score = entry.score || 0;
+      const title = entry.title || 'Points';
+
+      // Handle the special crown entry (last entry from CSV)
+      if (entry.isLastEntry) {
+        html += `
+        <div class="leaderboard-item flex items-center justify-between p-2 rounded-lg bg-yellow-50 border border-yellow-200 transition-colors">
+          <div class="flex items-center space-x-2">
+            <div class="rank-indicator w-6 text-center">👑</div>
+            <div class="user-info">
+              <p class="text-xs font-bold text-yellow-600 truncate" title="@${username}">@${username}</p>
+              <p class="text-xs text-yellow-500">${title}</p>
+            </div>
+          </div>
+          <div class="score text-xs text-yellow-600 font-bold">
+            ${score > 0 ? score : ''}
+          </div>
+        </div>
+      `;
+      } else {
+        // Regular entries
+        const rankIcon = index < 3 ?
+            ['🥇', '🥈', '🥉'][index] :
+            `<span class="text-xs text-gray-500">#${index + 1}</span>`;
+
+        html += `
+        <div class="leaderboard-item flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors">
+          <div class="flex items-center space-x-2">
+            <div class="rank-indicator w-6 text-center">${rankIcon}</div>
+            <div class="user-info">
+              <p class="text-xs font-medium text-gray-800 truncate" title="@${username}">@${username}</p>
+              <p class="text-xs text-gray-500">${title}</p>
+            </div>
+          </div>
+          <div class="score text-xs text-gray-600 font-semibold">
+            ${score > 0 ? score : ''}
+          </div>
+        </div>
+      `;
+      }
+    });
+
+    html += '</div>';
+    container.html(html);
+  }
+
   // == Post Loading ==
   async function loadPosts() {
-    // Build query parameters
     const categoryId = $('#categoryFilter').val();
     const creationYear = $('#yearFilter').val();
     const namedTagId = $('#tagFilter').val();
@@ -469,6 +590,7 @@ $(document).ready(function() {
   loadCategories();
   loadYears();
   loadTags();
+  loadLeaderboard();
 
   // Setup handlers for server-side rendered posts first
   setupServerSideEventHandlers();
@@ -488,4 +610,7 @@ $(document).ready(function() {
     });
     debouncedLoadPosts();
   });
+
+  // Refresh leaderboard periodically (every 5 minutes)
+  setInterval(loadLeaderboard, 5 * 60 * 1000);
 });
