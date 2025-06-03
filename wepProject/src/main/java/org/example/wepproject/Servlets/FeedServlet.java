@@ -21,6 +21,15 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+/*
+TODO:
+    - SEARCH BAR TO WORK
+    - LEADERBOARD IN LOW LEFT
+    - PHONE
+    - SQL INJECTION FOR LOGIN
+ */
+
 @WebServlet("/feed")
 public class FeedServlet extends HttpServlet {
     private ObjectMapper objectMapper = new ObjectMapper();

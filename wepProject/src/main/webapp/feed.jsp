@@ -20,6 +20,7 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <link rel="stylesheet" href="/wepProject_war_exploded/css/feed.css">
     <link rel="stylesheet" href="/wepProject_war_exploded/css/post.css">
+    <link rel="stylesheet" href="/wepProject_war_exploded/css/leaderboard.css">
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
 <% if (session.getAttribute("userId") == null) {
@@ -79,6 +80,20 @@
                 <select id="tagFilter">
                     <option value="">All Tags</option>
                 </select>
+            </div>
+            <div class="leaderboard-container">
+                <div class="leaderboard-header">
+                    <h3>
+                        <i class="fas fa-trophy"></i>
+                        Top Users
+                    </h3>
+                </div>
+                <div id="leaderboardContainer" class="leaderboard-list">
+                    <div class="leaderboard-loading">
+                        <i class="fas fa-spinner"></i>
+                        Loading...
+                    </div>
+                </div>
             </div>
         </div>
     </div>

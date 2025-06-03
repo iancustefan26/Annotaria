@@ -1,0 +1,203 @@
+/* Leaderboard Container - Positioned below filter buttons */
+.leaderboard-container {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.leaderboard-header h3 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.leaderboard-header .fa-trophy {
+    -webkit-text-fill-color: #fbbf24;
+    background: none;
+    font-size: 1rem;
+}
+
+/* Leaderboard List */
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Individual Leaderboard Item */
+.leaderboard-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.leaderboard-item:hover {
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-color: rgba(102, 126, 234, 0.3);
+}
+
+/* Rank Indicator */
+.rank-indicator {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.rank-indicator span {
+    color: #6b7280;
+    font-size: 0.75rem;
+}
+
+/* User Info Section */
+.user-info {
+    flex: 1;
+    margin-left: 0.75rem;
+    margin-right: 0.5rem;
+    min-width: 0;
+}
+
+.user-info p {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #374151;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100px;
+}
+
+/* Score Section */
+.score {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #667eea;
+    flex-shrink: 0;
+    text-align: right;
+    min-width: fit-content;
+}
+
+/* Top 3 Special Styling */
+.leaderboard-item:nth-child(1) .rank-indicator {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+    border-radius: 50%;
+    font-size: 0.75rem;
+}
+
+.leaderboard-item:nth-child(2) .rank-indicator {
+    background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+    color: #374151;
+    border-radius: 50%;
+    font-size: 0.75rem;
+}
+
+.leaderboard-item:nth-child(3) .rank-indicator {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border-radius: 50%;
+    font-size: 0.75rem;
+}
+
+.leaderboard-loading {
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.leaderboard-loading i {
+    margin-right: 0.5rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Error State */
+.leaderboard-error {
+    padding: 1rem;
+    text-align: center;
+    color: #ef4444;
+    font-size: 0.8125rem;
+    background: rgba(254, 242, 242, 0.8);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    border-radius: 8px;
+}
+
+/* Empty State */
+.leaderboard-empty {
+    padding: 1.5rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.8125rem;
+}
+
+.leaderboard-empty i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    display: block;
+    color: #d1d5db;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .leaderboard-container {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .leaderboard-item {
+        padding: 0.5rem;
+    }
+
+    .user-info p {
+        font-size: 0.75rem;
+        max-width: 80px;
+    }
+
+    .score {
+        font-size: 0.6875rem;
+    }
+
+    .rank-indicator {
+        width: 1.25rem;
+        height: 1.25rem;
+        font-size: 0.75rem;
+    }
+
+    .leaderboard-header h3 {
+        font-size: 0.8125rem;
+    }
+}
+
+@media (max-width: 1024px) {
+    .user-info p {
+        max-width: 90px;
+    }
+}
