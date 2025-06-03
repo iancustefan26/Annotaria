@@ -20,7 +20,7 @@ TODO:
     - comentare si curatare cod
     - specificatie OpenAPI
     - ReadME
-    - licenta open-source
+    - licenta open-source -> DONE
     - fisa cerintelor in format ScholarlyHTML disponisibil pe site ul nostru
     - filmulet demonstrativ
  */
