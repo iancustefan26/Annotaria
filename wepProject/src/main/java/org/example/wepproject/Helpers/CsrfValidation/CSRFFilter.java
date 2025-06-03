@@ -15,8 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @WebFilter(filterName = "CSRFFilter", urlPatterns = {
-        "/login", "/signup",  "/profile",
-        "/comment", "/like", "/post", "/savePost"
+        "/login", "/signup"
 })
 public class CSRFFilter implements Filter {
 
