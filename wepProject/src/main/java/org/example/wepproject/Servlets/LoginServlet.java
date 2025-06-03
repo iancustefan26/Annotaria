@@ -11,7 +11,7 @@ import org.example.wepproject.Models.User;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
-import java.sql.SQLException;
+import java.util.UUID;
 
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
@@ -26,6 +26,10 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(true);
+        String csrfToken = UUID.randomUUID().toString();
+        session.setAttribute("csrfToken", csrfToken);
+        req.setAttribute("csrfToken", csrfToken);
         req.getRequestDispatcher("/login.jsp").forward(req, resp);
     }
 
@@ -34,11 +38,28 @@ public class LoginServlet extends HttpServlet {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("csrfToken") == null) {
+            resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "CSRF token missing in session"));
+            return;
+        }
+
+        String sessionToken = (String) session.getAttribute("csrfToken");
+
         try {
             // Read and parse the JSON request
             LoginDTO loginDTO = objectMapper.readValue(req.getReader(), LoginDTO.class);
             String username = loginDTO.getUsername();
             String password = loginDTO.getPassword();
+            String requestToken = loginDTO.getCsrfToken(); // Get CSRF token from JSON body
+
+            // Validate CSRF token
+            if (requestToken == null || !sessionToken.equals(requestToken)) {
+                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid CSRF token"));
+                return;
+            }
 
             System.out.println("Login attempt for username: " + username); // Debug log
 
@@ -62,8 +83,6 @@ public class LoginServlet extends HttpServlet {
                     System.out.println("Password match: " + passwordMatch); // Debug log
 
                     if (passwordMatch) {
-                        // Create session
-                        HttpSession session = req.getSession(true);
                         session.setAttribute("userId", user.getId());
                         session.setAttribute("username", user.getUsername());
 

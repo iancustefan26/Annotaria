@@ -49,6 +49,7 @@
             <div id="message" class="message"></div>
 
             <form id="loginForm" class="auth-form">
+                <input type="hidden" name="csrfToken" value="${csrfToken}">
                 <div class="form-group">
                     <label for="username">
                         <i class="fas fa-user"></i>

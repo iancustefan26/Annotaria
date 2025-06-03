@@ -14,4 +14,7 @@ public class SignupDTO {
 
     @JsonProperty("email")
     private String email;
+
+    @JsonProperty("csrfToken")
+    private String csrfToken;
 }

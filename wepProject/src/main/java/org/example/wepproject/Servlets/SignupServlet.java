@@ -5,6 +5,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.example.wepproject.DAOs.UserDAO;
 import org.example.wepproject.DTOs.ApiDTO;
 import org.example.wepproject.DTOs.SignupDTO;
@@ -13,6 +14,7 @@ import org.example.wepproject.Models.User;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @WebServlet("/signup")
 public class SignupServlet extends HttpServlet {
@@ -26,17 +28,40 @@ public class SignupServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(true);
+        String csrfToken = UUID.randomUUID().toString();
+        session.setAttribute("csrfToken", csrfToken);
+        req.setAttribute("csrfToken", csrfToken);
         req.getRequestDispatcher("/signup.jsp").forward(req, resp);
     }
+
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
+
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("csrfToken") == null) {
+            resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "CSRF token missing in session"));
+            return;
+        }
+
+        String sessionToken = (String) session.getAttribute("csrfToken");
+
         try{
             SignupDTO signupDTO = objectMapper.readValue(req.getReader(), SignupDTO.class);
             String username = signupDTO.getUsername();
             String password = signupDTO.getPassword();
             String email = signupDTO.getEmail();
+            String requestToken = signupDTO.getCsrfToken();
+
+            if (requestToken == null || !sessionToken.equals(requestToken)) {
+                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Invalid CSRF token"));
+                return;
+            }
+
             if (username == null || password == null || email == null ||
                 username.isEmpty() || password.isEmpty() || email.isEmpty()) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);

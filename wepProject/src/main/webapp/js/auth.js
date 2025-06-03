@@ -3,11 +3,12 @@ function handleFormSubmit(formId, url, redirectUrl, includeEmail = false) {
         e.preventDefault();
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
+        const csrfToken = document.querySelector(`#${formId} [name='csrfToken']`).value;
         const messageDiv = document.getElementById("message");
 
         const payload = includeEmail
-            ? { username, email: document.getElementById("email").value, password }
-            : { username, password };
+            ? { username, email: document.getElementById("email").value, password, csrfToken }
+            : { username, password, csrfToken };
 
         try {
             const response = await fetch(url, {
@@ -18,7 +19,6 @@ function handleFormSubmit(formId, url, redirectUrl, includeEmail = false) {
 
             console.log('Response status:', response.status); // Debug log
 
-            // Check if response is OK (200-299)
             if (response.ok) {
                 const result = await response.json();
                 console.log('Response data:', result); // Debug log
@@ -34,7 +34,6 @@ function handleFormSubmit(formId, url, redirectUrl, includeEmail = false) {
                     messageDiv.style.display = 'flex';
                 }
             } else {
-                // Handle HTTP error status codes (400, 401, 500, etc.)
                 try {
                     const errorResult = await response.json();
                     console.log('Error response:', errorResult); // Debug log
@@ -47,7 +46,6 @@ function handleFormSubmit(formId, url, redirectUrl, includeEmail = false) {
                     messageDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>Server error (${response.status})</span>`;
                     messageDiv.style.display = 'flex';
                 }
-                messageDiv.style.display = 'block';
             }
         } catch (error) {
             console.error('Network error:', error); // Debug log

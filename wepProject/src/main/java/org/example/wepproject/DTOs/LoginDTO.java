@@ -10,4 +10,7 @@ public class LoginDTO {
 
     @JsonProperty("password")
     private String password;
+
+    @JsonProperty("")
+    private String csrfToken;
 }
