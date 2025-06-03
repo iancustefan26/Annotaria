@@ -47,7 +47,6 @@ $(document).ready(function() {
         console.log('Search cleared');
       });
 
-  // == Filter Population Functions ==
   async function loadCategories() {
     try {
       const response = await fetch('/wepProject_war_exploded/categories', {
@@ -102,7 +101,6 @@ $(document).ready(function() {
     }
   }
 
-  // == Leaderboard Functions ==
   async function loadLeaderboard() {
     try {
       const response = await fetch('/wepProject_war_exploded/statistics?format=csv', {
@@ -217,9 +215,8 @@ $(document).ready(function() {
     container.html(html);
   }
 
-  // == Post Loading ==
-  async function loadPosts(append = false) {
-    if (isLoading || !hasMorePosts) return;
+  async function loadPosts(append = false, reset = false) {
+    if (isLoading || (!append && !hasMorePosts)) return;
     isLoading = true;
 
     const categoryId = $('#categoryFilter').val();
@@ -231,13 +228,13 @@ $(document).ready(function() {
     if (namedTagId) queryParams.push(`namedTagId=${namedTagId}`);
     queryParams.push(`offset=${offset}`);
     queryParams.push(`limit=${limit}`);
+    if (reset) queryParams.push(`reset=true`);
     const queryString = queryParams.length ? '?' + queryParams.join('&') : '';
     const url = '/wepProject_war_exploded/feed' + queryString;
 
     console.log('Loading posts with URL:', url);
 
     try {
-      // Show loading indicator
       if (append) {
         $('#postsContainer').append('<div id="loadingIndicator" class="text-center py-4">Loading more posts...</div>');
       }
@@ -256,7 +253,7 @@ $(document).ready(function() {
         const posts = data.data?.posts || [];
         totalPosts = data.data?.totalPosts || 0;
         offset = data.data?.offset + posts.length;
-        hasMorePosts = offset < totalPosts;
+        hasMorePosts = data.data?.hasMorePosts || false;
         const categoryMap = data.data?.categoryMap || {};
         console.log('Received posts:', posts.length, posts);
         console.log('Category map:', categoryMap);
@@ -301,7 +298,7 @@ $(document).ready(function() {
         <div class="post-media relative">
             ${post.mediaBlobBase64 ? `
                 ${isVideo ? `
-                    <video controls class="w-full object-cover max-h-[400px]">
+                    <video controls "w-full object-cover max-h-[400px]">
                         <source src="${post.mediaBlobBase64}" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
@@ -388,7 +385,6 @@ $(document).ready(function() {
     }
   }
 
-  // == Centralized Event Handler Setup ==
   function setupEventHandlers(container) {
     console.log('Setting up event handlers for container:', container);
 
@@ -498,9 +494,9 @@ $(document).ready(function() {
 
           if (data.status === 'success') {
             alert('Post deleted successfully');
-            offset = 0; // Reset offset on delete
+            offset = 0;
             hasMorePosts = true;
-            loadPosts();
+            loadPosts(false, true); // Reset on delete
           } else {
             alert(data.message || 'Failed to delete post');
           }
@@ -533,7 +529,7 @@ $(document).ready(function() {
 
     const scrollPosition = $(window).scrollTop() + $(window).height();
     const documentHeight = $(document).height();
-    const triggerThreshold = 200; // Load more when 200px from bottom
+    const triggerThreshold = 200;
 
     if (scrollPosition >= documentHeight - triggerThreshold) {
       console.log('Near bottom, loading more posts...');
@@ -589,7 +585,6 @@ $(document).ready(function() {
     }
   });
 
-  // == Initialization ==
   loadCategories();
   loadYears();
   loadTags();
@@ -602,7 +597,7 @@ $(document).ready(function() {
   const debouncedLoadPosts = debounce(function() {
     offset = 0;
     hasMorePosts = true;
-    loadPosts();
+    loadPosts(false, true); // Reset on filter change
   }, 300);
 
   $('#categoryFilter, #yearFilter, #tagFilter').on('change', function() {
