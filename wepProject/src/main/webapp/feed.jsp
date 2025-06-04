@@ -233,7 +233,6 @@
                                     </p>
                                 </div>
 
-                                <!-- Post Description -->
                                 <div class="mb-3">
                                     <p class="text-sm sm:text-base">
                                         <span class="font-semibold">${post.authorUsername != null ? post.authorUsername : 'User #' + post.authorId}</span>
@@ -241,7 +240,6 @@
                                     </p>
                                 </div>
 
-                                <!-- Post Meta Info -->
                                 <div class="text-gray-500 text-xs mb-3 space-y-1">
                                     <div>${post.datePosted.toString()}</div>
                                     <div class="space-x-2">
