@@ -18,7 +18,7 @@ public class LogoutServlet extends HttpServlet {
             System.out.println("Session invalidated for logout");
         }
 
-        resp.sendRedirect(req.getContextPath() + "/login.jsp");
+        resp.sendRedirect(req.getContextPath() + "/login");
     }
 
     @Override
