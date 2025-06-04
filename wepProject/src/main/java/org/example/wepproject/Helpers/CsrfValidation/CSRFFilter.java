@@ -116,7 +116,6 @@ public class CSRFFilter implements Filter {
             if (request instanceof CachedBodyHttpServletRequest) {
                 jsonBody = ((CachedBodyHttpServletRequest) request).getCachedBody();
             } else {
-                // internal server error
                 throw new IllegalStateException("Expected CachedBodyHttpServletRequest for JSON content");
             }
 
@@ -136,6 +135,5 @@ public class CSRFFilter implements Filter {
             return null;
         }
     }
-
 }
 
