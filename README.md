@@ -12,7 +12,7 @@ So, our iterative way sounds like this: (**pages** = **posts**)
 
 At **t = 0** an initial probability is assumed:
 
-![](docs/images/iterative)
+![](docs/images/iterative.png)
 
 where user is the user that's calling the algorithm and p**i** is post i. 0 is page i at time 0 and **Score(u, p)** is definedat the bottom.
 
