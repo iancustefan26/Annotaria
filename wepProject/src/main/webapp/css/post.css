@@ -241,14 +241,12 @@ body {
     backdrop-filter: blur(5px);
 }
 
-/* No media placeholder */
 .bg-gray-200 {
     background: linear-gradient(45deg, #f8f6fa, #ede7f3) !important;
     border-radius: 12px;
     color: #7a6a8b !important;
 }
 
-/* Container styling */
 .container {
     background: rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(10px);
@@ -269,17 +267,23 @@ body {
 /* Responsive design */
 @media (max-width: 640px) {
     .container {
-        padding: 20px 16px;
-        margin: 10px;
+        padding: 16px 12px;
+        margin: 8px;
     }
 
     .max-w-xl {
         max-width: 100%;
-        margin: 0;
     }
 
     .post-media {
         margin: 0 12px;
+    }
+
+    .post-media img,
+    .post-media video {
+        max-height: 60vw;
+        min-height: 200px;
+        border-radius: 8px;
     }
 
     .border-b {
@@ -288,6 +292,91 @@ body {
 
     .p-4 {
         padding: 16px !important;
+    }
+
+    .font-semibold,
+    .font-semibold span {
+        font-size: 0.85rem;
+    }
+
+    .text-sm {
+        font-size: 0.8rem;
+    }
+
+    .text-xs {
+        font-size: 0.7rem;
+        line-height: 1.3;
+    }
+
+    .avatar-placeholder {
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.85rem;
+    }
+
+    .commentInput {
+        font-size: 0.85rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+    }
+
+    .submitComment {
+        font-size: 0.85rem;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+    }
+
+    .commentsContainer {
+        max-height: 200px;
+        padding: 0.75rem;
+        border-radius: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .post-media img,
+    .post-media video {
+        max-height: 70vw;
+        min-height: 180px;
+        border-radius: 6px;
+    }
+
+    .font-semibold,
+    .font-semibold span {
+        font-size: 0.8rem;
+    }
+
+    .text-sm {
+        font-size: 0.75rem;
+    }
+
+    .text-xs {
+        font-size: 0.65rem;
+        line-height: 1.2;
+    }
+
+    .avatar-placeholder {
+        width: 1.8rem;
+        height: 1.8rem;
+        font-size: 0.75rem;
+    }
+
+    .commentInput {
+        font-size: 0.8rem;
+        padding: 0.6rem;
+        border-radius: 8px;
+    }
+
+    .submitComment {
+        font-size: 0.8rem;
+        padding: 0.6rem 0.8rem;
+        border-radius: 8px;
+    }
+
+    .commentsContainer {
+        max-height: 180px;
+        padding: 0.75rem;
+        border-radius: 8px;
     }
 }
 
@@ -305,4 +394,9 @@ body {
 
 #postsContainer .saveButton i.fas {
     color: #ba9ccf !important;
+}
+
+.touch-active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
 }

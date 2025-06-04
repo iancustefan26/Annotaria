@@ -58,7 +58,7 @@
             <a href="${pageContext.request.contextPath}/logout" class="text-blue-600 hover:underline">Logout</a>
           </c:if>
           <c:if test="${!isOwnProfile}">
-            <a href="${pageContext.request.contextPath}/profile" class="text-blue-600 hover:underline">My Profile</a>
+            <a href="${pageContext.request.contextPath}/profile" class="text-blue-600 hover:underline">Go To Your Profile</a>
           </c:if>
           <c:if test="${isOwnProfile && saved}">
             <a href="${pageContext.request.contextPath}/profile" class="text-blue-600 hover:underline"> | My Profile</a>

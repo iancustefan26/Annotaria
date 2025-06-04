@@ -57,11 +57,12 @@ $(document).ready(function() {
       const data = await response.json();
 
       if (response.ok && data.status === 'success') {
-        const categorySelect = $('#categoryFilter');
-        categorySelect.empty();
-        categorySelect.append('<option value="">All Categories</option>');
+        // Update both mobile and desktop category filters
+        const categorySelects = $('#categoryFilter, #desktopCategoryFilter');
+        categorySelects.empty();
+        categorySelects.append('<option value="">All Categories</option>');
         for (const [id, name] of Object.entries(data.data.categoryMap)) {
-          categorySelect.append(`<option value="${id}">${name}</option>`);
+          categorySelects.append(`<option value="${id}">${name}</option>`);
         }
       }
     } catch (error) {
@@ -70,12 +71,12 @@ $(document).ready(function() {
   }
 
   async function loadYears() {
-    const yearSelect = $('#yearFilter');
-    yearSelect.empty();
-    yearSelect.append('<option value="">All Years</option>');
+    const yearSelects = $('#yearFilter, #desktopYearFilter');
+    yearSelects.empty();
+    yearSelects.append('<option value="">All Years</option>');
     const currentYear = new Date().getFullYear();
     for (let year = currentYear; year >= 2000; year--) {
-      yearSelect.append(`<option value="${year}">${year}</option>`);
+      yearSelects.append(`<option value="${year}">${year}</option>`);
     }
   }
 
@@ -89,11 +90,11 @@ $(document).ready(function() {
       const data = await response.json();
 
       if (response.ok && data.status === 'success') {
-        const tagSelect = $('#tagFilter');
-        tagSelect.empty();
-        tagSelect.append('<option value="">All Tags</option>');
+        const tagSelects = $('#tagFilter, #desktopTagFilter');
+        tagSelects.empty();
+        tagSelects.append('<option value="">All Tags</option>');
         for (const [id, name] of Object.entries(data.data.namedTagMap)) {
-          tagSelect.append(`<option value="${id}">${name}</option>`);
+          tagSelects.append(`<option value="${id}">${name}</option>`);
         }
       }
     } catch (error) {
@@ -116,7 +117,7 @@ $(document).ready(function() {
       renderLeaderboard(leaderboardData);
     } catch (error) {
       console.error('Failed to load leaderboard:', error);
-      $('#leaderboardContainer').html('<p class="text-red-500 text-xs">Failed to load leaderboard</p>');
+      $('#leaderboardContainer, #mobileLeaderboardContainer').html('<p class="text-red-500 text-xs">Failed to load leaderboard</p>');
     }
   }
 
@@ -160,10 +161,10 @@ $(document).ready(function() {
   }
 
   function renderLeaderboard(data) {
-    const container = $('#leaderboardContainer');
+    const containers = $('#leaderboardContainer, #mobileLeaderboardContainer');
 
     if (!data || data.length === 0) {
-      container.html('<p class="text-gray-500 text-xs">No leaderboard data available</p>');
+      containers.html('<p class="text-gray-500 text-xs">No leaderboard data available</p>');
       return;
     }
 
@@ -212,16 +213,16 @@ $(document).ready(function() {
     });
 
     html += '</div>';
-    container.html(html);
+    containers.html(html);
   }
 
   async function loadPosts(append = false, reset = false) {
     if (isLoading || (!append && !hasMorePosts)) return;
     isLoading = true;
 
-    const categoryId = $('#categoryFilter').val();
-    const creationYear = $('#yearFilter').val();
-    const namedTagId = $('#tagFilter').val();
+    const categoryId = $('#categoryFilter').val() || $('#desktopCategoryFilter').val();
+    const creationYear = $('#yearFilter').val() || $('#desktopYearFilter').val();
+    const namedTagId = $('#tagFilter').val() || $('#desktopTagFilter').val();
     let queryParams = [];
     if (categoryId) queryParams.push(`categoryId=${categoryId}`);
     if (creationYear) queryParams.push(`creationYear=${creationYear}`);
@@ -298,7 +299,7 @@ $(document).ready(function() {
         <div class="post-media relative">
             ${post.mediaBlobBase64 ? `
                 ${isVideo ? `
-                    <video controls "w-full object-cover max-h-[400px]">
+                    <video controls class="w-full object-cover max-h-[400px]">
                         <source src="${post.mediaBlobBase64}" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
@@ -365,7 +366,8 @@ $(document).ready(function() {
           postsContainer.append(postHtml);
         });
 
-        setupEventHandlers(postsContainer);
+        // Set up event handlers for the newly added posts
+        setupEventHandlers();
 
       } else {
         $('#postsContainer').html(
@@ -385,9 +387,11 @@ $(document).ready(function() {
     }
   }
 
-  function setupEventHandlers(container) {
-    console.log('Setting up event handlers for container:', container);
+  function setupEventHandlers() {
+    const container = $(document); // Use document as the container for event delegation
+    console.log('Setting up event handlers');
 
+    // Remove existing handlers to prevent duplicates
     container.off('click', '.likeButton');
     container.off('click', '.saveButton');
     container.off('click', '.commentButton');
@@ -401,7 +405,7 @@ $(document).ready(function() {
       const postId = $(this).data('post-id');
       console.log('Like button clicked for post:', postId);
       if (postId) {
-        toggleLike(postId, container);
+        toggleLike(postId, $('#postsContainer'));
       } else {
         console.error('No post-id found on like button');
       }
@@ -412,7 +416,7 @@ $(document).ready(function() {
       const postId = $(this).data('post-id');
       console.log('Save button clicked for post:', postId);
       if (postId) {
-        toggleSave(postId, container);
+        toggleSave(postId, $('#postsContainer'));
       } else {
         console.error('No post-id found on save button');
       }
@@ -423,15 +427,15 @@ $(document).ready(function() {
       const postId = $(this).data('post-id');
       console.log('Comment button clicked for post:', postId);
       if (postId) {
-        const commentsContainer = container.find(`[data-post-id="${postId}"] .commentsContainer`);
+        const commentsContainer = $(`[data-post-id="${postId}"] .commentsContainer`);
         commentsContainer.toggleClass('hidden');
         if (!commentsContainer.hasClass('hidden')) {
           loadComments(
               postId,
               commentsContainer,
-              container.find(`[data-post-id="${postId}"] .commentCount`)
+              $(`[data-post-id="${postId}"] .commentCount`)
           );
-          container.find(`textarea[data-post-id="${postId}"]`).focus();
+          $(`textarea[data-post-id="${postId}"]`).focus();
         }
       } else {
         console.error('No post-id found on comment button');
@@ -443,9 +447,9 @@ $(document).ready(function() {
       const postId = $(this).data('post-id');
       console.log('Submit comment clicked for post:', postId);
       if (postId) {
-        const commentInput = container.find(`textarea[data-post-id="${postId}"]`);
-        const commentsContainer = container.find(`[data-post-id="${postId}"] .commentsContainer`);
-        const commentCountElement = container.find(`[data-post-id="${postId}"] .commentCount`);
+        const commentInput = $(`textarea[data-post-id="${postId}"]`);
+        const commentsContainer = $(`[data-post-id="${postId}"] .commentsContainer`);
+        const commentCountElement = $(`[data-post-id="${postId}"] .commentCount`);
         submitComment(postId, commentInput, commentsContainer, commentCountElement);
       } else {
         console.error('No post-id found on submit comment button');
@@ -459,8 +463,8 @@ $(document).ready(function() {
         console.log('Enter pressed for comment on post:', postId);
         if (postId) {
           const commentInput = $(this);
-          const commentsContainer = container.find(`[data-post-id="${postId}"] .commentsContainer`);
-          const commentCountElement = container.find(`[data-post-id="${postId}"] .commentCount`);
+          const commentsContainer = $(`[data-post-id="${postId}"] .commentsContainer`);
+          const commentCountElement = $(`[data-post-id="${postId}"] .commentCount`);
           submitComment(postId, commentInput, commentsContainer, commentCountElement);
         }
       }
@@ -509,17 +513,49 @@ $(document).ready(function() {
 
     setupCommentDeletion(container);
 
-    container.find('[data-post-id]').each(function() {
+    // Set up double tap for existing posts
+    $('[data-post-id]').each(function() {
       const postId = $(this).data('post-id');
       const likeButton = $(this).find('.likeButton');
-      handleDoubleTap(postId, container, likeButton);
+      handleDoubleTap(postId, $('#postsContainer'), likeButton);
     });
 
-    container.find('[data-post-id]').each(function() {
-      const postId = $(this).data('post-id');
-      const commentsContainer = $(this).find('.commentsContainer');
-      const commentCountElement = $(this).find('.commentCount');
-      loadComments(postId, commentsContainer, commentCountElement);
+    enhanceTouchInteractions();
+  }
+
+  // Enhance touch interactions for mobile
+  function enhanceTouchInteractions() {
+    $('.likeButton, .commentButton, .saveButton, .deleteButton, .submitComment').on('touchstart', function(e) {
+      $(this).addClass('touch-active');
+    }).on('touchend', function(e) {
+      $(this).removeClass('touch-active');
+    });
+  }
+
+  // Sync filter changes between mobile and desktop
+  function syncFilters() {
+    $('#categoryFilter').on('change', function() {
+      $('#desktopCategoryFilter').val($(this).val());
+    });
+
+    $('#desktopCategoryFilter').on('change', function() {
+      $('#categoryFilter').val($(this).val());
+    });
+
+    $('#yearFilter').on('change', function() {
+      $('#desktopYearFilter').val($(this).val());
+    });
+
+    $('#desktopYearFilter').on('change', function() {
+      $('#yearFilter').val($(this).val());
+    });
+
+    $('#tagFilter').on('change', function() {
+      $('#desktopTagFilter').val($(this).val());
+    });
+
+    $('#desktopTagFilter').on('change', function() {
+      $('#tagFilter').val($(this).val());
     });
   }
 
@@ -529,7 +565,7 @@ $(document).ready(function() {
 
     const scrollPosition = $(window).scrollTop() + $(window).height();
     const documentHeight = $(document).height();
-    const triggerThreshold = 200;
+    const triggerThreshold = $(window).width() <= 640 ? 100 : 200;
 
     if (scrollPosition >= documentHeight - triggerThreshold) {
       console.log('Near bottom, loading more posts...');
@@ -585,10 +621,13 @@ $(document).ready(function() {
     }
   });
 
+  // Initialize everything
   loadCategories();
   loadYears();
   loadTags();
   loadLeaderboard();
+  syncFilters();
+  setupEventHandlers();
 
   if ($('#postsContainer').children().length === 0) {
     loadPosts();
@@ -600,11 +639,11 @@ $(document).ready(function() {
     loadPosts(false, true); // Reset on filter change
   }, 300);
 
-  $('#categoryFilter, #yearFilter, #tagFilter').on('change', function() {
+  $('#categoryFilter, #yearFilter, #tagFilter, #desktopCategoryFilter, #desktopYearFilter, #desktopTagFilter').on('change', function() {
     console.log('Filter changed:', {
-      categoryId: $('#categoryFilter').val(),
-      creationYear: $('#yearFilter').val(),
-      namedTagId: $('#tagFilter').val()
+      categoryId: $('#categoryFilter').val() || $('#desktopCategoryFilter').val(),
+      creationYear: $('#yearFilter').val() || $('#desktopYearFilter').val(),
+      namedTagId: $('#tagFilter').val() || $('#desktopTagFilter').val()
     });
     debouncedLoadPosts();
   });

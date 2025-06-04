@@ -7,12 +7,16 @@
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Annotaria</title>
+
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self'; frame-ancestors 'none';">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/auth.css">
 </head>
@@ -38,24 +42,34 @@
                 <h1 class="brand-name">Annotaria</h1>
             </div>
 
-
+            <!-- Secure message display with proper escaping -->
             <c:if test="${not empty param.message}">
                 <div class="message success-message">
                     <i class="fas fa-check-circle"></i>
-                    <span>${param.message}</span>
+                    <!-- Use fn:escapeXml to prevent XSS -->
+                    <span><c:out value="${param.message}" escapeXml="true"/></span>
                 </div>
             </c:if>
 
             <div id="message" class="message"></div>
 
             <form id="loginForm" class="auth-form">
-                <input type="hidden" name="csrfToken" value="${csrfToken}">
+                <!-- CSRF Token with proper escaping -->
+                <input type="hidden" name="csrfToken" value="<c:out value='${csrfToken}' escapeXml='true'/>">
+
                 <div class="form-group">
                     <label for="username">
                         <i class="fas fa-user"></i>
                         Username
                     </label>
-                    <input type="text" id="username" required placeholder="Enter your username">
+                    <input type="text"
+                           id="username"
+                           name="username"
+                           required
+                           placeholder="Enter your username"
+                           pattern="[a-zA-Z0-9_]{1,20}"
+                           title="Username must be 1-20 characters, letters, numbers, and underscores only"
+                           autocomplete="username">
                 </div>
 
                 <div class="form-group">
@@ -63,7 +77,12 @@
                         <i class="fas fa-lock"></i>
                         Password
                     </label>
-                    <input type="password" id="password" required placeholder="Enter your password">
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           required
+                           placeholder="Enter your password"
+                           autocomplete="current-password">
                 </div>
 
                 <button type="submit" class="submit-btn">
