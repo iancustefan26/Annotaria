@@ -519,6 +519,17 @@ $(document).ready(function() {
       const likeButton = $(this).find('.likeButton');
       handleDoubleTap(postId, $('#postsContainer'), likeButton);
     });
+
+    enhanceTouchInteractions();
+  }
+
+  // Enhance touch interactions for mobile
+  function enhanceTouchInteractions() {
+    $('.likeButton, .commentButton, .saveButton, .deleteButton, .submitComment').on('touchstart', function(e) {
+      $(this).addClass('touch-active');
+    }).on('touchend', function(e) {
+      $(this).removeClass('touch-active');
+    });
   }
 
   // Sync filter changes between mobile and desktop
@@ -554,7 +565,7 @@ $(document).ready(function() {
 
     const scrollPosition = $(window).scrollTop() + $(window).height();
     const documentHeight = $(document).height();
-    const triggerThreshold = 200;
+    const triggerThreshold = $(window).width() <= 640 ? 100 : 200;
 
     if (scrollPosition >= documentHeight - triggerThreshold) {
       console.log('Near bottom, loading more posts...');
