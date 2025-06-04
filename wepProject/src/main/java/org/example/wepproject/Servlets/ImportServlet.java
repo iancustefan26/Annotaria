@@ -12,6 +12,7 @@ import org.example.wepproject.DAOs.NamedTagDAO;
 import org.example.wepproject.DAOs.PostDAO;
 import org.example.wepproject.DAOs.UserDAO;
 import org.example.wepproject.DTOs.ApiDTO;
+import org.example.wepproject.Models.NamedTag;
 import org.example.wepproject.Models.Post;
 
 import java.io.IOException;
@@ -56,7 +57,10 @@ public class ImportServlet extends HttpServlet {
             String[] namedTagIds = req.getParameterValues("namedTagIds[]");
             String[] userTaggedIds = req.getParameterValues("userTaggedIds[]");
             String mediaType = req.getParameter("mediaType");
-
+            for(int i = 0; i < namedTagIds.length / 2 ; i++) {
+                NamedTag tag = namedTagDAO.findById(Long.valueOf(namedTagIds[i]));
+                description += " #" + tag.getName() + " ";
+            }
             Long categoryId;
             try {
                 categoryId = Long.parseLong(categoryIdStr);
