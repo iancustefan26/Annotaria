@@ -77,9 +77,10 @@ public class ProfileServlet extends HttpServlet {
         List<Category> categoryDAOs;
         categoryDAOs = categoryDAO.findAll();
         boolean isOwnProfile = true;
+        Long profileUserId = null;
         try {
             Long loggedInUserId = (Long) req.getSession().getAttribute("userId");
-            Long profileUserId = loggedInUserId; // Default to viewing own profile
+            profileUserId = loggedInUserId;
 
             // Check if we're visiting another user's profile via the id parameter
             String userIdParam = req.getParameter("userId");
@@ -109,14 +110,13 @@ public class ProfileServlet extends HttpServlet {
             List<Post> posts;
             Long saved;
             if (isOwnProfile) {
-                saved =  Long.parseLong(req.getParameter("saved") == null ? "0" : req.getParameter("saved"));
-                if(saved == 0){
+                saved = Long.parseLong(req.getParameter("saved") == null ? "0" : req.getParameter("saved"));
+                if (saved == 0) {
                     posts = postDAO.findByUserId(profileUserId);
-                }
-                else{
+                } else {
                     posts = postDAO.findAllSavedPostsByUserId(profileUserId);
                 }
-            }else{
+            } else {
                 posts = postDAO.findByUserId(profileUserId);
                 saved = 0L;
             }
@@ -131,7 +131,7 @@ public class ProfileServlet extends HttpServlet {
 
             req.setAttribute("posts", postDTOs);
             req.setAttribute("postCount", postCount);
-            req.setAttribute("savedPostCount", postDAO.existsSavePostsByUserId(profileUserId) > 0 ? true : false) ;
+            req.setAttribute("savedPostCount", postDAO.existsSavePostsByUserId(profileUserId) > 0 ? true : false);
             req.setAttribute("isOwnProfile", isOwnProfile);
             req.setAttribute("categories", categoryDAOs);
             req.setAttribute("saved", saved == 1 ? true : false);
@@ -143,6 +143,7 @@ public class ProfileServlet extends HttpServlet {
             req.setAttribute("posts", postDTOs);
             req.setAttribute("postCount", 0);
             req.setAttribute("isOwnProfile", isOwnProfile);
+            req.setAttribute("savedPostCount", postDAO.existsSavePostsByUserId(profileUserId) > 0 ? true : false);
             req.setAttribute("categories", categoryDAOs);
             req.getRequestDispatcher("/profile.jsp").forward(req, resp);
         } catch (RuntimeException e) {
