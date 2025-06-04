@@ -81,7 +81,7 @@ public class PostServlet extends HttpServlet {
 
         Long userId = (Long) req.getSession().getAttribute("userId");
         if (userId == null) {
-            resp.sendRedirect("/wepProject_war_exploded/login.jsp");
+            resp.sendRedirect("/login");
             return;
         }
 

@@ -50,7 +50,7 @@ public class FeedServlet extends HttpServlet {
         Long userId = (Long) session.getAttribute("userId");
 
         if (userId == null) {
-            resp.sendRedirect("login.jsp");
+            resp.sendRedirect("login");
             return;
         }
 
