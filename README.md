@@ -4,6 +4,36 @@
 
 Annatoria is a web application for managing and sharing multimedia content, focusing on annotation, organization, and statistical analysis. It is inspired by platforms like Instagram and Unsplash, allowing users to upload images and videos, annotate them with metadata, organize content, view statistics, and engage socially through likes and comments.
 
+##Feed algorithm
+Implemented PageRank on an Undirected Graph Algorithm developed by Google. We generate posts as nodes with the purpose of "measuring" its relative importance within the set. An edge to a post counts as a vote of support. The PageRank of a post is defined recursively and depends on the number and PageRank metric of all pages that link to it ("incoming edges"). A post that is linked to by many posts with high PageRank receives a high rank itself. 2 posts have an edge between them if they have the same category or are posted by the same author.
+
+So, our iterative way sounds like this: (**pages** = **posts**)
+
+At **t = 0** an initial probability is assumed:
+
+![](docs/images/iterative.png)
+
+where user is the user that's calling the algorithm and p**i** is post i. 0 is page i at time 0 and **Score(u, p)** is definedat the bottom.
+
+![](docs/images/computation.png)
+
+d = usually 0.85 (probability to stop scrolling)
+N = number of posts
+L(p**j**) = number of edges linked to post **j**
+M(p**i**) = Set of posts that are linked to post **i**
+
+The algorithm iterates over all nodes of the graph until
+
+![](docs/images/until.png)
+
+epsilon - small constant
+for all i.
+
+![](docs/images/score1.png)
+![](docs/images/score2.png)
+
+PageRank: **https://en.wikipedia.org/wiki/PageRank**
+
 ## Features
 
 - **Account Management**: Create accounts, log in, and delete accounts with authentication.
@@ -37,19 +67,13 @@ Annatoria is a web application for managing and sharing multimedia content, focu
   - **Data Export**: Export statistics in CSV and SVG formats (Medium Priority)
   - **RSS Feed**: Generate feed for updates (Low Priority)
 
-### Performance Requirements
-
-- Feed loading within 3 seconds
-- Visible upload progress for files over 50MB
-- Statistics generation within 5 seconds
-- Support at least 100 concurrent users and 10,000 posts
 
 ### Design Constraints
 
 - **Technologies**:
   - **Backend**: Java Servlets, JSP
   - **Frontend**: HTML5, CSS3, JavaScript
-  - **Database**: ORACLE
+  - **Database**: ORACLE 23ai
   - **Server**: Apache Tomcat
 - **Security**:
   - Validate all user inputs
@@ -73,7 +97,7 @@ Annatoria is a web application for managing and sharing multimedia content, focu
 
 ## Contributing
 
-Developed by Popa David-Tudor and Iancu Stefan Teodor for academic purposes. Submit pull requests or open issues for suggestions.
+Developed by Popa David-Tudor and Iancu Stefan-Teodor for academic purposes. Submit pull requests or open issues for suggestions.
 
 ## License
 
