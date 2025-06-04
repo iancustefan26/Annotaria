@@ -650,3 +650,16 @@ $(document).ready(function() {
 
   setInterval(loadLeaderboard, 5 * 60 * 1000);
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+  const mobileLeaderboard = document.querySelector('.mobile-leaderboard');
+  const leaderboardHeader = mobileLeaderboard?.querySelector('h3');
+
+  if (leaderboardHeader) {
+    leaderboardHeader.addEventListener('click', function() {
+      mobileLeaderboard.classList.toggle('collapsed');
+    });
+
+    mobileLeaderboard.classList.add('collapsed');
+  }
+});
