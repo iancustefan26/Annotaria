@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>README</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<h1 id="annatoria">Annatoria</h1>
+<h2 id="overview">Overview</h2>
+<p>Annatoria is a web application for managing and sharing multimedia
+content, focusing on annotation, organization, and statistical analysis.
+It is inspired by platforms like Instagram and Unsplash, allowing users
+to upload images and videos, annotate them with metadata, organize
+content, view statistics, and engage socially through likes and
+comments.</p>
+<h2 id="feed-algorithm">Feed algorithm</h2>
+<p>Implemented PageRank on an Undirected Graph Algorithm developed by
+Google. We generate posts as nodes with the purpose of “measuring” its
+relative importance within the set. An edge to a post counts as a vote
+of support. The PageRank of a post is defined recursively and depends on
+the number and PageRank metric of all pages that link to it (“incoming
+edges”). A post that is linked to by many posts with high PageRank
+receives a high rank itself. 2 posts have an edge between them if they
+have the same category or are posted by the same author.</p>
+<p>So, our iterative way sounds like this: (<strong>pages</strong> =
+<strong>posts</strong>)</p>
+<p>At <strong>t = 0</strong> an initial probability is assumed:</p>
+<p><img src="docs/images/iterative.png" /></p>
+<p>where user is the user that’s calling the algorithm and
+p<strong>i</strong> is post i. 0 is page i at time 0 and
+<strong>Score(u, p)</strong> is definedat the bottom.</p>
+<p><img src="docs/images/computation.png" /></p>
+<p>d = usually 0.85 (probability to stop scrolling) N = number of posts
+L(p<strong>j</strong>) = number of edges linked to post
+<strong>j</strong> M(p<strong>i</strong>) = Set of posts that are linked
+to post <strong>i</strong></p>
+<p>The algorithm iterates over all nodes of the graph until</p>
+<p><img src="docs/images/until.png" /></p>
+<p>epsilon - small constant for all i.</p>
+<p><img src="docs/images/score1.png" /> <img
+src="docs/images/score2.png" /></p>
+<figure>
+<img src="docs/images/example.svg" alt="Example" />
+<figcaption aria-hidden="true">Example</figcaption>
+</figure>
+<p>PageRank: <strong>https://en.wikipedia.org/wiki/PageRank</strong></p>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>Account Management</strong>: Create accounts, log in, and
+delete accounts with authentication.</li>
+<li><strong>Multimedia Upload</strong>: Upload images and videos (JPG,
+PNG, MP4, AVI) with a 50MB file size limit.</li>
+<li><strong>Content Annotation</strong>: Add descriptions, categories,
+creation years, and up to 50 tags per post.</li>
+<li><strong>Personalized Feed</strong>: View content based on user
+preferences and likes, with sorting and filtering.</li>
+<li><strong>Social Interaction</strong>: Like and comment on posts, and
+view other users’ profiles.</li>
+<li><strong>Statistics Dashboard</strong>: View insights on liked and
+commented posts, active users, and export data in CSV and SVG
+formats.</li>
+<li><strong>RSS Feed</strong>: Generate feeds for news and trends.</li>
+</ul>
+<h2 id="system-requirements">System Requirements</h2>
+<h3 id="functional-requirements">Functional Requirements</h3>
+<ul>
+<li><strong>AUTH Module</strong>:
+<ul>
+<li><strong>Account Creation</strong>: Create accounts with unique
+username and valid email (High Priority)</li>
+<li><strong>Login</strong>: Authenticate with username and password
+(High Priority)</li>
+<li><strong>Account Deletion</strong>: Delete accounts with confirmation
+and data removal (Medium Priority)</li>
+</ul></li>
+<li><strong>POSTS Module</strong>:
+<ul>
+<li><strong>Multimedia Upload</strong>: Upload files with format and
+size validation (High Priority)</li>
+<li><strong>Post Annotation</strong>: Add metadata to posts (High
+Priority)</li>
+<li><strong>Import/Export Favorite Posts</strong>: Support JSON and XML
+formats (Low Priority)</li>
+</ul></li>
+<li><strong>FEED Module</strong>:
+<ul>
+<li><strong>Personalized Feed</strong>: Generate feed based on like
+history (High Priority)</li>
+<li><strong>Sorting and Filtering</strong>: Sort by category, year, and
+tags (High Priority)</li>
+<li><strong>Social Interaction</strong>: Like and comment on posts (High
+Priority)</li>
+<li><strong>Profile Viewing</strong>: Visit other users’ profiles
+(Medium Priority)</li>
+</ul></li>
+<li><strong>STATISTICS Module</strong>:
+<ul>
+<li><strong>Liked Posts Statistics</strong>: Display most liked post
+(Medium Priority)</li>
+<li><strong>Category Statistics</strong>: Display most commented post
+and active user (Medium Priority)</li>
+<li><strong>Data Export</strong>: Export statistics in CSV and SVG
+formats (Medium Priority)</li>
+<li><strong>RSS Feed</strong>: Generate feed for updates (Low
+Priority)</li>
+</ul></li>
+</ul>
+<h3 id="design-constraints">Design Constraints</h3>
+<ul>
+<li><strong>Technologies</strong>:
+<ul>
+<li><strong>Backend</strong>: Java Servlets, JSP</li>
+<li><strong>Frontend</strong>: HTML5, CSS3, JavaScript</li>
+<li><strong>Database</strong>: ORACLE 23ai</li>
+<li><strong>Server</strong>: Apache Tomcat</li>
+</ul></li>
+<li><strong>Security</strong>:
+<ul>
+<li>Validate all user inputs</li>
+<li>Use session-based authentication</li>
+<li>Implement CSRF protection</li>
+<li>Validate file uploads</li>
+</ul></li>
+<li><strong>Standards</strong>:
+<ul>
+<li>Comply with W3C standards</li>
+<li>Follow accessibility guidelines</li>
+<li>Ensure responsive design</li>
+<li>Support cross-browser compatibility (Chrome, Firefox, Safari,
+Edge)</li>
+</ul></li>
+</ul>
+<h2 id="usage">Usage</h2>
+<ul>
+<li><strong>Sign Up/Login</strong>: Create or log in to an account.</li>
+<li><strong>Upload Content</strong>: Add images or videos and annotate
+with metadata.</li>
+<li><strong>Explore Feed</strong>: Browse, like, comment, and filter
+content.</li>
+<li><strong>View Statistics</strong>: Access insights and export
+data.</li>
+<li><strong>Manage Profile</strong>: Update profile and view posts.</li>
+</ul>
+<h2 id="contributing">Contributing</h2>
+<p>Developed by Popa David-Tudor and Iancu Stefan-Teodor for academic
+purposes. Submit pull requests or open issues for suggestions.</p>
+<h2 id="license">License</h2>
+<p>For academic use only, not licensed for commercial purposes.</p>
+<h2 id="document-information">Document Information</h2>
+<ul>
+<li><strong>Version</strong>: 1.0</li>
+<li><strong>Date</strong>: June 2025</li>
+<li><strong>Status</strong>: BETA</li>
+</ul>
+<p><strong>Classification</strong>: Academic Project</p>
+</body>
+</html>
