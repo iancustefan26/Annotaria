@@ -4,7 +4,8 @@
 
 Annatoria is a web application for managing and sharing multimedia content, focusing on annotation, organization, and statistical analysis. It is inspired by platforms like Instagram and Unsplash, allowing users to upload images and videos, annotate them with metadata, organize content, view statistics, and engage socially through likes and comments.
 
-##Feed algorithm
+## Feed algorithm
+
 Implemented PageRank on an Undirected Graph Algorithm developed by Google. We generate posts as nodes with the purpose of "measuring" its relative importance within the set. An edge to a post counts as a vote of support. The PageRank of a post is defined recursively and depends on the number and PageRank metric of all pages that link to it ("incoming edges"). A post that is linked to by many posts with high PageRank receives a high rank itself. 2 posts have an edge between them if they have the same category or are posted by the same author.
 
 So, our iterative way sounds like this: (**pages** = **posts**)
@@ -31,6 +32,8 @@ for all i.
 
 ![](docs/images/score1.png)
 ![](docs/images/score2.png)
+
+![Example](docs/images/example.svg)
 
 PageRank: **https://en.wikipedia.org/wiki/PageRank**
 
