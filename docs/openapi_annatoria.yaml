@@ -1,0 +1,391 @@
+openapi: 3.0.0
+info:
+  title: Generated API from Servlets
+  version: 1.0.0
+servers:
+- url: http://localhost:8080
+paths:
+  /categories:
+    get:
+      summary: GET /categories from CategoryServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+  /comment:
+    get:
+      summary: GET /comment from CommentServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+      parameters:
+      - name: id
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: postId
+        in: query
+        required: false
+        schema:
+          type: string
+    post:
+      summary: POST /comment from CommentServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+      parameters:
+      - name: id
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: postId
+        in: query
+        required: false
+        schema:
+          type: string
+    delete:
+      summary: DELETE /comment from CommentServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+      parameters:
+      - name: id
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: postId
+        in: query
+        required: false
+        schema:
+          type: string
+  /export-saved-posts:
+    get:
+      summary: GET /export-saved-posts from ExportSavedPostsServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+      parameters:
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+  /feed:
+    get:
+      summary: GET /feed from FeedServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+      parameters:
+      - name: reset
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: categoryId
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: namedTagId
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: creationYear
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: string
+  /import-saved-posts:
+    post:
+      summary: POST /import-saved-posts from ImportSavedPostsServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+  /import:
+    post:
+      summary: POST /import from ImportServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+      parameters:
+      - name: mediaType
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: categoryId
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: description
+        in: query
+        required: false
+        schema:
+          type: string
+  /like:
+    post:
+      summary: POST /like from LikeServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+  /login:
+    get:
+      summary: GET /login from LoginServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: POST /login from LoginServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+  /logout:
+    get:
+      summary: GET /logout from LogoutServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: POST /logout from LogoutServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+  /namedTags:
+    get:
+      summary: GET /namedTags from NamedTagServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+  /post:
+    get:
+      summary: GET /post from PostServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+      parameters:
+      - name: id
+        in: query
+        required: false
+        schema:
+          type: string
+    delete:
+      summary: DELETE /post from PostServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+      parameters:
+      - name: id
+        in: query
+        required: false
+        schema:
+          type: string
+  /profile:
+    get:
+      summary: GET /profile from ProfileServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+      parameters:
+      - name: userId
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: saved
+        in: query
+        required: false
+        schema:
+          type: string
+    delete:
+      summary: DELETE /profile from ProfileServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+      parameters:
+      - name: userId
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: saved
+        in: query
+        required: false
+        schema:
+          type: string
+  /rss:
+    get:
+      summary: GET /rss from RssServerlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+  /save:
+    post:
+      summary: POST /save from SavePost.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+  /scholarly:
+    get:
+      summary: GET /scholarly from ScholarlyDocumentServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: POST /scholarly from ScholarlyDocumentServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+  /signup:
+    get:
+      summary: GET /signup from SignupServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: POST /signup from SignupServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+  /statistics:
+    get:
+      summary: GET /statistics from StatisticsServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+      parameters:
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+  /users:
+    get:
+      summary: GET /users from UsersServlet.java
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+      parameters:
+      - name: term
+        in: query
+        required: false
+        schema:
+          type: string
