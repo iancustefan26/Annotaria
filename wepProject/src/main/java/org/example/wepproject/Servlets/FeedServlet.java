@@ -50,7 +50,7 @@ public class FeedServlet extends HttpServlet {
         Long userId = (Long) session.getAttribute("userId");
 
         if (userId == null) {
-            resp.sendRedirect("login.jsp");
+            resp.sendRedirect("login");
             return;
         }
 
@@ -156,7 +156,7 @@ public class FeedServlet extends HttpServlet {
         } catch (SQLException e) {
             System.err.println("FeedServlet: SQL error: " + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Database error: " + e.getMessage()));
+            objectMapper.writeValue(resp.getWriter(), new ApiDTO("error", "Posts not found"));
         } catch (NumberFormatException e) {
             System.err.println("FeedServlet: Invalid parameter format: " + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
