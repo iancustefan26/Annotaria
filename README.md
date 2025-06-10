@@ -103,7 +103,7 @@ PageRank: **https://en.wikipedia.org/wiki/PageRank**
 Developed by Popa David-Tudor and Iancu Stefan-Teodor for academic purposes. Submit pull requests or open issues for suggestions.
 
 ## License
-
+MIT License
 For academic use only, not licensed for commercial purposes.
 
 ## Document Information
