@@ -6,9 +6,10 @@ Annatoria is a web application for managing and sharing multimedia content, focu
 
 ## Feed algorithm
 
+So PageRank value is basically a metric that let us sort the posts for the user.
+
 **Intuition:** A post that is linked to by many posts with high PageRank receives a high rank itself. 2 posts have an edge between them if they have something in common (the same category or are posted by the same author). Imagine these circles as posts, and the edges between them as relationships (same-user post, tagged users in comments etc.)
 
-So PageRank value is basically a metric that let us sort the posts for the user.
 Implemented PageRank, an Undirected Graph Algorithm developed by Google. We generate posts as nodes with the purpose of "measuring" its relative importance within the set. An edge to a post counts as a vote of support. The PageRank of a post is defined recursively and depends on the PageRank metric of all pages that link to it ("incoming edges").
 
 ![Example](docs/images/example.svg)
