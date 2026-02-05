@@ -6,9 +6,10 @@ Annatoria is a web application for managing and sharing multimedia content, focu
 
 ## Feed algorithm
 
-Implemented PageRank, an Undirected Graph Algorithm developed by Google. We generate posts as nodes with the purpose of "measuring" its relative importance within the set. An edge to a post counts as a vote of support. The PageRank of a post is defined recursively and depends on the number and PageRank metric of all pages that link to it ("incoming edges"). A post that is linked to by many posts with high PageRank receives a high rank itself. 2 posts have an edge between them if they have the same category or are posted by the same author.
+**Intuition:** A post that is linked to by many posts with high PageRank receives a high rank itself. 2 posts have an edge between them if they have something in common (the same category or are posted by the same author). Imagine these circles as posts, and the edges between them as relationships (same-user post, tagged users in comments etc.)
 
-Imagine these circles as posts, and the edges between them as relationships (same-user post, tagged users in comments etc.)
+So PageRank value is basically a metric that let us sort the posts for the user.
+Implemented PageRank, an Undirected Graph Algorithm developed by Google. We generate posts as nodes with the purpose of "measuring" its relative importance within the set. An edge to a post counts as a vote of support. The PageRank of a post is defined recursively and depends on the PageRank metric of all pages that link to it ("incoming edges").
 
 ![Example](docs/images/example.svg)
 
@@ -20,7 +21,7 @@ At **t = 0** an initial probability is assumed:
 
 ![](docs/images/iterative1.png)
 
-where user is the user that's calling the algorithm and p**i** is post i. 0 is page i at time 0 and **Score(u, p)** is definedat the bottom.
+where user is the user that's calling the algorithm and p**i** is post i. 0 is page i at time 0 and **Score(u, p)** (how much the user **u** likes post **p**) is defined at the bottom.
 
 ![](docs/images/computation.png)
 
